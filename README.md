@@ -25,6 +25,31 @@ This is the core of the application, designed to build specific skills:
 *   **Graduated Difficulty**: Starts with shorter words (5 letters) and automatically increases the length as you solve them correctly. Your level is saved between sessions, so you can pick up where you left off.
 *   **Suffix Focus**: Trains you to recognize common suffixes like `-ING`, `-TION`, `-NESS`, etc. The app presents words ending in these suffixes to help you learn to "chunk" words mentally.
 *   **Prefix Focus**: Similar to Suffix Focus, but targets common prefixes like `UN-`, `RE-`, `DIS-`, etc.
+*   **Digraphs**: Practice recognizing consonant pairs like `TH`, `SH`, `CH`, `PH`, `WH`.
+*   **Trigraphs**: Train on consonant clusters like `STR`, `THR`, `SHR`, `TCH`, `DGE`.
+*   **Vowel Clusters**: Focus on common vowel combinations like `IE`, `EA`, `OU`, `EE`, `OO`.
+*   **Consonant Blends**: Master common consonant blends like `ST`, `BL`, `BR`, `CL`, `FL`.
+
+### 3. Train Me (Campaign)
+A gamified campaign mode that takes you through all training categories in a progressive 8-stage journey:
+
+1. **Warm Up** - 5-letter words (5 words)
+2. **Suffixes** - Common suffix patterns (5 words)
+3. **Prefixes** - Common prefix patterns (5 words)
+4. **Digraphs** - Consonant pairs (5 words)
+5. **Vowel Clusters** - Vowel combinations (5 words)
+6. **Consonant Blends** - Consonant blends (5 words)
+7. **Trigraphs** - Consonant clusters (5 words)
+8. **Boss Level** - 6-letter words (10 words)
+
+**Features:**
+*   **Scoring System**: Earn 100 base points per word, plus time bonuses up to 150 points for fast solves
+*   **Leaderboard**: Top 10 scores with player names and dates
+*   **Progress Saving**: Resume your campaign where you left off
+*   **Stage Hints**: See the target patterns before each stage
+
+### 4. Leaderboard
+View the top 10 campaign scores with player names and completion dates.
 
 **Key Features:**
 *   **Real-time Feedback**: Used letters are dimmed in the anagram as you type.
