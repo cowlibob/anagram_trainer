@@ -12,6 +12,14 @@ module AnagramTrainer
       @session_attempts = []
     end
 
+    private
+
+    def async_sleep(seconds)
+      sleep seconds
+    end
+
+    public
+
     def start
       UI.clear_screen
       UI.puts UI.bold(UI.cyan("Welcome to Anagram Trainer!"))
@@ -20,8 +28,10 @@ module AnagramTrainer
         UI.puts "\nMenu:"
         UI.puts "1. Play (Random)"
         UI.puts "2. Training Mode"
-        UI.puts "3. View Report"
-        UI.puts "4. Exit"
+        UI.puts "3. Train Me (Campaign)"
+        UI.puts "4. Leaderboard"
+        UI.puts "5. View Report"
+        UI.puts "6. Exit"
         choice = UI.read_key
         # Handle if read_key returns a symbol (like :esc) or a char
         choice = choice.to_s
@@ -32,8 +42,12 @@ module AnagramTrainer
         when "2"
           training_menu
         when "3"
+          run_campaign
+        when "4"
+          show_leaderboard
+        when "5"
           show_report
-        when "4", "esc"
+        when "6", "esc"
           show_session_summary
           UI.puts "Goodbye!"
           break
@@ -45,7 +59,196 @@ module AnagramTrainer
 
     private
 
-    def play_round(target_word = nil, callback = nil)
+    def run_campaign
+      # Load progress or start new
+      progress = @store.load_campaign_progress
+      if progress
+        UI.clear_screen
+        UI.puts UI.bold(UI.cyan("Resume Campaign?"))
+        UI.puts "Stage: #{AnagramTrainer::Trainer::CAMPAIGN_STAGES[progress[:stage_index]][:name]}"
+        UI.puts "Score: #{progress[:score]}"
+        UI.puts "\n[y] Resume  [n] New Game"
+        choice = UI.read_key
+        if choice.to_s.downcase == 'n'
+          progress = nil
+        end
+      end
+
+      start_stage = progress ? progress[:stage_index] : 0
+      start_score = progress ? progress[:score] : 0
+      
+      campaign = @trainer.start_campaign(start_stage: start_stage, start_score: start_score)
+      
+      loop do
+        if campaign.completed?
+          show_leaderboard_entry(campaign.score)
+          break
+        end
+
+        stage = campaign.current_stage
+        
+        # Show stage intro if starting new stage
+        if campaign.words_remaining == stage[:count]
+          UI.clear_screen
+          UI.puts UI.bold(UI.cyan("--- Stage #{campaign.stage_index + 1}: #{stage[:name]} ---"))
+          
+          # Show hints if available
+          hints = @trainer.hints(stage[:mode])
+          if hints.any?
+            UI.puts "\nLook for: #{UI.yellow(hints.join(', '))}"
+          end
+          
+          UI.puts "\nGet ready..."
+          async_sleep 2
+        end
+
+        word = campaign.next_word
+        if word.nil?
+          UI.puts UI.red("Error: No word found for stage #{stage[:name]}")
+          async_sleep 2
+          break
+        end
+
+        # Custom play_round for campaign to show score/progress
+        UI.clear_screen
+        UI.puts "#{UI.cyan(stage[:name])} | Score: #{UI.yellow(campaign.score)} | Remaining: #{campaign.words_remaining}"
+        
+        start_time = Time.now
+        result = play_round(word)
+        duration = Time.now - start_time
+
+        if result == :solved
+          success_data = campaign.record_success(duration)
+          
+          UI.puts "\nPoints: #{success_data[:points]}"
+          if success_data[:points] > 100
+            UI.puts UI.yellow("SPEED BONUS! +#{success_data[:points] - 100}") 
+          end
+          
+          @store.save_campaign_progress(campaign.stage_index, campaign.score)
+          
+          if success_data[:stage_complete]
+            UI.puts UI.bold(UI.green("\n*** STAGE COMPLETE! ***"))
+            async_sleep 2
+          else
+            async_sleep 1
+          end
+        elsif result == :esc
+          # Player exited - offer to save score to leaderboard
+          if campaign.score > 0
+            show_leaderboard_entry(campaign.score, partial: true)
+          end
+          break
+        end
+      end
+    end
+
+    def show_leaderboard_entry(score, partial: false)
+      UI.clear_screen
+      if partial
+        UI.puts UI.bold(UI.yellow("Campaign Ended"))
+        UI.puts "Your Score: #{UI.bold(UI.green(score.to_s))}"
+      else
+        UI.puts UI.bold(UI.yellow("*** CAMPAIGN COMPLETE! ***"))
+        UI.puts "Final Score: #{UI.bold(UI.green(score.to_s))}"
+      end
+      
+      # Check if score qualifies for leaderboard
+      leaderboard = @store.get_leaderboard
+      qualifies = leaderboard.length < 10 || score > leaderboard.last[:score]
+      
+      if qualifies
+        UI.puts "\n#{UI.bold(UI.cyan('You made the leaderboard!'))}"
+        UI.puts "Enter your name (max 20 chars):"
+        UI.print "> "
+        
+        name = ""
+        loop do
+          key = UI.read_key
+          if key == "\r" || key == "\n"
+            break if name.length > 0
+          elsif key == "\u007F" || key == "\b"
+            if name.length > 0
+              name = name[0...-1]
+              UI.print "\b \b"
+            end
+          elsif key.is_a?(String) && key =~ /[a-zA-Z0-9 ]/ && name.length < 20
+            name += key
+            UI.print key
+          end
+        end
+        
+        @store.save_leaderboard_entry(name, score)
+      else
+        UI.puts "\n#{UI.dim('Score did not make the top 10.')}"
+      end
+      
+      # Show leaderboard
+      UI.clear_screen
+      UI.puts UI.bold(UI.cyan("=== LEADERBOARD ==="))
+      leaderboard = @store.get_leaderboard
+      leaderboard.each_with_index do |entry, i|
+        rank = "#{i + 1}."
+        name_display = entry[:name].ljust(20)
+        score_display = entry[:score].to_s.rjust(6)
+        
+        # Format date as DD/MM/YYYY
+        begin
+          require 'date'
+          date = DateTime.parse(entry[:date].to_s)
+          date_display = date.strftime("%d/%m/%Y")
+        rescue
+          date_display = "Unknown"
+        end
+        
+        if qualifies && entry[:name] == name && entry[:score] == score
+          UI.puts UI.bold(UI.yellow("#{rank} #{name_display} #{score_display}  #{date_display}"))
+        else
+          UI.puts "#{rank} #{name_display} #{score_display}  #{UI.dim(date_display)}"
+        end
+      end
+      
+      unless partial
+        UI.puts "\nCongratulations! You are a master anagram solver!"
+      end
+      UI.puts "\nPress any key to continue..."
+      UI.read_key
+      # Reset progress
+      @store.save_campaign_progress(0, 0)
+    end
+
+    def show_leaderboard
+      UI.clear_screen
+      UI.puts UI.bold(UI.cyan("=== LEADERBOARD ==="))
+      
+      leaderboard = @store.get_leaderboard
+      
+      if leaderboard.empty?
+        UI.puts "\nNo scores yet. Complete the Train Me campaign to get on the board!"
+      else
+        leaderboard.each_with_index do |entry, i|
+          rank = "#{i + 1}.".ljust(4)
+          name_display = entry[:name].ljust(20)
+          score_display = entry[:score].to_s.rjust(6)
+          
+          # Format date as DD/MM/YYYY
+          begin
+            require 'date'
+            date = DateTime.parse(entry[:date].to_s)
+            date_display = date.strftime("%d/%m/%Y")
+          rescue
+            date_display = "Unknown"
+          end
+          
+          UI.puts "#{rank}#{name_display} #{score_display}  #{UI.dim(date_display)}"
+        end
+      end
+      
+      UI.puts "\nPress any key to return..."
+      UI.read_key
+    end
+
+    def play_round(target_word = nil)
       target_word ||= @dictionary.random_word
       
       scrambled = target_word.chars.shuffle.join
@@ -125,11 +328,10 @@ module AnagramTrainer
 
             @store.add_attempt(target_word, duration, true, attempts)
             record_session_attempt(target_word, duration, true, attempts)
-            callback.call(true) if callback
             return :solved
           elsif guess.length != target_word.length
             UI.puts UI.red("\nLength mismatch! Word is #{target_word.length} letters long.")
-            sleep 1
+            async_sleep 1
           else
             feedback = UI.feedback(guess, target_word)
             previous_guesses << feedback
@@ -243,7 +445,11 @@ module AnagramTrainer
         UI.puts "1. Graduated Difficulty (Level Up!)"
         UI.puts "2. Suffix Focus (-ING, -TION, etc.)"
         UI.puts "3. Prefix Focus (UN-, RE-, etc.)"
-        UI.puts "4. Back to Main Menu"
+        UI.puts "4. Digraphs (TH, HE, etc.)"
+        UI.puts "5. Trigraphs (THE, AND, etc.)"
+        UI.puts "6. Vowel Clusters (EA, OU, etc.)"
+        UI.puts "7. Consonant Blends (ST, BL, etc.)"
+        UI.puts "8. Back to Main Menu"
         choice = UI.read_key
         choice = choice.to_s
 
@@ -254,11 +460,19 @@ module AnagramTrainer
           run_training(:suffix)
         when "3"
           run_training(:prefix)
-        when "4", "esc"
+        when "4"
+          run_training(:digraph)
+        when "5"
+          run_training(:trigraph)
+        when "6"
+          run_training(:vowel_cluster)
+        when "7"
+          run_training(:consonant_blend)
+        when "8", "esc"
           break
         else
           UI.puts UI.red("Invalid choice.")
-          sleep 1
+          async_sleep 1
         end
       end
     end
@@ -288,9 +502,19 @@ module AnagramTrainer
       unless input.empty?
         @trainer.set_level(input.to_i)
         UI.puts UI.green("Level set to #{@trainer.current_level}")
-        sleep 1
+        async_sleep 1
       end
       
+      # Display hints
+      hints = @trainer.hints(mode)
+      if hints.any?
+        UI.clear_screen
+        UI.puts UI.bold(UI.cyan("--- Training Hints ---"))
+        UI.puts "Look for these common patterns:"
+        UI.puts UI.yellow(hints.join(", "))
+        UI.puts "\nPress any key to start..."
+        UI.read_key
+      end
       
       # Pre-fetch first word
       word = case mode
@@ -301,11 +525,19 @@ module AnagramTrainer
                @trainer.random_suffix_word
              when :prefix
                @trainer.random_prefix_word
+             when :digraph
+               @trainer.random_digraph_word
+             when :trigraph
+               @trainer.random_trigraph_word
+             when :vowel_cluster
+               @trainer.random_vowel_cluster_word
+             when :consonant_blend
+               @trainer.random_consonant_blend_word
              end
 
       if word.nil?
         UI.puts UI.red("No words found for this mode!")
-        sleep 2
+        async_sleep 2
         return
       end
 
@@ -318,19 +550,28 @@ module AnagramTrainer
           @trainer.random_suffix_word
         when :prefix
           @trainer.random_prefix_word
+        when :digraph
+          @trainer.random_digraph_word
+        when :trigraph
+          @trainer.random_trigraph_word
+        when :vowel_cluster
+          @trainer.random_vowel_cluster_word
+        when :consonant_blend
+          @trainer.random_consonant_blend_word
         end
         
-        callback = ->(solved) {
-          result = @trainer.record_result(solved)
-          if result == :level_up
+        result = play_round(word)
+        
+        if result == :solved
+          streak_result = @trainer.record_result(true)
+          if streak_result == :level_up
             UI.puts UI.bold(UI.yellow("\n*** LEVEL UP! Increasing word length! ***"))
-            sleep 2
+            async_sleep 2
           end
-        }
-
-        result = play_round(word, callback)
-        # If user pressed Esc to stop, exit training
-        break if result == :esc
+        elsif result == :esc
+          @trainer.record_result(false)
+          break
+        end
         
         # Move to next word (already pre-fetched)
         
@@ -339,7 +580,7 @@ module AnagramTrainer
         # Check if we ran out of words
         if word.nil?
           UI.puts UI.red("No more words found for this mode!")
-          sleep 2
+          async_sleep 2
           break
         end
         
@@ -355,26 +596,57 @@ module AnagramTrainer
     end
 
     def get_definition(word)
-      require 'net/http'
       require 'json'
-      
-      uri = URI("https://api.dictionaryapi.dev/api/v2/entries/en/#{word}")
-      response = Net::HTTP.get_response(uri)
-      
-      if response.is_a?(Net::HTTPSuccess)
-        data = JSON.parse(response.body)
-        if data.is_a?(Array) && data.first && data.first['meanings']
-          # Get first definition from first meaning
-          first_meaning = data.first['meanings'].first
-          if first_meaning && first_meaning['definitions'] && first_meaning['definitions'].first
-            definition = first_meaning['definitions'].first['definition']
-            part_of_speech = first_meaning['partOfSpeech']
-            return "(#{part_of_speech}) #{definition}"
+      require 'js' if defined?(JS)
+
+      JS.global[:console].call(:log, "RUBY_PLATFORM: #{RUBY_PLATFORM}") if defined?(JS)
+
+      if RUBY_PLATFORM.include?('wasi')
+        require 'js'
+        JS.global[:console].call(:log, "get_definition: Using WASM/JS fetch path for: #{word}")
+        begin
+          promise = JS.global.fetch("https://api.dictionaryapi.dev/api/v2/entries/en/#{word}")
+          response = promise.await
+          
+          if response[:ok]
+            json_promise = response.json
+            json_obj = json_promise.await
+            json_str = JS.global[:JSON].stringify(json_obj).to_s
+            data = JSON.parse(json_str)
+            
+            if data.is_a?(Array) && data.first && data.first['meanings']
+              first_meaning = data.first['meanings'].first
+              if first_meaning && first_meaning['definitions'] && first_meaning['definitions'].first
+                return first_meaning['definitions'].first['definition']
+              end
+            end
           end
+          return "Definition not found."
+        rescue => e
+          return "Definition unavailable: #{e.message}"
+        end
+      else
+        # Native Ruby - use net/http
+        require 'js' if RUBY_PLATFORM.include?('wasi')
+        JS.global[:console].call(:log, "get_definition: Using native Ruby net/http path") if RUBY_PLATFORM.include?('wasi')
+        require 'net/http'
+        uri = URI("https://api.dictionaryapi.dev/api/v2/entries/en/#{word}")
+        response = Net::HTTP.get_response(uri)
+      
+        if response.is_a?(Net::HTTPSuccess)
+          data = JSON.parse(response.body)
+          if data.is_a?(Array) && data.first && data.first['meanings']
+            # Get first definition from first meaning
+            first_meaning = data.first['meanings'].first
+            if first_meaning && first_meaning['definitions'] && first_meaning['definitions'].first
+              definition = first_meaning['definitions'].first['definition']
+              part_of_speech = first_meaning['partOfSpeech']
+              return "(#{part_of_speech}) #{definition}"
+            end
+          end
+          "Definition not available."
         end
       end
-      
-      "Definition not available."
     rescue
       "Definition not available."
     end

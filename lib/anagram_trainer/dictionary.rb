@@ -50,6 +50,38 @@ module AnagramTrainer
       end
     end
 
+    def filter_by_digraph(digraphs)
+      return @digraph_words if @digraph_words
+      
+      @words.select do |w|
+        digraphs.any? { |d| w.downcase.include?(d.downcase) }
+      end
+    end
+
+    def filter_by_trigraph(trigraphs)
+      return @trigraph_words if @trigraph_words
+      
+      @words.select do |w|
+        trigraphs.any? { |t| w.downcase.include?(t.downcase) }
+      end
+    end
+
+    def filter_by_vowel_cluster(clusters)
+      return @vowel_cluster_words if @vowel_cluster_words
+      
+      @words.select do |w|
+        clusters.any? { |c| w.downcase.include?(c.downcase) }
+      end
+    end
+
+    def filter_by_consonant_blend(blends)
+      return @consonant_blend_words if @consonant_blend_words
+      
+      @words.select do |w|
+        blends.any? { |b| w.downcase.include?(b.downcase) }
+      end
+    end
+
     def word_exists?(word)
       @words.include?(word.downcase)
     end
@@ -59,6 +91,10 @@ module AnagramTrainer
     def load_filtered_lists
       suffix_file = File.join(@dict_dir, 'suffix_words.txt')
       prefix_file = File.join(@dict_dir, 'prefix_words.txt')
+      digraph_file = File.join(@dict_dir, 'digraph_words.txt')
+      trigraph_file = File.join(@dict_dir, 'trigraph_words.txt')
+      vowel_cluster_file = File.join(@dict_dir, 'vowel_cluster_words.txt')
+      consonant_blend_file = File.join(@dict_dir, 'consonant_blend_words.txt')
       
       if File.exist?(suffix_file)
         @suffix_words = File.readlines(suffix_file).map(&:strip).reject(&:empty?)
@@ -66,6 +102,22 @@ module AnagramTrainer
       
       if File.exist?(prefix_file)
         @prefix_words = File.readlines(prefix_file).map(&:strip).reject(&:empty?)
+      end
+
+      if File.exist?(digraph_file)
+        @digraph_words = File.readlines(digraph_file).map(&:strip).reject(&:empty?)
+      end
+
+      if File.exist?(trigraph_file)
+        @trigraph_words = File.readlines(trigraph_file).map(&:strip).reject(&:empty?)
+      end
+
+      if File.exist?(vowel_cluster_file)
+        @vowel_cluster_words = File.readlines(vowel_cluster_file).map(&:strip).reject(&:empty?)
+      end
+
+      if File.exist?(consonant_blend_file)
+        @consonant_blend_words = File.readlines(consonant_blend_file).map(&:strip).reject(&:empty?)
       end
     end
 

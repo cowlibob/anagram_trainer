@@ -1,7 +1,10 @@
 module AnagramTrainer
   class UI
-    require 'readline'
-    require 'io/console'
+    # Only require these in native Ruby, not in WASM
+    unless defined?(JS)
+      require 'readline'
+      require 'io/console'
+    end
 
     def self.puts(message)
       Kernel.puts(message)
