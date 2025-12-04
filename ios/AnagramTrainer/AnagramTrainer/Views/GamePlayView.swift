@@ -213,9 +213,11 @@ struct ResultView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text(word.uppercased())
-                .font(.title)
-                .foregroundColor(.blue)
+            if !solved {
+                Text(word.uppercased())
+                    .font(.title)
+                    .foregroundColor(.blue)
+            }
             
             if solved {
                 Text(String(format: "Time: %.1fs", time))
@@ -264,23 +266,35 @@ struct GuessView: View {
                 }
         } else {
             HStack(spacing: 2) {
-                ForEach(Array(guess.enumerated()), id: \.offset) { index, letter in
-                    // Cursor before this letter
-                    if index == cursorPosition {
-                        CursorView(visible: cursorVisible)
+                // Tappable area to move cursor to beginning
+                Color.clear
+                    .frame(width: 20, height: 30)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onTapPosition(0)
                     }
-                    
-                    // Letter
-                    Text(String(letter).uppercased())
-                        .font(.title)
-                        .fontWeight(.semibold)
-                        .foregroundColor(isSolved ? .green : .primary)
-                        .onTapGesture {
-                            onTapPosition(index)
+                
+                ForEach(Array(guess.enumerated()), id: \.offset) { index, letter in
+                    // Letter with overlay cursor
+                    ZStack(alignment: .leading) {
+                        // Cursor before this letter (overlay, no spacing)
+                        if index == cursorPosition {
+                            CursorView(visible: cursorVisible)
+                                .offset(x: -2) // Position at left edge
                         }
+                        
+                        // Letter
+                        Text(String(letter).uppercased())
+                            .font(.title)
+                            .fontWeight(.semibold)
+                            .foregroundColor(isSolved ? .green : .primary)
+                    }
+                    .onTapGesture {
+                        onTapPosition(index)
+                    }
                 }
                 
-                // Cursor at end
+                // Cursor at end (overlay after last letter)
                 if cursorPosition >= guess.count {
                     CursorView(visible: cursorVisible)
                 }
@@ -306,7 +320,7 @@ struct CursorView: View {
     var body: some View {
         Rectangle()
             .fill(Color.blue)
-            .frame(width: 2, height: 30)
+            .frame(width: 4, height: 30)
             .opacity(visible ? 1.0 : 0.2)
     }
 }

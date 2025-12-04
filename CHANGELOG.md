@@ -1,5 +1,40 @@
 # Changelog
 
+## [Unreleased] - iOS Native App - 2025-12-04
+
+### Added - iOS SwiftUI App
+- **Native iOS application** built with SwiftUI for iPhone and iPad
+- **Interactive cursor insertion**: Tap within guess to position cursor, insert letters at specific positions
+- **Letter toggle**: Tap used letters to remove them from guess
+- **Anagram filtering**: Automatically skips near-duplicate words (e.g., "share" and "shear")
+- **Animated blinking cursor** with Timer-based visibility for insertion point
+- **All 8 training modes**: Random, Graduated, Suffix Focus, Prefix Focus, Digraphs, Trigraphs, Vowel Clusters, Consonant Blends
+- **Campaign mode** with 16 progressive stages and scoring system
+- **Local leaderboard** with persistent high scores
+- **Tap-to-select interface**: Tap scrambled letters to build guess word
+- **Dynamic letter sizing**: Automatically scales for words 7-9+ letters to fit screen
+- **Definition fetching** from dictionaryapi.dev
+- **UserDefaults persistence** for campaign progress and leaderboard
+- **Timer tracking** for scoring bonuses
+- **Modern UI** with gradients, animations, and SwiftUI components
+
+### Fixed - iOS App
+- Skip/give up now shows correct word before advancing
+- Campaign success displays result screen properly
+- Quit campaign navigation returns to main menu
+- Clear button resets grey letter status
+- Repeated letters only dim tapped instance (position-based tracking)
+- Long words fit on screen with responsive sizing
+- MainMenuView import statement typo
+
+### Technical Details - iOS
+- **Architecture**: MVVM pattern with Combine
+- **iOS Target**: iOS 16.0+
+- **Components**: GameState, GameViewModel, CampaignViewModel, PersistenceManager
+- **Views**: MainMenuView, GamePlayView, CampaignView, TrainingMenuView, LeaderboardView
+- **Resources**: 7 dictionary text files bundled with app
+- **Project location**: `ios/AnagramTrainer/`
+
 All notable changes to this project will be documented in this file.
 
 ## [1.1.0] - 2025-11-29
