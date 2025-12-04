@@ -1,0 +1,4 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project AnagramTrainer.xcodeproj -scheme AnagramTrainer -destination "platform=iOS Simulator,name=iPhone 15" clean build
+
+2025-11-29 23:03:48.084 xcodebuild[9451:10779453] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.

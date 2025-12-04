@@ -1,0 +1,28 @@
+name: AnagramTrainer
+options:
+  bundleIdPrefix: com.anagram
+  deploymentTarget:
+    iOS: 16.0
+targets:
+  AnagramTrainer:
+    type: application
+    platform: iOS
+    sources:
+      - AnagramTrainer
+    resources:
+      - AnagramTrainer/Resources
+    info:
+      path: AnagramTrainer/Info.plist
+      properties:
+        CFBundleDisplayName: Anagram Trainer
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    settings:
+      PRODUCT_NAME: AnagramTrainer
+      PRODUCT_BUNDLE_IDENTIFIER: com.anagram.AnagramTrainer
+      SWIFT_VERSION: 5.9
+      TARGETED_DEVICE_FAMILY: 1
+      IPHONEOS_DEPLOYMENT_TARGET: 16.0
+      ENABLE_PREVIEWS: YES
+      DEVELOPMENT_ASSET_PATHS: ""
