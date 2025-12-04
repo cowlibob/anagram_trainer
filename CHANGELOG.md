@@ -16,6 +16,11 @@
 - **Definition fetching** from dictionaryapi.dev
 - **UserDefaults persistence** for campaign progress and leaderboard
 - **Timer tracking** for scoring bonuses
+- **Inactivity Hint System**:
+  - Automatically triggers after 15 seconds of inactivity
+  - Rearranges letters to group pattern (suffix/prefix/cluster)
+  - Animates pattern letters with bounce/scale effect
+  - Resets on interaction or new word
 - **Modern UI** with gradients, animations, and SwiftUI components
 
 ### Fixed - iOS App
@@ -26,6 +31,24 @@
 - Repeated letters only dim tapped instance (position-based tracking)
 - Long words fit on screen with responsive sizing
 - MainMenuView import statement typo
+- **Hint System Fixes**:
+  - Hint persists until new word loads (doesn't disappear on tap)
+  - Letters animate smoothly to new positions
+  - Tapping hint letters adds correct character regardless of display position
+  - Refactored letter buttons into standalone `LetterButtonView` component
+- **Letter Toggle Fixes**:
+  - Position-based tracking ensures tapped letter is the one that dims
+  - Duplicate letters (e.g., multiple 'E's) now highlight individually
+  - Tapping a used letter removes it from the guess
+- **Timer improvements**: Timer freezes at exact completion time instead of continuing to tick
+- **Mode switching**: Game state resets when switching between training modes
+
+### Refactored - iOS App
+- Extracted all view components into separate files in `Views/Components/`:
+  - `LetterButtonView`, `ScrambledWordView`, `GuessView`, `TimerView`, `CursorView`
+  - `GameResultView`, `CampaignGameView`, `CampaignResultView`, `CampaignCompleteView`
+  - `LeaderboardEntrySheet`, `LeaderboardRow`
+- Cleaned up `GamePlayView.swift`, `CampaignView.swift`, and `LeaderboardView.swift`
 
 ### Technical Details - iOS
 - **Architecture**: MVVM pattern with Combine

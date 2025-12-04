@@ -6,6 +6,18 @@ struct GamePlayView: View {
     let mode: TrainingMode
     @Environment(\.dismiss) private var dismiss
     @State private var showingResult = false
+    @State private var showHint = false
+    @State private var hintActivationTime: Date?
+    
+    private func resetHintTimer() {
+        // Only hide hint when truly resetting (new word)
+        hintActivationTime = Date()
+    }
+    
+    private func resetHintForNewWord() {
+        showHint = false
+        hintActivationTime = Date()
+    }
     
     var body: some View {
         VStack(spacing: 30) {
@@ -31,32 +43,63 @@ struct GamePlayView: View {
                 // Scrambled word display
                 ScrambledWordView(
                     scrambled: state.scrambledWord,
+                    currentGuess: state.currentGuess,
                     usedPositions: state.usedPositions,
-                    onLetterTap: { position, letter in
-                        viewModel.addLetter(at: position, letter: letter)
+                    mode: mode,
+                    targetWord: state.targetWord,
+                    showHint: showHint,
+                    onLetterAction: { originalIndex, letter in
+                        if state.usedPositions.contains(originalIndex) {
+                            // If already used, remove it (toggle off)
+                            viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles removal if present
+                        } else {
+                            // If not used, add it (toggle on)
+                            viewModel.addLetter(at: originalIndex, letter: letter)
+                        }
+                        resetHintTimer()
                     }
                 )
                 .padding(.horizontal)
                 
                 // Current guess with cursor
-                GuessView(
-                    guess: state.currentGuess,
-                    cursorPosition: state.cursorPosition,
-                    isSolved: state.isSolved,
-                    onTapPosition: { position in
-                        viewModel.setCursor(at: position)
+                VStack {
+                    GuessView(
+                        guess: state.currentGuess,
+                        cursorPosition: state.cursorPosition,
+                        isSolved: state.isSolved,
+                        onTapPosition: { position in
+                            viewModel.setCursor(at: position)
+                        }
+                    )
+                    .frame(height: 60)
+                }
+                .onChange(of: state.currentGuess) { _ in
+                    resetHintTimer()
+                }
+                .onChange(of: state.scrambledWord) { _ in
+                    // Reset hint completely when new word loads
+                    resetHintForNewWord()
+                }
+                .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
+                    // Check if 15 seconds have passed since last interaction
+                    if let activationTime = hintActivationTime,
+                       Date().timeIntervalSince(activationTime) >= 15.0,
+                       !state.currentGuess.isEmpty || state.usedPositions.isEmpty {
+                        showHint = true
                     }
-                )
-                .frame(height: 60)
+                }
+                .onAppear {
+                    resetHintForNewWord()
+                }
                 
                 // Timer
-                TimerView(startTime: state.startTime)
+                TimerView(startTime: state.startTime, endTime: state.endTime)
                 
                 Spacer()
                 
                 // Result display
                 if state.isComplete {
-                    ResultView(
+                    GameResultView(
                         word: state.targetWord,
                         solved: state.isSolved,
                         time: state.elapsedTime,
@@ -116,212 +159,11 @@ struct GamePlayView: View {
         }
         .navigationTitle(mode.rawValue)
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct ScrambledWordView: View {
-    let scrambled: String
-    let usedPositions: Set<Int>
-    let onLetterTap: (Int, Character) -> Void
-    
-    // Dynamic sizing based on word length
-    private var letterSize: CGFloat {
-        let length = scrambled.count
-        switch length {
-        case ...6: return 50
-        case 7: return 45
-        case 8: return 40
-        case 9: return 36
-        default: return 32
-        }
-    }
-    
-    private var letterSpacing: CGFloat {
-        scrambled.count > 7 ? 8 : 12
-    }
-    
-    var body: some View {
-        // Use wrapping layout for very long words
-        if scrambled.count > 8 {
-            VStack(spacing: 12) {
-                ForEach(Array(stride(from: 0, to: scrambled.count, by: 5)), id: \.self) { rowStart in
-                    HStack(spacing: letterSpacing) {
-                        ForEach(rowStart..<min(rowStart + 5, scrambled.count), id: \.self) { index in
-                            letterButton(for: Array(scrambled)[index], at: index)
-                        }
-                    }
-                }
-            }
-        } else {
-            HStack(spacing: letterSpacing) {
-                ForEach(Array(scrambled.enumerated()), id: \.offset) { index, letter in
-                    letterButton(for: letter, at: index)
-                }
+        .onAppear {
+            if viewModel.currentMode != mode || viewModel.gameState == nil {
+                viewModel.startNewRound(mode: mode)
             }
         }
-    }
-    
-    private func letterButton(for letter: Character, at position: Int) -> some View {
-        Button(action: {
-            onLetterTap(position, letter)
-        }) {
-            Text(String(letter).uppercased())
-                .font(.system(size: letterSize * 0.6, weight: .bold, design: .rounded))
-                .frame(width: letterSize, height: letterSize)
-                .background(
-                    Circle()
-                        .fill(usedPositions.contains(position) ?
-                              Color.gray.opacity(0.3) : Color.blue.opacity(0.2))
-                )
-                .foregroundColor(usedPositions.contains(position) ?
-                                .gray : .primary)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-struct TimerView: View {
-    let startTime: Date
-    @State private var elapsed: TimeInterval = 0
-    
-    let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
-    
-    var body: some View {
-        Text(String(format: "%.1fs", elapsed))
-            .font(.headline)
-            .foregroundColor(.secondary)
-            .onReceive(timer) { _ in
-                elapsed = Date().timeIntervalSince(startTime)
-            }
-    }
-}
-
-struct ResultView: View {
-    let word: String
-    let solved: Bool
-    let time: TimeInterval
-    let definition: String
-    let onNext: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: solved ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .font(.system(size: 60))
-                .foregroundColor(solved ? .green : .red)
-            
-            Text(solved ? "Correct!" : "The word was:")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            if !solved {
-                Text(word.uppercased())
-                    .font(.title)
-                    .foregroundColor(.blue)
-            }
-            
-            if solved {
-                Text(String(format: "Time: %.1fs", time))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            if !definition.isEmpty {
-                Text(definition)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding()
-            }
-            
-            Button(action: onNext) {
-                Text("Next Word")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue.gradient)
-                    .cornerRadius(15)
-            }
-            .padding(.horizontal)
-        }
-    }
-}
-
-struct GuessView: View {
-    let guess: String
-    let cursorPosition: Int
-    let isSolved: Bool
-    let onTapPosition: (Int) -> Void
-    
-    @State private var cursorVisible = true
-    
-    var body: some View {
-        if guess.isEmpty {
-            Text("Tap letters or type...")
-                .font(.title)
-                .foregroundColor(.secondary)
-                .onTapGesture {
-                    onTapPosition(0)
-                }
-        } else {
-            HStack(spacing: 2) {
-                // Tappable area to move cursor to beginning
-                Color.clear
-                    .frame(width: 20, height: 30)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onTapPosition(0)
-                    }
-                
-                ForEach(Array(guess.enumerated()), id: \.offset) { index, letter in
-                    // Letter with overlay cursor
-                    ZStack(alignment: .leading) {
-                        // Cursor before this letter (overlay, no spacing)
-                        if index == cursorPosition {
-                            CursorView(visible: cursorVisible)
-                                .offset(x: -2) // Position at left edge
-                        }
-                        
-                        // Letter
-                        Text(String(letter).uppercased())
-                            .font(.title)
-                            .fontWeight(.semibold)
-                            .foregroundColor(isSolved ? .green : .primary)
-                    }
-                    .onTapGesture {
-                        onTapPosition(index)
-                    }
-                }
-                
-                // Cursor at end (overlay after last letter)
-                if cursorPosition >= guess.count {
-                    CursorView(visible: cursorVisible)
-                }
-                
-                // Tappable area to move cursor to end
-                Color.clear
-                    .frame(width: 20, height: 30)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onTapPosition(guess.count)
-                    }
-            }
-            .onReceive(Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()) { _ in
-                cursorVisible.toggle()
-            }
-        }
-    }
-}
-
-struct CursorView: View {
-    let visible: Bool
-    
-    var body: some View {
-        Rectangle()
-            .fill(Color.blue)
-            .frame(width: 4, height: 30)
-            .opacity(visible ? 1.0 : 0.2)
     }
 }
 

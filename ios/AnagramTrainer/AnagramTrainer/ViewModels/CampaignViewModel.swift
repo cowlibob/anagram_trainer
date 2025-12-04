@@ -89,7 +89,7 @@ class CampaignViewModel: ObservableObject {
     
     func skipWord() {
         // Mark as complete to show result screen
-        gameState?.isComplete = true
+        gameState?.completeGame()
         lastRoundPoints = 0
     }
     
@@ -102,7 +102,7 @@ class CampaignViewModel: ObservableObject {
     
     private func recordSuccess(timeToken: TimeInterval) {
         // Mark as complete to show result screen
-        gameState?.isComplete = true
+        gameState?.completeGame()
         
         // Scoring: Base 100 + time bonus (max 150)
         let baseScore = 100
@@ -152,6 +152,32 @@ class CampaignViewModel: ObservableObject {
         guard var state = gameState, !state.isComplete else { return }
         state.togglePosition(position)
         gameState = state
+    }
+    
+    func addLetter(_ letter: Character) {
+        guard var state = gameState, !state.isComplete else { return }
+        
+        // Find first unused position for this letter
+        let scrambledArray = Array(state.scrambledWord)
+        if let index = scrambledArray.enumerated().first(where: { idx, char in
+            char == letter && !state.usedPositions.contains(idx)
+        })?.offset {
+            state.addLetterAt(position: index, letter: letter)
+            gameState = state
+        }
+    }
+    
+    func removeLetter(_ letter: Character) {
+        guard var state = gameState, !state.isComplete else { return }
+        
+        // Find last used position for this letter (to remove most recently added)
+        let scrambledArray = Array(state.scrambledWord)
+        if let positionToRemove = state.positionOrder.last(where: { pos in
+            scrambledArray[pos] == letter
+        }) {
+            state.togglePosition(positionToRemove)
+            gameState = state
+        }
     }
     
     func removeLetter() {

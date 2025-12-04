@@ -47,11 +47,11 @@ class GameViewModel: ObservableObject {
     }
     
     func skipWord() {
-        gameState?.isComplete = true
+        gameState?.completeGame()
     }
     
     private func handleSuccess() {
-        gameState?.isComplete = true
+        gameState?.completeGame()
         
         // Handle graduated mode level progression
         if currentMode == .graduated {
@@ -78,6 +78,33 @@ class GameViewModel: ObservableObject {
         guard var state = gameState, !state.isComplete else { return }
         state.togglePosition(position)
         gameState = state
+    }
+    
+    func addLetter(_ letter: Character) {
+        guard var state = gameState, !state.isComplete else { return }
+        
+        // Find first unused position for this letter
+        let scrambledArray = Array(state.scrambledWord)
+        if let index = scrambledArray.enumerated().first(where: { idx, char in
+            char == letter && !state.usedPositions.contains(idx)
+        })?.offset {
+            state.addLetterAt(position: index, letter: letter)
+            gameState = state
+        }
+    }
+    
+    func removeLetter(_ letter: Character) {
+        guard var state = gameState, !state.isComplete else { return }
+        
+        // Find last used position for this letter (to remove most recently added)
+        // We check positionOrder to find the last added instance of this letter
+        let scrambledArray = Array(state.scrambledWord)
+        if let positionToRemove = state.positionOrder.last(where: { pos in
+            scrambledArray[pos] == letter
+        }) {
+            state.togglePosition(positionToRemove)
+            gameState = state
+        }
     }
     
     func removeLetter() {

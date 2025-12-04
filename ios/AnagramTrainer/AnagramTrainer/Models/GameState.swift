@@ -9,6 +9,7 @@ struct GameState {
     var cursorPosition: Int = 0  // Track cursor position for insertion (0 = start, length = end)
     var attempts: Int = 0
     let startTime: Date = Date()
+    var endTime: Date?
     var isComplete: Bool = false
     
     var usedPositions: Set<Int> {
@@ -16,7 +17,7 @@ struct GameState {
     }
     
     var elapsedTime: TimeInterval {
-        Date().timeIntervalSince(startTime)
+        (endTime ?? Date()).timeIntervalSince(startTime)
     }
     
     var isSolved: Bool {
@@ -72,5 +73,9 @@ struct GameState {
         currentGuess = ""
         positionOrder.removeAll()
         cursorPosition = 0
+    }
+    mutating func completeGame() {
+        isComplete = true
+        endTime = Date()
     }
 }
