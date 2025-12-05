@@ -38,7 +38,15 @@ class GameViewModel: ObservableObject {
     func submitGuess() {
         guard var state = gameState else { return }
         
-        if state.isSolved {
+        // Validate if guess is a valid anagram
+        let (isValid, validationTime) = dictionary.isValidAnagram(
+            guess: state.currentGuess,
+            scrambledLetters: state.scrambledWord
+        )
+        
+        print("[PERFORMANCE] Guess validation took \(String(format: "%.4f", validationTime * 1000))ms")
+        
+        if isValid {
             handleSuccess()
         } else {
             state.attempts += 1

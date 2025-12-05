@@ -43,6 +43,9 @@
 - **Timer improvements**: Timer freezes at exact completion time instead of continuing to tick
 - **Mode switching**: Game state resets when switching between training modes
 - **Campaign completion flow**: After submitting score, navigates to leaderboard with back button to main menu
+- **Anagram validation**: Accepts any valid dictionary word using the same letters, not just the seeded word
+- **Hint improvements**: Green character hint now hides when all letters are used in guess
+- **Performance logging**: Console logs show guess validation time in milliseconds
 
 ### Refactored - iOS App
 - Extracted all view components into separate files in `Views/Components/`:

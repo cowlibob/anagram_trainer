@@ -93,7 +93,15 @@ class CampaignViewModel: ObservableObject {
     func submitGuess() {
         guard var state = gameState else { return }
         
-        if state.isSolved {
+        // Validate if guess is a valid anagram
+        let (isValid, validationTime) = dictionary.isValidAnagram(
+            guess: state.currentGuess,
+            scrambledLetters: state.scrambledWord
+        )
+        
+        print("[PERFORMANCE] Campaign guess validation took \(String(format: "%.4f", validationTime * 1000))ms")
+        
+        if isValid {
             recordSuccess(timeToken: state.elapsedTime)
         } else {
             state.attempts += 1

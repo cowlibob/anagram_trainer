@@ -119,4 +119,25 @@ class Dictionary {
     func wordExists(_ word: String) -> Bool {
         allWords.contains(word.lowercased())
     }
+    
+    /// Check if guess is a valid anagram of the target word
+    /// Returns tuple: (isValid, validationTime in seconds)
+    func isValidAnagram(guess: String, scrambledLetters: String) -> (Bool, TimeInterval) {
+        let startTime = Date()
+        
+        // Check if guess uses exactly the same letters as scrambled
+        let guessSignature = anagramSignature(guess)
+        let scrambledSignature = anagramSignature(scrambledLetters)
+        
+        guard guessSignature == scrambledSignature else {
+            let elapsed = Date().timeIntervalSince(startTime)
+            return (false, elapsed)
+        }
+        
+        // Check if it's a valid dictionary word
+        let isValid = wordExists(guess)
+        let elapsed = Date().timeIntervalSince(startTime)
+        
+        return (isValid, elapsed)
+    }
 }

@@ -82,10 +82,16 @@ struct GamePlayView: View {
                 }
                 .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
                     // Check if 15 seconds have passed since last interaction
+                    // Don't show hint if all letters are used (guess is complete)
+                    let allLettersUsed = state.currentGuess.count == state.scrambledWord.count
+                    
                     if let activationTime = hintActivationTime,
                        Date().timeIntervalSince(activationTime) >= 15.0,
-                       !state.currentGuess.isEmpty || state.usedPositions.isEmpty {
+                       !state.currentGuess.isEmpty || state.usedPositions.isEmpty,
+                       !allLettersUsed {
                         showHint = true
+                    } else if allLettersUsed {
+                        showHint = false
                     }
                 }
                 .onAppear {
