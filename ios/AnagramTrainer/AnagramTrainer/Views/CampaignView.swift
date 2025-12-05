@@ -87,7 +87,7 @@ struct CampaignView: View {
                     ProgressView()
                         .onAppear {
                             if viewModel.hasSavedProgress() {
-                                // Show resume dialog
+                                viewModel.resumeCampaign()
                             } else {
                                 viewModel.startNewCampaign()
                             }
