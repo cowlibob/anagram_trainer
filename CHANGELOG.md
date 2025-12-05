@@ -56,6 +56,7 @@
 - **UI update fix**: Fixed issue where successful guesses didn't trigger result screen (explicit state assignment)
 - **Valid anagram fix**: Fixed issue where valid anagrams (e.g. "SATIN" for "STAIN") were marked as failure in result screen
 - **Definition accuracy**: Fetches definition for the submitted word instead of target word when they differ
+- **Dictionary expansion**: Added user-reported missing words (e.g. "curbs", "satin", "broth", "throb")
 
 ### Refactored - iOS App
 - Extracted all view components into separate files in `Views/Components/`:
