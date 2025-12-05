@@ -143,6 +143,12 @@ struct CampaignView: View {
                 }
             )
         }
+        .onAppear {
+            // If returning to campaign after completion, start fresh
+            if viewModel.isComplete {
+                viewModel.startNewCampaign()
+            }
+        }
     }
 }
 
