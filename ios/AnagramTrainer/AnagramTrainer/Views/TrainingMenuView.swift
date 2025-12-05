@@ -10,13 +10,13 @@ struct TrainingMenuView: View {
     
     var body: some View {
         List(trainingModes) { mode in
-            NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: mode)) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(mode.rawValue)
-                            .font(.headline)
-                        
-                        if mode == .graduated {
+            if mode == .graduated {
+                NavigationLink(destination: GraduatedDifficultySelector(viewModel: viewModel)) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(mode.rawValue)
+                                .font(.headline)
+                            
                             Spacer()
                             Text("Level \(viewModel.currentLevel)")
                                 .font(.caption)
@@ -25,19 +25,31 @@ struct TrainingMenuView: View {
                                 .background(Color.blue.opacity(0.2))
                                 .cornerRadius(8)
                         }
+                        
+                        Text(mode.description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                    
-                    Text(mode.description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    if !mode.hints.isEmpty {
-                        Text(mode.hints)
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                    }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
+            } else {
+                NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: mode)) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(mode.rawValue)
+                            .font(.headline)
+                        
+                        Text(mode.description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        if !mode.hints.isEmpty {
+                            Text(mode.hints)
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
             }
         }
         .navigationTitle("Training Modes")

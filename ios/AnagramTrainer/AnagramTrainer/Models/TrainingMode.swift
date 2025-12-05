@@ -4,8 +4,8 @@ import Foundation
 enum TrainingMode: String, CaseIterable, Identifiable {
     case random = "Random"
     case graduated = "Graduated Difficulty"
-    case suffix = "Suffix Focus"
-    case prefix = "Prefix Focus"
+    case suffix = "Word Endings"
+    case prefix = "Word Beginnings"
     case digraph = "Digraphs"
     case trigraph = "Trigraphs"
     case vowelCluster = "Vowel Clusters"
@@ -20,9 +20,9 @@ enum TrainingMode: String, CaseIterable, Identifiable {
         case .graduated:
             return "Automatically increases difficulty as you improve"
         case .suffix:
-            return "Words ending in common suffixes"
+            return "Words ending in common patterns"
         case .prefix:
-            return "Words starting with common prefixes"
+            return "Words starting with common patterns"
         case .digraph:
            return "Words containing consonant pairs"
         case .trigraph:
@@ -55,5 +55,37 @@ enum TrainingMode: String, CaseIterable, Identifiable {
     
     var hints: String {
         patterns.isEmpty ? "" : patterns.map { $0.uppercased() }.joined(separator: ", ")
+    }
+    
+    /// Find the pattern in a word and return the indices and pattern string
+    func findPattern(in word: String) -> (indices: [Int], pattern: String)? {
+        let lowercased = word.lowercased()
+        
+        for pattern in patterns {
+            // For suffix modes, check end of word
+            if self == .suffix {
+                if lowercased.hasSuffix(pattern) {
+                    let startIndex = lowercased.count - pattern.count
+                    let indices = Array(startIndex..<lowercased.count)
+                    return (indices, pattern)
+                }
+            }
+            // For prefix modes, check start of word
+            else if self == .prefix {
+                if lowercased.hasPrefix(pattern) {
+                    let indices = Array(0..<pattern.count)
+                    return (indices, pattern)
+                }
+            }
+            // For cluster modes (digraph, trigraph, vowel, consonant), find substring
+            else {
+                if let range = lowercased.range(of: pattern) {
+                    let startIdx = lowercased.distance(from: lowercased.startIndex, to: range.lowerBound)
+                    let indices = Array(startIdx..<(startIdx + pattern.count))
+                    return (indices, pattern)
+                }
+            }
+        }
+        return nil
     }
 }

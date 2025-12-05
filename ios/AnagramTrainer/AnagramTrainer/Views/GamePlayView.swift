@@ -160,7 +160,12 @@ struct GamePlayView: View {
         .navigationTitle(mode.rawValue)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            if viewModel.currentMode != mode || viewModel.gameState == nil {
+            // Reset if mode changed, no game state, or level changed in graduated mode
+            let levelChanged = mode == .graduated && 
+                               viewModel.gameState != nil && 
+                               viewModel.gameState!.targetWord.count != viewModel.currentLevel
+            
+            if viewModel.currentMode != mode || viewModel.gameState == nil || levelChanged {
                 viewModel.startNewRound(mode: mode)
             }
         }
