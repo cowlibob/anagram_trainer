@@ -42,6 +42,7 @@
   - Tapping a used letter removes it from the guess
 - **Timer improvements**: Timer freezes at exact completion time instead of continuing to tick
 - **Mode switching**: Game state resets when switching between training modes
+- **Campaign completion flow**: After submitting score, navigates to leaderboard with back button to main menu
 
 ### Refactored - iOS App
 - Extracted all view components into separate files in `Views/Components/`:

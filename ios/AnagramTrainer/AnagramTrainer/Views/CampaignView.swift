@@ -4,6 +4,7 @@ struct CampaignView: View {
     @ObservedObject var viewModel: CampaignViewModel
     @State private var showingLeaderboardEntry = false
     @State private var playerName = ""
+    @State private var navigateToLeaderboard = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -78,11 +79,33 @@ struct CampaignView: View {
                 }
             } else {
                 // Campaign complete
+                NavigationLink(
+                    destination: LeaderboardView()
+                        .navigationBarBackButtonHidden(true)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button(action: {
+                                    // Pop to root (main menu)
+                                    dismiss()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "chevron.left")
+                                        Text("Main Menu")
+                                    }
+                                }
+                            }
+                        },
+                    isActive: $navigateToLeaderboard
+                ) {
+                    EmptyView()
+                }
+                .hidden()
+                
                 CampaignCompleteView(
                     score: viewModel.totalScore,
                     onSubmit: { name in
                         viewModel.submitToLeaderboard(playerName: name)
-                        showingLeaderboardEntry = false
+                        navigateToLeaderboard = true
                     }
                 )
             }
