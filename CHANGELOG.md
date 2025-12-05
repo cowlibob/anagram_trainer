@@ -49,6 +49,8 @@
 - **Timer pause**: Timer pauses when app goes to background, resumes on foreground
 - **Debug logging**: Target word logged to console when starting GamePlayView
 - **Campaign quit**: Users can quit campaign without submitting score via Cancel button
+- **Dictionary updates**: Added missing words (e.g., "scrub", "scrubs") to dictionary
+- **Campaign resume fix**: Fixed spinner hang when resuming campaign with saved progress
 
 ### Refactored - iOS App
 - Extracted all view components into separate files in `Views/Components/`:
