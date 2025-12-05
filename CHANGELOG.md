@@ -46,6 +46,9 @@
 - **Anagram validation**: Accepts any valid dictionary word using the same letters, not just the seeded word
 - **Hint improvements**: Green character hint now hides when all letters are used in guess
 - **Performance logging**: Console logs show guess validation time in milliseconds
+- **Timer pause**: Timer pauses when app goes to background, resumes on foreground
+- **Debug logging**: Target word logged to console when starting GamePlayView
+- **Campaign quit**: Users can quit campaign without submitting score via Cancel button
 
 ### Refactored - iOS App
 - Extracted all view components into separate files in `Views/Components/`:

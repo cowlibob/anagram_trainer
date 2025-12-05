@@ -142,6 +142,12 @@ struct CampaignView: View {
                     dismiss()
                 }
             )
+            .onDisappear {
+                // Reset campaign if sheet was dismissed without submitting
+                if showingLeaderboardEntry {
+                    viewModel.resetCampaign()
+                }
+            }
         }
         .onAppear {
             // If returning to campaign after completion, start fresh

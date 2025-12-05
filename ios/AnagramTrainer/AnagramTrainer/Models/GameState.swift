@@ -10,6 +10,8 @@ struct GameState {
     var attempts: Int = 0
     let startTime: Date = Date()
     var endTime: Date?
+    var pausedTime: Date?  // When timer was paused
+    var totalPausedDuration: TimeInterval = 0  // Accumulated paused time
     var isComplete: Bool = false
     
     var usedPositions: Set<Int> {
@@ -17,7 +19,8 @@ struct GameState {
     }
     
     var elapsedTime: TimeInterval {
-        (endTime ?? Date()).timeIntervalSince(startTime)
+        let endPoint = endTime ?? (pausedTime ?? Date())
+        return endPoint.timeIntervalSince(startTime) - totalPausedDuration
     }
     
     var isSolved: Bool {
@@ -77,5 +80,16 @@ struct GameState {
     mutating func completeGame() {
         isComplete = true
         endTime = Date()
+    }
+    
+    mutating func pauseTimer() {
+        guard pausedTime == nil, !isComplete else { return }
+        pausedTime = Date()
+    }
+    
+    mutating func resumeTimer() {
+        guard let paused = pausedTime, !isComplete else { return }
+        totalPausedDuration += Date().timeIntervalSince(paused)
+        pausedTime = nil
     }
 }

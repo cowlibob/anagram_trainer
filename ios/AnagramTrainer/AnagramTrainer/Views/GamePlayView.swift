@@ -173,6 +173,9 @@ struct GamePlayView: View {
             
             if viewModel.currentMode != mode || viewModel.gameState == nil || levelChanged {
                 viewModel.startNewRound(mode: mode)
+                if let word = viewModel.gameState?.targetWord {
+                    print("[DEBUG] Target word: \(word.uppercased())")
+                }
             }
         }
     }

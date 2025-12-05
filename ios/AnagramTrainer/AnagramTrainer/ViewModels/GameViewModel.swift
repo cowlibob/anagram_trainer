@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UIKit
 
 /// ViewModel for game logic and state management
 class GameViewModel: ObservableObject {
@@ -15,6 +16,35 @@ class GameViewModel: ObservableObject {
     
     init() {
         currentLevel = persistence.loadLevel()
+        setupLifecycleObservers()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    private func setupLifecycleObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func appDidEnterBackground() {
+        gameState?.pauseTimer()
+    }
+    
+    @objc private func appWillEnterForeground() {
+        gameState?.resumeTimer()
     }
     
     // MARK: - Game Flow
