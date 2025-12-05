@@ -4,7 +4,7 @@ import Foundation
 class Dictionary {
     static let shared = Dictionary()
     
-    private var allWords: [String] = []
+    private var allWords: Set<String> = []
     private var suffixWords: [String] = []
     private var prefixWords: [String] = []
     private var digraphWords: [String] = []
@@ -19,7 +19,17 @@ class Dictionary {
     }
     
     private func loadDictionaries() {
-        allWords = loadWordList(filename: "dictionary")
+        let words = loadWordList(filename: "dictionary")
+        allWords = Set(words.map { $0.lowercased() })
+        print("[DEBUG] Loaded \(allWords.count) words into dictionary")
+        
+        // Debug check for problematic words
+        if allWords.contains("scrub") {
+            print("[DEBUG] 'scrub' is present in dictionary")
+        } else {
+            print("[DEBUG] WARNING: 'scrub' is MISSING from dictionary")
+        }
+        
         suffixWords = loadWordList(filename: "suffix_words")
         prefixWords = loadWordList(filename: "prefix_words")
         digraphWords = loadWordList(filename: "digraph_words")
@@ -130,12 +140,20 @@ class Dictionary {
         let scrambledSignature = anagramSignature(scrambledLetters)
         
         guard guessSignature == scrambledSignature else {
+            print("[DEBUG] Validation failed: Signature mismatch")
+            print("[DEBUG] Guess: \(guess) (\(guessSignature))")
+            print("[DEBUG] Scrambled: \(scrambledLetters) (\(scrambledSignature))")
             let elapsed = Date().timeIntervalSince(startTime)
             return (false, elapsed)
         }
         
         // Check if it's a valid dictionary word
         let isValid = wordExists(guess)
+        
+        if !isValid {
+            print("[DEBUG] Validation failed: Word not found in dictionary: '\(guess)'")
+        }
+        
         let elapsed = Date().timeIntervalSince(startTime)
         
         return (isValid, elapsed)

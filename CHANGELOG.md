@@ -51,6 +51,7 @@
 - **Campaign quit**: Users can quit campaign without submitting score via Cancel button
 - **Dictionary updates**: Added missing words (e.g., "scrub", "scrubs") to dictionary
 - **Campaign resume fix**: Fixed spinner hang when resuming campaign with saved progress
+- **Dictionary optimization**: Switched to Set for O(1) lookups and added detailed validation logging
 
 ### Refactored - iOS App
 - Extracted all view components into separate files in `Views/Components/`:
