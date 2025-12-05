@@ -53,6 +53,7 @@
 - **Campaign resume fix**: Fixed spinner hang when resuming campaign with saved progress
 - **Dictionary optimization**: Switched to Set for O(1) lookups and added detailed validation logging
 - **Robust dictionary loading**: Improved whitespace trimming to handle inconsistent line endings (fixes "broth" rejection)
+- **UI update fix**: Fixed issue where successful guesses didn't trigger result screen (explicit state assignment)
 
 ### Refactored - iOS App
 - Extracted all view components into separate files in `Views/Components/`:

@@ -155,7 +155,10 @@ class CampaignViewModel: ObservableObject {
     
     private func recordSuccess(timeToken: TimeInterval) {
         // Mark as complete to show result screen
-        gameState?.completeGame()
+        if var state = gameState {
+            state.completeGame()
+            gameState = state
+        }
         
         // Scoring: Base 100 + time bonus (max 150)
         let baseScore = 100

@@ -77,6 +77,8 @@ class GameViewModel: ObservableObject {
         
         print("[PERFORMANCE] Guess validation took \(String(format: "%.4f", validationTime * 1000))ms")
         
+        print("[DEBUG] isValidAnagram returned: \(isValid)")
+        
         if isValid {
             handleSuccess()
         } else {
@@ -90,7 +92,11 @@ class GameViewModel: ObservableObject {
     }
     
     private func handleSuccess() {
-        gameState?.completeGame()
+        print("[DEBUG] Handling success for word: \(gameState?.targetWord ?? "unknown")")
+        if var state = gameState {
+            state.completeGame()
+            gameState = state
+        }
         
         // Handle graduated mode level progression
         if currentMode == .graduated {
