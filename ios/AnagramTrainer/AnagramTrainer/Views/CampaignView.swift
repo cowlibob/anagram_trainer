@@ -80,21 +80,15 @@ struct CampaignView: View {
             } else {
                 // Campaign complete
                 NavigationLink(
-                    destination: LeaderboardView()
-                        .navigationBarBackButtonHidden(true)
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button(action: {
-                                    // Pop to root (main menu)
-                                    dismiss()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "chevron.left")
-                                        Text("Main Menu")
-                                    }
-                                }
+                    destination: LeaderboardDismissWrapper(
+                        onDismiss: {
+                            // First dismiss the leaderboard, then dismiss the campaign
+                            navigateToLeaderboard = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                dismiss()
                             }
-                        },
+                        }
+                    ),
                     isActive: $navigateToLeaderboard
                 ) {
                     EmptyView()
