@@ -173,7 +173,9 @@ class GameViewModel: ObservableObject {
     // MARK: - Definition Fetching
     
     func fetchDefinition() async {
-        guard let word = gameState?.targetWord else { return }
+        guard let state = gameState else { return }
+        // Use current guess if solved, otherwise target word
+        let word = state.isSolved ? state.currentGuess : state.targetWord
         
         let urlString = "https://api.dictionaryapi.dev/api/v2/entries/en/\(word)"
         guard let url = URL(string: urlString) else { return }

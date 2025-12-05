@@ -106,7 +106,7 @@ struct GamePlayView: View {
                 // Result display
                 if state.isComplete {
                     GameResultView(
-                        word: state.targetWord,
+                        word: state.isSolved ? state.currentGuess : state.targetWord,
                         solved: state.isSolved,
                         time: state.elapsedTime,
                         definition: viewModel.definition,
