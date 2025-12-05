@@ -118,6 +118,7 @@ class CampaignViewModel: ObservableObject {
         
         let scrambled = dictionary.scramble(word)
         gameState = GameState(targetWord: word, scrambledWord: scrambled)
+        print("[DEBUG] Target word: \(word.uppercased())")
     }
     
     func submitGuess() {
