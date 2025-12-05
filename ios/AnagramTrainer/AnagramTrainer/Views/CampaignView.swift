@@ -61,6 +61,22 @@ struct CampaignView: View {
                         .foregroundColor(.secondary)
                 }
                 
+                #if DEBUG
+                // Debug button to skip to last word
+                Button(action: {
+                    viewModel.skipToLastWord()
+                }) {
+                    Text("🐛 Skip to Last Word")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.purple)
+                        .cornerRadius(8)
+                }
+                .padding(.bottom, 5)
+                #endif
+                
                 // Game play
                 if let state = viewModel.gameState {
                     CampaignGameView(

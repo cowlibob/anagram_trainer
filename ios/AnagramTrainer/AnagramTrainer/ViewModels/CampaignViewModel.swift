@@ -52,6 +52,20 @@ class CampaignViewModel: ObservableObject {
         persistence.clearCampaignProgress()
     }
     
+    // MARK: - Debug Helpers
+    
+    #if DEBUG
+    func skipToLastWord() {
+        // Jump to last stage
+        currentStageIndex = CampaignStage.allStages.count - 1
+        // Set to last word of that stage
+        wordsRemaining = 1
+        // Add some score for testing
+        totalScore = 3500
+        startNextWord()
+    }
+    #endif
+    
     func startNextWord() {
         guard currentStageIndex < CampaignStage.allStages.count else {
             completeCampaign()
