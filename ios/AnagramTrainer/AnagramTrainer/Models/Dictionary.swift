@@ -24,10 +24,13 @@ class Dictionary {
         print("[DEBUG] Loaded \(allWords.count) words into dictionary")
         
         // Debug check for problematic words
-        if allWords.contains("scrub") {
-            print("[DEBUG] 'scrub' is present in dictionary")
-        } else {
-            print("[DEBUG] WARNING: 'scrub' is MISSING from dictionary")
+        let checkWords = ["scrub", "broth"]
+        for word in checkWords {
+            if allWords.contains(word) {
+                print("[DEBUG] '\(word)' is present in dictionary")
+            } else {
+                print("[DEBUG] WARNING: '\(word)' is MISSING from dictionary")
+            }
         }
         
         suffixWords = loadWordList(filename: "suffix_words")
@@ -47,7 +50,7 @@ class Dictionary {
         
         return content
             .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
     }
     
