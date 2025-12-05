@@ -23,9 +23,7 @@ struct GameState {
         return endPoint.timeIntervalSince(startTime) - totalPausedDuration
     }
     
-    var isSolved: Bool {
-        currentGuess.lowercased() == targetWord.lowercased()
-    }
+    var isSolved: Bool = false
     
     mutating func addLetterAt(position: Int, letter: Character) {
         currentGuess.append(letter)
@@ -77,8 +75,9 @@ struct GameState {
         positionOrder.removeAll()
         cursorPosition = 0
     }
-    mutating func completeGame() {
+    mutating func completeGame(solved: Bool = false) {
         isComplete = true
+        isSolved = solved
         endTime = Date()
     }
     

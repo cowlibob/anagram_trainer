@@ -94,7 +94,7 @@ class GameViewModel: ObservableObject {
     private func handleSuccess() {
         print("[DEBUG] Handling success for word: \(gameState?.targetWord ?? "unknown")")
         if var state = gameState {
-            state.completeGame()
+            state.completeGame(solved: true)
             gameState = state
         }
         

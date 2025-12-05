@@ -156,7 +156,7 @@ class CampaignViewModel: ObservableObject {
     private func recordSuccess(timeToken: TimeInterval) {
         // Mark as complete to show result screen
         if var state = gameState {
-            state.completeGame()
+            state.completeGame(solved: true)
             gameState = state
         }
         
