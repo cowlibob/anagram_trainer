@@ -3,55 +3,63 @@ import SwiftUI
 struct MainMenuView: View {
     @StateObject private var gameVM = GameViewModel()
     @StateObject private var campaignVM = CampaignViewModel()
-    
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 30) {
-                // Title
-                VStack(spacing: 10) {
-                    Image(systemName: "textformat.abc")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.blue.gradient)
-                    
-                    Text("Anagram Trainer")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+            ZStack {
+                MenuBackgroundView(scale: 1.0)
+                    .background(Color.pink)
+                    .foregroundStyle(Color.white)
+                    .ignoresSafeArea()
+
+                VStack(spacing: 30) {
+                    // Title
+                    VStack(spacing: 10) {
+                        Image(systemName: "textformat.abc")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.blue.gradient)
+
+                        Text("Anagram Trainer")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                    }
+                    .padding(.top, 50)
+
+                    Spacer()
+
+                    // Menu Options
+                    VStack(spacing: 20) {
+                        NavigationLink(destination: GamePlayView(viewModel: gameVM, mode: .random)) {
+                            MenuButton(title: "Play (Random)", icon: "shuffle", color: .blue)
+                        }
+
+                        NavigationLink(destination: TrainingMenuView(viewModel: gameVM)) {
+                            MenuButton(title: "Training Mode", icon: "graduationcap", color: .green)
+                        }
+
+                        NavigationLink(destination: CampaignView(viewModel: campaignVM)) {
+                            MenuButton(title: "Train Me (Campaign)", icon: "trophy", color: .orange)
+                        }
+
+                        NavigationLink(destination: LeaderboardView()) {
+                            MenuButton(title: "Leaderboard", icon: "list.number", color: .purple)
+                        }
+                    }
+                    .padding(.horizontal, 40)
+
+                    Spacer()
+
+                    Text("Improve your anagram solving skills")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 30)
                 }
-                .padding(.top, 50)
-                
-                Spacer()
-                
-                // Menu Options
-                VStack(spacing: 20) {
-                    NavigationLink(destination: GamePlayView(viewModel: gameVM, mode: .random)) {
-                        MenuButton(title: "Play (Random)", icon: "shuffle", color: .blue)
-                    }
-                    
-                    NavigationLink(destination: TrainingMenuView(viewModel: gameVM)) {
-                        MenuButton(title: "Training Mode", icon: "graduationcap", color: .green)
-                    }
-                    
-                    NavigationLink(destination: CampaignView(viewModel: campaignVM)) {
-                        MenuButton(title: "Train Me (Campaign)", icon: "trophy", color: .orange)
-                    }
-                    
-                    NavigationLink(destination: LeaderboardView()) {
-                        MenuButton(title: "Leaderboard", icon: "list.number", color: .purple)
-                    }
-                }
-                .padding(.horizontal, 40)
-                
-                Spacer()
-                
-                Text("Improve your anagram solving skills")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 30)
+                .navigationBarHidden(true)
+
             }
-            .navigationBarHidden(true)
+            .environmentObject(gameVM)
+            .environmentObject(campaignVM)
         }
-        .environmentObject(gameVM)
-        .environmentObject(campaignVM)
     }
 }
 
