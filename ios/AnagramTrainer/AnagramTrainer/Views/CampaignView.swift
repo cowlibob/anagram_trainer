@@ -8,39 +8,51 @@ struct CampaignView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        VStack(spacing: 20) {
-            if !viewModel.isComplete {
+        ZStack {
+            MenuBackgroundView(
+                gridSize: 10,
+                gap: 50.0,
+                scale: 1.0,
+                fontSize: 8.0,
+                rotationDuration: 30.0
+            )
+
+            VStack(spacing: 20) {
+                if !viewModel.isComplete {
                 // Campaign header
                 VStack(spacing: 10) {
                     Text(viewModel.progressText)
                         .font(.title2)
                         .fontWeight(.bold)
-                    
+                        .foregroundColor(.white)
+
                     // Score display
                     HStack(spacing: 30) {
                         VStack {
                             Text("Score")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.white.opacity(0.7))
                             Text("\(viewModel.totalScore)")
                                 .font(.title)
                                 .fontWeight(.bold)
+                                .foregroundColor(.white)
                         }
-                        
+
                         VStack {
                             Text("Words Left")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.white.opacity(0.7))
                             Text("\(viewModel.wordsRemaining)")
                                 .font(.title)
                                 .fontWeight(.bold)
+                                .foregroundColor(.white)
                         }
-                        
+
                         if viewModel.lastRoundPoints > 0 {
                             VStack {
                                 Text("Last Round")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white.opacity(0.7))
                                 Text("+\(viewModel.lastRoundPoints)")
                                     .font(.title3)
                                     .fontWeight(.semibold)
@@ -53,12 +65,12 @@ struct CampaignView: View {
                     .cornerRadius(15)
                 }
                 .padding()
-                
+
                 // Stage info
                 if !viewModel.currentStage.mode.hints.isEmpty {
                     Text("Patterns: \(viewModel.currentStage.mode.hints)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.9))
                 }
                 
                 #if DEBUG
@@ -120,8 +132,12 @@ struct CampaignView: View {
                 )
             }
         }
+        }
         .navigationTitle("Train Me Campaign")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .tint(.white)
         .toolbar {
             if !viewModel.isComplete {
                 ToolbarItem(placement: .navigationBarTrailing) {

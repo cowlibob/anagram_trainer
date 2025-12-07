@@ -2,7 +2,7 @@ import Foundation
 
 /// Training mode categories with associated pattern lists
 enum TrainingMode: String, CaseIterable, Identifiable {
-    case random = "Random"
+    case random = "Quick Play"
     case graduated = "Graduated Difficulty"
     case suffix = "Word Endings"
     case prefix = "Word Beginnings"

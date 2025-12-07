@@ -8,6 +8,8 @@ struct GamePlayView: View {
     @State private var showingResult = false
     @State private var showHint = false
     @State private var hintActivationTime: Date?
+    @FocusState private var isFocused: Bool
+    @State private var keyboardInput: String = ""
     
     private func resetHintTimer() {
         // Only hide hint when truly resetting (new word)
@@ -18,23 +20,97 @@ struct GamePlayView: View {
         showHint = false
         hintActivationTime = Date()
     }
-    
+
+    private func handleKeyPress(_ key: String) {
+        guard let state = viewModel.gameState, !state.isComplete else { return }
+
+        let uppercaseKey = key.uppercased()
+
+        // Handle letter input
+        if uppercaseKey.count == 1, uppercaseKey.first?.isLetter == true {
+            // Find first unused occurrence of this letter
+            for (index, letter) in state.scrambledWord.enumerated() {
+                if String(letter).uppercased() == uppercaseKey && !state.usedPositions.contains(index) {
+                    viewModel.addLetter(at: index, letter: letter)
+                    resetHintTimer()
+                    break
+                }
+            }
+        }
+    }
+
+    private func handleBackspace() {
+        guard let state = viewModel.gameState, !state.isComplete else { return }
+
+        // Remove last letter from guess
+        if !state.currentGuess.isEmpty {
+            // Find the last used position and toggle it off
+            if let lastUsedIndex = state.usedPositions.sorted().last {
+                let letter = state.scrambledWord[state.scrambledWord.index(state.scrambledWord.startIndex, offsetBy: lastUsedIndex)]
+                viewModel.addLetter(at: lastUsedIndex, letter: letter)
+                resetHintTimer()
+            }
+        }
+    }
+
     var body: some View {
-        VStack(spacing: 30) {
-            // Header
-            VStack(spacing: 5) {
-                Text(mode.rawValue)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
+        ZStack {
+            MenuBackgroundView(
+                gridSize: 5,
+                gap: 25.0,
+                scale: 0.5,
+                fontSize: 10.0,
+                rotationDuration: 300.0
+            )
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 1.0, green: 0.3, blue: 0.5),  // Vibrant pink
+                            Color(red: 0.95, green: 0.4, blue: 0.6),  // Soft pink
+                            Color(red: 0.8, green: 0.3, blue: 0.7)    // Purple-pink
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .foregroundStyle(Color.white)
+                .ignoresSafeArea()
+
+            // Hidden TextField for keyboard input capture
+            TextField("", text: $keyboardInput)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .focused($isFocused)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .onChange(of: keyboardInput) { newValue in
+                    if let lastChar = newValue.last {
+                        if lastChar.isLetter {
+                            handleKeyPress(String(lastChar))
+                        }
+                    }
+                    // Clear the field to allow repeated characters
+                    DispatchQueue.main.async {
+                        keyboardInput = ""
+                    }
+                }
+
+            VStack(spacing: 30) {
+//                // Header
+                VStack(spacing: 5) {
+//                Text(mode.rawValue)
+//                    .font(.title2)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(.white)
+
                 if mode == .graduated {
                     Text("Level \(viewModel.currentLevel)")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.9))
                 } else if !mode.hints.isEmpty {
                     Text("Patterns: \(mode.hints)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.9))
                 }
             }
             .padding(.top)
@@ -163,17 +239,56 @@ struct GamePlayView: View {
                     }
             }
         }
+        }
+        .focusable()
+        .focused($isFocused)
         .navigationTitle(mode.rawValue)
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .tint(.white)
+        .onKeyPress { press in
+            if press.key == .delete || press.key == .deleteForward {
+                handleBackspace()
+                return .handled
+            } else if press.key == .leftArrow {
+                if let state = viewModel.gameState, state.cursorPosition > 0 {
+                    viewModel.setCursor(at: state.cursorPosition - 1)
+                }
+                return .handled
+            } else if press.key == .rightArrow {
+                if let state = viewModel.gameState, state.cursorPosition < state.currentGuess.count {
+                    viewModel.setCursor(at: state.cursorPosition + 1)
+                }
+                return .handled
+            } else if press.key == .return {
+                if let state = viewModel.gameState, !state.currentGuess.isEmpty && !state.isComplete {
+                    viewModel.submitGuess()
+                    if viewModel.gameState?.isComplete ?? false {
+                        Task {
+                            await viewModel.fetchDefinition()
+                        }
+                    }
+                    return .handled
+                }
+            } else if let character = press.characters.first, character.isLetter {
+                handleKeyPress(String(character))
+                return .handled
+            }
+            return .ignored
+        }
         .onAppear {
             // Reset if mode changed, no game state, or level changed in graduated mode
-            let levelChanged = mode == .graduated && 
-                               viewModel.gameState != nil && 
+            let levelChanged = mode == .graduated &&
+                               viewModel.gameState != nil &&
                                viewModel.gameState!.targetWord.count != viewModel.currentLevel
-            
+
             if viewModel.currentMode != mode || viewModel.gameState == nil || levelChanged {
                 viewModel.startNewRound(mode: mode)
             }
+
+            // Set focus for keyboard input
+            isFocused = true
         }
     }
 }

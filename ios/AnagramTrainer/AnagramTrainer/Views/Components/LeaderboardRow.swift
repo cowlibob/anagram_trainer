@@ -3,7 +3,7 @@ import SwiftUI
 struct LeaderboardRow: View {
     let entry: LeaderboardEntry
     let rank: Int
-    
+
     var body: some View {
         HStack(spacing: 15) {
             // Rank with medal
@@ -11,7 +11,7 @@ struct LeaderboardRow: View {
                 Circle()
                     .fill(rankColor.gradient)
                     .frame(width: 40, height: 40)
-                
+
                 if rank <= 3 {
                     Image(systemName: medalIcon)
                         .foregroundColor(.white)
@@ -23,26 +23,29 @@ struct LeaderboardRow: View {
                         .foregroundColor(.white)
                 }
             }
-            
-            // Player info
+
+            // Player info - left aligned
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.playerName)
                     .font(.headline)
-                
+                    .foregroundColor(.white)
+
                 Text(entry.formattedDate)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.7))
             }
-            
+
             Spacer()
-            
-            // Score
+
+            // Score - right aligned
             Text("\(entry.score)")
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(.blue)
+                .foregroundColor(.white)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
     
     private var rankColor: Color {

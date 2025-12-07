@@ -68,37 +68,40 @@ class MenuBackgroundViewModel: ObservableObject {
 struct MenuBackgroundView: View {
     @StateObject private var viewModel = MenuBackgroundViewModel()
 
+    @State var gridSize: Int = 16
+    @State var gap: CGFloat = 1.0
     @State var scale: CGFloat = 1.0
-    @State private var rotationDegrees = -45.0
+    @State var fontSize: CGFloat = 1.0
+    @State var rotationDuration: TimeInterval = 10.0
+    @State private var rotationDegrees = -360.0
     private var rotateAnimation: Animation {
-        .easeInOut(duration: 10.0)
-        .repeatForever(autoreverses: true)
+        .linear(duration: rotationDuration)
+//        .easeInOut(duration: rotationDuration)
+        .repeatForever(autoreverses: false)
     }
 
     var body: some View {
         GeometryReader { geometry in
-            let cellSize = max(geometry.size.width, geometry.size.height) / (10 * scale)
-            let fontSize = cellSize * 0.75
+            let cellSize = max(geometry.size.width, geometry.size.height) / CGFloat(gridSize)
+            let scaledFontSize = cellSize * fontSize
 
             Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-                ForEach(0..<viewModel.gridSize, id: \.self) { y in
+                ForEach(0..<gridSize, id: \.self) { y in
                     GridRow {
-                        ForEach(0..<viewModel.gridSize, id: \.self) { x in
+                        ForEach(0..<gridSize, id: \.self) { x in
                             Button {
 
                             } label: {
-                                Text(viewModel.letters.indices.contains(y) && viewModel.letters[y].indices.contains(x)
-                                     ? viewModel.letters[y][x]
-                                     : "")
+                                Text(viewModel.letters[y][x])
+                                    .font(.custom("DIN Condensed", size: scaledFontSize))
                                     .minimumScaleFactor(0.1)
-                                    .lineLimit(1)
-                                    .allowsTightening(true)
+                                    .foregroundStyle(.white.opacity(0.1))
+                                    .baselineOffset(-fontSize * 2)
                             }
                             .frame(minWidth: cellSize, minHeight: cellSize)
-                            .font(.custom("DIN Condensed", size: fontSize))
-                            .foregroundStyle(.white.opacity(0.1))
+                            .padding(gap)
                             .rotationEffect(.degrees(rotationDegrees))
-                            .opacity(opacity(x: x, y: y))
+//                            .border(Color.white.opacity(0.5), width: 1.0)
                         }
                     }
                 }
@@ -106,17 +109,26 @@ struct MenuBackgroundView: View {
             .rotationEffect(.degrees(-rotationDegrees))
             .frame(width: geometry.size.width, height: geometry.size.height)
             .onAppear {
+                viewModel.gridSize = gridSize
                 print("scale: \(scale), cellSize: \(cellSize)")
                 withAnimation(rotateAnimation) {
-                    rotationDegrees = 45.0
+                    rotationDegrees = 0.0
                 }
             }
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.3, blue: 0.5),  // Vibrant pink
+                        Color(red: 0.95, green: 0.4, blue: 0.6),  // Soft pink
+                        Color(red: 0.8, green: 0.3, blue: 0.7)    // Purple-pink
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .foregroundStyle(Color.white)
+            .ignoresSafeArea()
         }
-    }
-
-    private func opacity(x: Int, y: Int) -> Double {
-        let half = 3.0
-        return pow(Double(y) - half, 2) + pow(Double(x) - half, 2)
     }
 }
 

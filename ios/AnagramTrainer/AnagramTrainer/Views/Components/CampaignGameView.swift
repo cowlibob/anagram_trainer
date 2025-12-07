@@ -3,8 +3,60 @@ import SwiftUI
 struct CampaignGameView: View {
     @ObservedObject var viewModel: CampaignViewModel
     let state: GameState
-    
+    @FocusState private var isFocused: Bool
+    @State private var keyboardInput: String = ""
+
+    private func handleKeyPress(_ key: String) {
+        guard !state.isComplete else { return }
+
+        let uppercaseKey = key.uppercased()
+
+        // Handle letter input
+        if uppercaseKey.count == 1, uppercaseKey.first?.isLetter == true {
+            // Find first unused occurrence of this letter
+            for (index, letter) in state.scrambledWord.enumerated() {
+                if String(letter).uppercased() == uppercaseKey && !state.usedPositions.contains(index) {
+                    viewModel.addLetter(at: index, letter: letter)
+                    break
+                }
+            }
+        }
+    }
+
+    private func handleBackspace() {
+        guard !state.isComplete else { return }
+
+        // Remove last letter from guess
+        if !state.currentGuess.isEmpty {
+            // Find the last used position and toggle it off
+            if let lastUsedIndex = state.usedPositions.sorted().last {
+                let letter = state.scrambledWord[state.scrambledWord.index(state.scrambledWord.startIndex, offsetBy: lastUsedIndex)]
+                viewModel.addLetter(at: lastUsedIndex, letter: letter)
+            }
+        }
+    }
+
     var body: some View {
+        ZStack {
+            // Hidden TextField for keyboard input capture
+            TextField("", text: $keyboardInput)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .focused($isFocused)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .onChange(of: keyboardInput) { newValue in
+                    if let lastChar = newValue.last {
+                        if lastChar.isLetter {
+                            handleKeyPress(String(lastChar))
+                        }
+                    }
+                    // Clear the field to allow repeated characters
+                    DispatchQueue.main.async {
+                        keyboardInput = ""
+                    }
+                }
+
         VStack(spacing: 30) {
             // Scrambled word
             ScrambledWordView(
@@ -86,6 +138,35 @@ struct CampaignGameView: View {
                 }
                 .padding(.bottom)
             }
+        }
+        }
+        .onKeyPress { press in
+            if press.key == .delete || press.key == .deleteForward {
+                handleBackspace()
+                return .handled
+            } else if press.key == .leftArrow {
+                if state.cursorPosition > 0 {
+                    viewModel.setCursor(at: state.cursorPosition - 1)
+                }
+                return .handled
+            } else if press.key == .rightArrow {
+                if state.cursorPosition < state.currentGuess.count {
+                    viewModel.setCursor(at: state.cursorPosition + 1)
+                }
+                return .handled
+            } else if press.key == .return {
+                if !state.currentGuess.isEmpty && !state.isComplete {
+                    viewModel.submitGuess()
+                    return .handled
+                }
+            } else if let character = press.characters.first, character.isLetter {
+                handleKeyPress(String(character))
+                return .handled
+            }
+            return .ignored
+        }
+        .onAppear {
+            isFocused = true
         }
     }
 }

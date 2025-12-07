@@ -7,19 +7,36 @@ struct GraduatedDifficultySelector: View {
     let levels = Array(5...9)
     
     var body: some View {
-        VStack(spacing: 30) {
-            VStack(spacing: 10) {
+        ZStack {
+            MenuBackgroundView(scale: 1.0)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 1.0, green: 0.3, blue: 0.5),  // Vibrant pink
+                            Color(red: 0.95, green: 0.4, blue: 0.6),  // Soft pink
+                            Color(red: 0.8, green: 0.3, blue: 0.7)    // Purple-pink
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .foregroundStyle(Color.white)
+                .ignoresSafeArea()
+
+            VStack(spacing: 30) {
+                VStack(spacing: 10) {
                 Image(systemName: "chart.line.uptrend.xyaxis")
                     .font(.system(size: 60))
-                    .foregroundStyle(.green.gradient)
-                
+                    .foregroundStyle(.white)
+
                 Text("Graduated Difficulty")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                
+                    .foregroundColor(.white)
+
                 Text("Select word length")
                     .font(.title3)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.9))
             }
             .padding(.top, 50)
             
@@ -64,14 +81,18 @@ struct GraduatedDifficultySelector: View {
             .padding(.horizontal, 40)
             
             Spacer()
-            
+
             Text("Solve 3 words in a row to advance")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.9))
                 .padding(.bottom, 30)
+        }
         }
         .navigationTitle("Select Difficulty")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .tint(.white)
     }
 }
 
