@@ -1,5 +1,46 @@
 # Changelog
 
+## [Unreleased] - iOS Native App - 2025-12-07
+
+### Added - iOS SwiftUI App
+- **Hardware keyboard support** for all game modes (Quick Play, Training, Campaign):
+  - Letter keys (A-Z) to add letters to guess
+  - Backspace/Delete to remove last letter
+  - Left/Right arrows to move cursor position
+  - Return/Enter to submit guess
+  - Cross-platform support (iOS/iPadOS/macOS via Catalyst)
+- **Animated letter matrix background** (MenuBackgroundView) across all screens
+- **App icon** (LS logotype) added to main menu with gradient styling
+
+### Changed - iOS SwiftUI App
+- **Renamed "Random" mode to "Quick Play"** throughout the app
+- **Complete visual redesign** with consistent pink gradient theme:
+  - Applied MenuBackgroundView with animated letters to all screens
+  - All text now bright white for readability over pink background
+  - Updated "LetterShift" title with DIN Condensed font, letter spacing, and gradient
+  - Split title into "Letter" and "Shift" with offset positioning
+- **Navigation improvements**:
+  - Fixed invisible back buttons (white tint, dark toolbar scheme)
+  - Removed navigation bar backgrounds for seamless gradient appearance
+  - Increased GamePlayView navigation title size (inline → large)
+  - Transparent list backgrounds with `.scrollContentBackground(.hidden)`
+- **Leaderboard redesign**:
+  - Removed all white backgrounds
+  - Changed to white text throughout
+  - Left-aligned player names, right-aligned scores with spacer
+  - Removed row separators for cleaner look
+  - Updated empty state styling
+- **MenuBackgroundView improvements**:
+  - Consistent letter movement and visibility
+  - Less distracting letters during gameplay
+  - Configurable grid size, gap, scale, font size, and rotation duration
+
+### Technical - iOS SwiftUI App
+- Added `@FocusState` for keyboard input management
+- Implemented hidden TextField for reliable keyboard capture
+- Added `.onKeyPress` modifier for special keys (arrows, backspace, return)
+- Updated color schemes across all views for consistency
+
 ## [Unreleased] - iOS Native App - 2025-12-04
 
 ### Added - iOS SwiftUI App
