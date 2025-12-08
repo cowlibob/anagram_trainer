@@ -12,14 +12,14 @@ struct LetterButtonView: View {
     var body: some View {
         Button(action: onTap) {
             Text(String(letter).uppercased())
-                .font(.system(size: size * 0.6, weight: .bold, design: .rounded))
+                .font(.system(size: size * 0.7, weight: .bold, design: .rounded))
                 .frame(width: size, height: size)
                 .background(
                     Circle()
                         .fill(isUsed ?
-                              Color.gray.opacity(0.3) : Color.blue.opacity(0.2))
+                              Color.white.opacity(0.15) : Color.white.opacity(0.3))
                 )
-                .foregroundColor(isUsed ? .gray : .primary)
+                .foregroundColor(isUsed ? Color.white.opacity(0.3) : .white)
         }
         .buttonStyle(.plain)
         .scaleEffect(isHint && bounceAnimation ? 1.2 : 1.0)

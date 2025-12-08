@@ -12,21 +12,21 @@ struct GuessView: View {
     var body: some View {
         if guess.isEmpty {
             Text("Tap letters or type...")
-                .font(.title)
-                .foregroundColor(.secondary)
+                .font(.system(size: 44, weight: .bold, design: .rounded))
+                .foregroundColor(.white.opacity(0.5))
                 .onTapGesture {
                     onTapPosition(0)
                 }
         } else {
-            HStack(spacing: 2) {
+            HStack(spacing: 4) {
                 // Tappable area to move cursor to beginning
                 Color.clear
-                    .frame(width: 20, height: 30)
+                    .frame(width: 20, height: 50)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         onTapPosition(0)
                     }
-                
+
                 ForEach(Array(guess.enumerated()), id: \.offset) { index, letter in
                     // Letter with overlay cursor
                     ZStack(alignment: .leading) {
@@ -35,12 +35,11 @@ struct GuessView: View {
                             CursorView(visible: cursorVisible)
                                 .offset(x: -2) // Position at left edge
                         }
-                        
+
                         // Letter
                         Text(String(letter).uppercased())
-                            .font(.title)
-                            .fontWeight(.semibold)
-                            .foregroundColor(isSolved ? .green : .primary)
+                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .foregroundColor(isSolved ? .green : .white)
                     }
                     .onTapGesture {
                         onTapPosition(index)
@@ -51,10 +50,10 @@ struct GuessView: View {
                 if cursorPosition >= guess.count {
                     CursorView(visible: cursorVisible)
                 }
-                
+
                 // Tappable area to move cursor to end
                 Color.clear
-                    .frame(width: 20, height: 30)
+                    .frame(width: 20, height: 50)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         onTapPosition(guess.count)

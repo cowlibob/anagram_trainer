@@ -9,9 +9,16 @@ struct TimerView: View {
     let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        Text(String(format: "%.1fs", elapsed))
-            .font(.headline)
-            .foregroundColor(.secondary)
+        Text(formattedTime)
+            .font(.system(size: 24, weight: .semibold, design: .rounded))
+            .italic()
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.3))
+            )
             .onReceive(timer) { _ in
                 if let end = endTime {
                     elapsed = end.timeIntervalSince(startTime)
@@ -26,5 +33,11 @@ struct TimerView: View {
                     elapsed = Date().timeIntervalSince(startTime)
                 }
             }
+    }
+
+    private var formattedTime: String {
+        let seconds = Int(elapsed)
+        let decimal = Int((elapsed - Double(seconds)) * 10)
+        return String(format: "%02d.%01ds", seconds, decimal)
     }
 }

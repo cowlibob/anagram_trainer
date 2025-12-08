@@ -26,12 +26,24 @@ struct CampaignGameView: View {
     private func handleBackspace() {
         guard !state.isComplete else { return }
 
-        // Remove last letter from guess
-        if !state.currentGuess.isEmpty {
-            // Find the last used position and toggle it off
-            if let lastUsedIndex = state.usedPositions.sorted().last {
-                let letter = state.scrambledWord[state.scrambledWord.index(state.scrambledWord.startIndex, offsetBy: lastUsedIndex)]
-                viewModel.addLetter(at: lastUsedIndex, letter: letter)
+        // Remove letter to the left of cursor
+        if !state.currentGuess.isEmpty && state.cursorPosition > 0 {
+            // Use helper to find which scrambled position to remove
+            if let positionToRemove = KeyboardInputHelper.getPositionToRemove(
+                cursorPosition: state.cursorPosition,
+                guess: state.currentGuess,
+                scrambledWord: state.scrambledWord,
+                usedPositions: state.usedPositions
+            ) {
+                let letter = state.scrambledWord[state.scrambledWord.index(state.scrambledWord.startIndex, offsetBy: positionToRemove)]
+                let newCursorPosition = state.cursorPosition - 1
+
+                viewModel.addLetter(at: positionToRemove, letter: letter)
+
+                // Move cursor left after state updates
+                DispatchQueue.main.async {
+                    viewModel.setCursor(at: newCursorPosition)
+                }
             }
         }
     }
@@ -45,8 +57,8 @@ struct CampaignGameView: View {
                 .focused($isFocused)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
-                .onChange(of: keyboardInput) { newValue in
-                    if let lastChar = newValue.last {
+                .onChange(of: keyboardInput) {
+                    if let lastChar = keyboardInput.last {
                         if lastChar.isLetter {
                             handleKeyPress(String(lastChar))
                         }
@@ -140,6 +152,8 @@ struct CampaignGameView: View {
             }
         }
         }
+        .focusable()
+        .focused($isFocused)
         .onKeyPress { press in
             if press.key == .delete || press.key == .deleteForward {
                 handleBackspace()

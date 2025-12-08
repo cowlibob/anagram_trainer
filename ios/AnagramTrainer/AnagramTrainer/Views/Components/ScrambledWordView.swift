@@ -32,11 +32,11 @@ struct ScrambledWordView: View {
     private var letterSize: CGFloat {
         let length = scrambled.count
         switch length {
-        case ...6: return 50
-        case 7: return 45
-        case 8: return 40
-        case 9: return 36
-        default: return 32
+        case ...6: return 70
+        case 7: return 65
+        case 8: return 58
+        case 9: return 52
+        default: return 48
         }
     }
     
@@ -84,8 +84,8 @@ struct ScrambledWordView: View {
             }
         }
         .animation(.easeInOut(duration: 0.5), value: displayWord)
-        .onChange(of: showHint) { newValue in
-            if newValue {
+        .onChange(of: showHint) {
+            if showHint {
                 bounceAnimation = true
             } else {
                 bounceAnimation = false

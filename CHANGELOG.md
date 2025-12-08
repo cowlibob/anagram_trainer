@@ -1,14 +1,15 @@
 # Changelog
 
-## [Unreleased] - iOS Native App - 2025-12-07
+## [Unreleased] - iOS Native App - 2025-12-08
 
 ### Added - iOS SwiftUI App
 - **Hardware keyboard support** for all game modes (Quick Play, Training, Campaign):
   - Letter keys (A-Z) to add letters to guess
-  - Backspace/Delete to remove last letter
+  - **Cursor-aware backspace** - removes letter to the left of cursor, not just the last letter
   - Left/Right arrows to move cursor position
   - Return/Enter to submit guess
   - Cross-platform support (iOS/iPadOS/macOS via Catalyst)
+- **KeyboardInputHelper utility class** for shared keyboard logic across game modes
 - **Animated letter matrix background** (MenuBackgroundView) across all screens
 - **App icon** (LS logotype) added to main menu with gradient styling
 
@@ -35,11 +36,18 @@
   - Less distracting letters during gameplay
   - Configurable grid size, gap, scale, font size, and rotation duration
 
+### Fixed - iOS SwiftUI App
+- **Cursor-aware backspace** now correctly removes letter at cursor position instead of always removing from the end
+- **Campaign mode keyboard input** - added missing `.focusable()` and `.focused()` modifiers
+- **iOS 17+ compatibility** - updated deprecated `.onChange` syntax to modern form
+
 ### Technical - iOS SwiftUI App
 - Added `@FocusState` for keyboard input management
 - Implemented hidden TextField for reliable keyboard capture
 - Added `.onKeyPress` modifier for special keys (arrows, backspace, return)
+- Created `KeyboardInputHelper` utility class with guess-to-scrambled position mapping logic
 - Updated color schemes across all views for consistency
+- Updated all `.onChange` modifiers to iOS 17+ syntax
 
 ## [Unreleased] - iOS Native App - 2025-12-04
 
