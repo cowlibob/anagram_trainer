@@ -99,23 +99,9 @@ struct CampaignGameView: View {
             TimerView(startTime: state.startTime, endTime: state.endTime)
             
             Spacer()
-            
-            // Result or actions
-            if state.isComplete {
-                CampaignResultView(
-                    word: state.targetWord,
-                    solved: state.isSolved,
-                    points: viewModel.lastRoundPoints,
-                    onNext: {
-                        if !state.isSolved {
-                            viewModel.recordSkip()
-                        }
-                        viewModel.resetForNextWord()
-                        viewModel.startNextWord()
-                    }
-                )
-            } else {
-                // Action buttons
+
+            // Action buttons
+            if !state.isComplete {
                 HStack(spacing: 20) {
                     Button(action: {
                         viewModel.clearGuess()
@@ -150,6 +136,22 @@ struct CampaignGameView: View {
                 }
                 .padding(.bottom)
             }
+        }
+
+        // Result overlay
+        if state.isComplete {
+            CampaignResultView(
+                word: state.targetWord,
+                solved: state.isSolved,
+                points: viewModel.lastRoundPoints,
+                onNext: {
+                    if !state.isSolved {
+                        viewModel.recordSkip()
+                    }
+                    viewModel.resetForNextWord()
+                    viewModel.startNextWord()
+                }
+            )
         }
         }
         .focusable()

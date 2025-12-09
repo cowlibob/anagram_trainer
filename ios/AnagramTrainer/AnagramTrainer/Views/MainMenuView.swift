@@ -14,6 +14,8 @@ struct MainMenuView: View {
                     fontSize: 8.0,
                     rotationDuration: 30.0
                 )
+                .ignoresSafeArea()
+
                 VStack(spacing: 30) {
                     // Title
                     VStack(spacing: 16) {

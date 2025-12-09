@@ -106,7 +106,7 @@ struct GamePlayView: View {
                 }
             
             ZStack(alignment: .topTrailing) {
-                VStack(spacing: 30) {
+                VStack(spacing: 50) {
                     // Header
                     VStack {
                         if mode == .graduated {
@@ -119,9 +119,12 @@ struct GamePlayView: View {
                                 .foregroundColor(.white)
                         }
                     }
-                    .padding(.top)
+                    .padding(.top, 40)
                     .padding(.horizontal, 60)
-                    
+
+                    Spacer()
+                        .frame(height: 20)
+
                     if let state = viewModel.gameState {
                         // Scrambled word display
                         ScrambledWordView(
@@ -183,23 +186,12 @@ struct GamePlayView: View {
                         .onAppear {
                             resetHintForNewWord()
                         }
-                        
+
                         Spacer()
-                        
-                        // Result display
-                        if state.isComplete {
-                            GameResultView(
-                                word: state.isSolved ? state.currentGuess : state.targetWord,
-                                solved: state.isSolved,
-                                time: state.elapsedTime,
-                                definition: viewModel.definition,
-                                onNext: {
-                                    viewModel.resetForNextWord()
-                                    viewModel.startNewRound(mode: mode)
-                                }
-                            )
-                        } else {
-                            // Action buttons
+                            .frame(minHeight: 40)
+
+                        // Action buttons
+                        if !state.isComplete {
                             VStack(spacing: 16) {
                                 Button(action: {
                                     viewModel.submitGuess()
@@ -240,7 +232,7 @@ struct GamePlayView: View {
                                 }
                             }
                             .padding(.horizontal, 60)
-                            .padding(.bottom)
+                            .padding(.bottom, 40)
                         }
                     } else {
                         ProgressView()
@@ -281,7 +273,7 @@ struct GamePlayView: View {
                     if let state = viewModel.gameState, state.cursorPosition < state.currentGuess.count {
                         let newPos = state.cursorPosition + 1
                         let leftPart = String(state.currentGuess.prefix(newPos))
-                        let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - newPos))
+                            let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - newPos))
                         print("➡️ CURSOR RIGHT - Moving to \(newPos) | Left: '\(leftPart)' | Right: '\(rightPart)'")
                         viewModel.setCursor(at: newPos)
                     }
@@ -314,6 +306,20 @@ struct GamePlayView: View {
                 
                 // Set focus for keyboard input
                 isFocused = true
+            }
+
+            // Result overlay - at outer ZStack level
+            if let state = viewModel.gameState, state.isComplete {
+                GameResultView(
+                    word: state.isSolved ? state.currentGuess : state.targetWord,
+                    solved: state.isSolved,
+                    time: state.elapsedTime,
+                    definition: viewModel.definition,
+                    onNext: {
+                        viewModel.resetForNextWord()
+                        viewModel.startNewRound(mode: mode)
+                    }
+                )
             }
         }
     }
