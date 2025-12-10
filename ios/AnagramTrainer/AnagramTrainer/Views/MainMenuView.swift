@@ -117,26 +117,33 @@ struct MenuButton: View {
     let title: String
     let icon: String
     let color: Color
+    let fontSize = 32.0
+
+    private var isLargeDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
+    }
 
     var body: some View {
         if #available(iOS 26.0, *) {
-            HStack {
+            HStack(spacing: 20) {
                 Image(systemName: icon)
-                    .font(.title2)
-                    .frame(width: 30)
+                    .font(.custom("Din", size: fontSize))
+                    .padding(.leading, 32)
 
                 Text(title)
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                    .font(.custom("Din", size: fontSize))
+                    .padding(.leading, 64)
+
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.black.opacity(0.4))
+//                Image(systemName: "chevron.right")
+//                    .font(.caption)
+//                    .foregroundColor(.black.opacity(0.4))
             }
-            .foregroundColor(.black)
+            .foregroundColor(.white)
             .padding()
+            .padding(.vertical, isLargeDevice ? 16 : 0)
             .frame(maxWidth: .infinity)
             .background(
                 ZStack {
@@ -152,23 +159,24 @@ struct MenuButton: View {
             )
             .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
         } else {
-            HStack {
+            HStack(spacing: 20) {
                 Image(systemName: icon)
-                    .font(.title2)
-                    .frame(width: 30)
+                    .font(.custom("Din", size: fontSize))
+                    .padding(.leading, 32)
 
                 Text(title)
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                    .font(.custom("Din", size: fontSize))
+                    .padding(.leading, 64)
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.black.opacity(0.4))
+//                Image(systemName: "chevron.right")
+//                    .font(.caption)
+//                    .foregroundColor(.black.opacity(0.4))
             }
-            .foregroundColor(.black)
+            .foregroundColor(.white)
             .padding()
+            .padding(.vertical, isLargeDevice ? 16 : 0)
             .frame(maxWidth: .infinity)
             .background(
                 ZStack {
