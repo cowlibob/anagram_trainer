@@ -27,31 +27,65 @@ struct ScrambledWordView: View {
     private var displayWord: String { displayData.word }
     private var hintIndices: Set<Int> { displayData.hintIndices }
     private var originalIndices: [Int] { displayData.originalIndices }
-    
-    // Dynamic sizing based on word length
+
+    private var isLargeDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
+    }
+
+    // Dynamic sizing based on word length and device
     private var letterSize: CGFloat {
         let length = scrambled.count
-        switch length {
-        case ...6: return 70
-        case 7: return 65
-        case 8: return 58
-        case 9: return 52
-        default: return 48
+        if isLargeDevice {
+            switch length {
+            case ...6: return 70
+            case 7: return 65
+            case 8: return 58
+            case 9: return 52
+            default: return 48
+            }
+        } else {
+            switch length {
+            case ...6: return 70
+            case 7: return 65
+            case 8: return 58
+            case 9: return 52
+            default: return 48
+//            case ...6: return 55
+//            case 7: return 50
+//            case 8: return 45
+//            case 9: return 40
+//            default: return 38
+            }
         }
     }
     
     private var letterSpacing: CGFloat {
         scrambled.count > 7 ? 8 : 12
     }
-    
+
+    // Calculate letters per row ensuring at least 2 letters on each line
+    private var lettersPerRow: Int {
+        let count = displayWord.count
+        if count <= 5 { return count }
+
+        // Try splitting in half first
+        let halfRounded = (count + 1) / 2
+        if count % halfRounded >= 2 || count % halfRounded == 0 {
+            return halfRounded
+        }
+
+        // Otherwise use 5 per row (works well for 6-10 letters)
+        return min(5, count - 2)
+    }
+
     var body: some View {
         Group {
-            // Use wrapping layout for very long words
-            if displayWord.count > 8 {
+            // Use wrapping layout for long words on small screens, or very long words on any screen
+            if (!isLargeDevice && displayWord.count > 5) || displayWord.count > 8 {
                 VStack(spacing: 12) {
-                    ForEach(Array(stride(from: 0, to: displayWord.count, by: 5)), id: \.self) { rowStart in
+                    ForEach(Array(stride(from: 0, to: displayWord.count, by: lettersPerRow)), id: \.self) { rowStart in
                         HStack(spacing: letterSpacing) {
-                            ForEach(rowStart..<min(rowStart + 5, displayWord.count), id: \.self) { index in
+                            ForEach(rowStart..<min(rowStart + lettersPerRow, displayWord.count), id: \.self) { index in
                                 let originalIndex = originalIndices[index]
                                 LetterButtonView(
                                     letter: Array(displayWord)[index],

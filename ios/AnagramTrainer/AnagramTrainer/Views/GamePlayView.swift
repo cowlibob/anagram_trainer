@@ -79,10 +79,11 @@ struct GamePlayView: View {
         ZStack {
             MenuBackgroundView(
                 gridSize: 5,
-                gap: 25.0,
+                gap: -10.0,
                 scale: 0.5,
                 fontSize: 10.0,
-                rotationDuration: 300.0
+                rotationDuration: 300.0,
+                opacity: 0.05
             )
             .ignoresSafeArea()
 
@@ -201,28 +202,18 @@ struct GamePlayView: View {
                                         }
                                     }
                                 }) {
-                                    Label("Submit", systemImage: "checkmark.circle")
-                                        .font(.headline)
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.blue.gradient)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
+                                    MenuButton(title: "Submit", icon: "checkmark.circle", color: .blue)
                                 }
                                 .disabled(state.currentGuess.isEmpty)
-                                
+                                .buttonStyle(.plain)
+
                                 Button(action: {
                                     viewModel.clearGuess()
                                 }) {
-                                    Label("Clear", systemImage: "xmark.circle")
-                                        .font(.headline)
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.gray.opacity(0.3))
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
+                                    MenuButton(title: "Clear", icon: "xmark.circle", color: .gray)
                                 }
-                                
+                                .buttonStyle(.plain)
+
                                 Button(action: {
                                     viewModel.skipWord()
                                 }) {

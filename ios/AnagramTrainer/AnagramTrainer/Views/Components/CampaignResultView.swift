@@ -8,9 +8,9 @@ struct CampaignResultView: View {
 
     var body: some View {
         ZStack {
-            // Semi-transparent background overlay
-            Color.black.opacity(0.3)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Transparent background to see through
+            Color.clear
+                .background(.ultraThinMaterial.opacity(0.5))
                 .ignoresSafeArea()
 
             // White card overlay
@@ -37,15 +37,9 @@ struct CampaignResultView: View {
                 }
 
                 Button(action: onNext) {
-                    Text("Next Word")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.orange.gradient)
-                        .cornerRadius(15)
+                    MenuButton(title: "Next Word", icon: "arrow.right.circle", color: .orange)
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal)
             }
             .padding(40)

@@ -34,11 +34,16 @@ struct TrainingMenuView: View {
         }
     }
 
+    private var isLargeDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
+    }
+
+
     var body: some View {
         ZStack {
             MenuBackgroundView(
                 gridSize: 10,
-                gap: 50.0,
+                gap: isLargeDevice ? 50.0 : 10.0,
                 scale: 1.0,
                 fontSize: 8.0,
                 rotationDuration: 30.0
@@ -50,7 +55,7 @@ struct TrainingMenuView: View {
                     ForEach(trainingModes) { mode in
                         if mode == .graduated {
                             NavigationLink(destination: GraduatedDifficultySelector(viewModel: viewModel)) {
-                                TrainingModeButton(
+                                MenuButton(
                                     title: mode.rawValue,
                                     icon: icon(for: mode),
                                     color: color(for: mode)
@@ -59,7 +64,7 @@ struct TrainingMenuView: View {
                             .buttonStyle(.plain)
                         } else {
                             NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: mode)) {
-                                TrainingModeButton(
+                                MenuButton(
                                     title: mode.rawValue,
                                     icon: icon(for: mode),
                                     color: color(for: mode)
@@ -79,49 +84,6 @@ struct TrainingMenuView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .tint(.white)
-    }
-}
-
-struct TrainingModeButton: View {
-    let title: String
-    let icon: String
-    let color: Color
-    var badge: String? = nil
-    let fontSize = 32.0
-
-    private var isLargeDevice: Bool {
-        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
-    }
-
-    var body: some View {
-        HStack(spacing: 20) {
-            Image(systemName: icon)
-                .font(.custom("Din", size: fontSize))
-                .padding(.leading, 32)
-
-            Text(title)
-                .font(.custom("Din", size: fontSize))
-                .padding(.leading, 64)
-
-            Spacer()
-        }
-        .foregroundColor(.white)
-        .padding()
-        .padding(.vertical, isLargeDevice ? 16 : 0)
-        .frame(maxWidth: .infinity)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(color.opacity(0.3))
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                    )
-            }
-        )
-        .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
     }
 }
 

@@ -6,23 +6,28 @@ struct CampaignView: View {
     @State private var playerName = ""
     @State private var navigateToLeaderboard = false
     @Environment(\.dismiss) private var dismiss
-    
+
+    private var isLargeDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
+    }
+
     var body: some View {
         ZStack {
             MenuBackgroundView(
                 gridSize: 10,
-                gap: 50.0,
+                gap: isLargeDevice ? 50.0 : 10.0,
                 scale: 1.0,
                 fontSize: 8.0,
                 rotationDuration: 30.0
             )
+            .ignoresSafeArea()
 
             VStack(spacing: 20) {
                 if !viewModel.isComplete {
                 // Campaign header
                 VStack(spacing: 10) {
                     Text(viewModel.progressText)
-                        .font(.title2)
+                        .font(isLargeDevice ? .title2 : .headline)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
 
@@ -30,20 +35,20 @@ struct CampaignView: View {
                     HStack(spacing: 30) {
                         VStack {
                             Text("Score")
-                                .font(.caption)
+                                .font(isLargeDevice ? .caption : .caption2)
                                 .foregroundColor(.white.opacity(0.7))
                             Text("\(viewModel.totalScore)")
-                                .font(.title)
+                                .font(isLargeDevice ? .title : .title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                         }
 
                         VStack {
                             Text("Words Left")
-                                .font(.caption)
+                                .font(isLargeDevice ? .caption : .caption2)
                                 .foregroundColor(.white.opacity(0.7))
                             Text("\(viewModel.wordsRemaining)")
-                                .font(.title)
+                                .font(isLargeDevice ? .title : .title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                         }
@@ -51,10 +56,10 @@ struct CampaignView: View {
                         if viewModel.lastRoundPoints > 0 {
                             VStack {
                                 Text("Last Round")
-                                    .font(.caption)
+                                    .font(isLargeDevice ? .caption : .caption2)
                                     .foregroundColor(.white.opacity(0.7))
                                 Text("+\(viewModel.lastRoundPoints)")
-                                    .font(.title3)
+                                    .font(isLargeDevice ? .title3 : .headline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.green)
                             }
@@ -69,7 +74,7 @@ struct CampaignView: View {
                 // Stage info
                 if !viewModel.currentStage.mode.hints.isEmpty {
                     Text("Patterns: \(viewModel.currentStage.mode.hints)")
-                        .font(.caption)
+                        .font(isLargeDevice ? .caption : .caption2)
                         .foregroundColor(.white.opacity(0.9))
                 }
                 

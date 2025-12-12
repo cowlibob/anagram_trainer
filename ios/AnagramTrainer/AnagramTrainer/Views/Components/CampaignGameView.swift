@@ -5,6 +5,11 @@ struct CampaignGameView: View {
     let state: GameState
     @FocusState private var isFocused: Bool
     @State private var keyboardInput: String = ""
+    @State private var showingResult = false
+
+    private var isLargeDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
+    }
 
     private func handleKeyPress(_ key: String) {
         guard !state.isComplete else { return }
@@ -69,7 +74,7 @@ struct CampaignGameView: View {
                     }
                 }
 
-        VStack(spacing: 30) {
+        VStack(spacing: isLargeDevice ? 30 : 20) {
             // Scrambled word
             ScrambledWordView(
                 scrambled: state.scrambledWord,
@@ -83,7 +88,7 @@ struct CampaignGameView: View {
                 }
             )
             .padding(.horizontal)
-            
+
             // Current guess with cursor
             GuessView(
                 guess: state.currentGuess,
@@ -94,52 +99,46 @@ struct CampaignGameView: View {
                 }
             )
             .frame(height: 60)
-            
+
             // Timer
             TimerView(startTime: state.startTime, endTime: state.endTime)
-            
+
             Spacer()
 
             // Action buttons
             if !state.isComplete {
-                HStack(spacing: 20) {
-                    Button(action: {
-                        viewModel.clearGuess()
-                    }) {
-                        Label("Clear", systemImage: "xmark.circle")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                    }
-                    
+                VStack(spacing: 16) {
                     Button(action: {
                         viewModel.submitGuess()
                     }) {
-                        Label("Submit", systemImage: "checkmark.circle")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.orange.gradient)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                        MenuButton(title: "Submit", icon: "checkmark.circle", color: .orange)
                     }
                     .disabled(state.currentGuess.isEmpty)
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        viewModel.clearGuess()
+                    }) {
+                        MenuButton(title: "Clear", icon: "xmark.circle", color: .gray)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        viewModel.skipWord()
+                    }) {
+                        Text("Skip (No Points)")
+                            .font(isLargeDevice ? .caption : .caption2)
+                            .foregroundColor(.white)
+                    }
                 }
                 .padding(.horizontal)
-                
-                Button(action: {
-                    viewModel.skipWord()
-                }) {
-                    Text("Skip (No Points)")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
-                .padding(.bottom)
+                .padding(.bottom, isLargeDevice ? 20 : 10)
             }
         }
-
-        // Result overlay
-        if state.isComplete {
+        }
+        .focusable()
+        .focused($isFocused)
+        .fullScreenCover(isPresented: $showingResult) {
             CampaignResultView(
                 word: state.targetWord,
                 solved: state.isSolved,
@@ -148,14 +147,18 @@ struct CampaignGameView: View {
                     if !state.isSolved {
                         viewModel.recordSkip()
                     }
+                    showingResult = false
                     viewModel.resetForNextWord()
                     viewModel.startNextWord()
                 }
             )
+            .presentationBackground(.clear)
         }
+        .onChange(of: state.isComplete) {
+            if state.isComplete {
+                showingResult = true
+            }
         }
-        .focusable()
-        .focused($isFocused)
         .onKeyPress { press in
             if press.key == .delete || press.key == .deleteForward {
                 handleBackspace()

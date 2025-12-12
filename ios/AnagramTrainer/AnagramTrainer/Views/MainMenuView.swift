@@ -4,12 +4,16 @@ struct MainMenuView: View {
     @StateObject private var gameVM = GameViewModel()
     @StateObject private var campaignVM = CampaignViewModel()
 
+    private var isLargeDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 MenuBackgroundView(
                     gridSize: 10,
-                    gap: 50.0,
+                    gap: isLargeDevice ? 50.0 : 10.0,
                     scale: 1.0,
                     fontSize: 8.0,
                     rotationDuration: 30.0
@@ -70,22 +74,22 @@ struct MainMenuView: View {
                     VStack(spacing: 20) {
                         NavigationLink(destination: GamePlayView(viewModel: gameVM, mode: .random)) {
                             if #available(iOS 26.0, *) {
-                                MenuButton(title: "Quick Play", icon: "shuffle", color: .cyan)
+                                MenuButton(title: "Try", icon: "shuffle", color: .cyan)
                                     .buttonStyle(.glassProminent)
                             } else {
                                 // Fallback on earlier versions
-                                MenuButton(title: "Quick Play", icon: "shuffle", color: .cyan)
+                                MenuButton(title: "Try", icon: "shuffle", color: .cyan)
                             }
                         }
                         .buttonStyle(.plain)
 
                         NavigationLink(destination: TrainingMenuView(viewModel: gameVM)) {
-                            MenuButton(title: "Training Mode", icon: "graduationcap", color: .purple)
+                            MenuButton(title: "Train", icon: "graduationcap", color: .purple)
                         }
                         .buttonStyle(.plain)
 
                         NavigationLink(destination: CampaignView(viewModel: campaignVM)) {
-                            MenuButton(title: "Train Me (Campaign)", icon: "trophy", color: Color(red: 1.0, green: 0.6, blue: 0.4))
+                            MenuButton(title: "Test", icon: "trophy", color: Color(red: 1.0, green: 0.6, blue: 0.4))
                         }
                         .buttonStyle(.plain)
 
@@ -100,7 +104,7 @@ struct MainMenuView: View {
 
                     Text("Master the art of anagrams")
                         .font(.subheadline)
-                        .foregroundColor(.black.opacity(0.6))
+                        .foregroundColor(.white.opacity(0.6))
                         .padding(.bottom, 30)
                 }
                 .navigationBarHidden(true)
@@ -110,88 +114,6 @@ struct MainMenuView: View {
             .environmentObject(campaignVM)
         }
         .tint(.white)
-    }
-}
-
-struct MenuButton: View {
-    let title: String
-    let icon: String
-    let color: Color
-    let fontSize = 32.0
-
-    private var isLargeDevice: Bool {
-        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
-    }
-
-    var body: some View {
-        if #available(iOS 26.0, *) {
-            HStack(spacing: 20) {
-                Image(systemName: icon)
-                    .font(.custom("Din", size: fontSize))
-                    .padding(.leading, 32)
-
-                Text(title)
-                    .font(.custom("Din", size: fontSize))
-                    .padding(.leading, 64)
-
-
-                Spacer()
-
-//                Image(systemName: "chevron.right")
-//                    .font(.caption)
-//                    .foregroundColor(.black.opacity(0.4))
-            }
-            .foregroundColor(.white)
-            .padding()
-            .padding(.vertical, isLargeDevice ? 16 : 0)
-            .frame(maxWidth: .infinity)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(color.opacity(0.3))
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                        )
-                }
-            )
-            .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
-        } else {
-            HStack(spacing: 20) {
-                Image(systemName: icon)
-                    .font(.custom("Din", size: fontSize))
-                    .padding(.leading, 32)
-
-                Text(title)
-                    .font(.custom("Din", size: fontSize))
-                    .padding(.leading, 64)
-
-                Spacer()
-
-//                Image(systemName: "chevron.right")
-//                    .font(.caption)
-//                    .foregroundColor(.black.opacity(0.4))
-            }
-            .foregroundColor(.white)
-            .padding()
-            .padding(.vertical, isLargeDevice ? 16 : 0)
-            .frame(maxWidth: .infinity)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(color.opacity(0.3))
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                        )
-                }
-            )
-            .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
-        }
     }
 }
 

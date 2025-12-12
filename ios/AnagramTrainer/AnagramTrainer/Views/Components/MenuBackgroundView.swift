@@ -74,6 +74,7 @@ struct MenuBackgroundView: View {
     @State var fontSize: CGFloat = 1.0
     @State var rotationDuration: TimeInterval = 10.0
     @State private var rotationDegrees = -360.0
+    @State var opacity = 0.1
     private var rotateAnimation: Animation {
         .linear(duration: rotationDuration)
 //        .easeInOut(duration: rotationDuration)
@@ -95,7 +96,7 @@ struct MenuBackgroundView: View {
                                 Text(viewModel.letters[y][x])
                                     .font(.custom("DIN Condensed", size: scaledFontSize))
                                     .minimumScaleFactor(0.1)
-                                    .foregroundStyle(.white.opacity(0.1))
+                                    .foregroundStyle(.white.opacity(opacity))
                                     .baselineOffset(-fontSize * 2)
                             }
                             .frame(minWidth: cellSize, minHeight: cellSize)

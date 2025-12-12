@@ -50,15 +50,9 @@ struct GameResultView: View {
                 }
 
                 Button(action: onNext) {
-                    Text("Next Word")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue.gradient)
-                        .cornerRadius(15)
+                    MenuButton(title: "Next Word", icon: "arrow.right.circle", color: .blue)
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal)
             }
             .padding(40)

@@ -5,7 +5,22 @@ struct GraduatedDifficultySelector: View {
     @Environment(\.dismiss) private var dismiss
     
     let levels = Array(5...9)
-    
+
+    private var isLargeDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
+    }
+
+    private func color(for count: Int) -> Color {
+        switch count {
+        case 5: return .cyan
+        case 6: return .green
+        case 7: return .orange
+        case 8: return .blue
+        case 9: return .purple
+        default: return .clear
+        }
+    }
+
     var body: some View {
         ZStack {
             MenuBackgroundView(scale: 1.0)
@@ -42,36 +57,17 @@ struct GraduatedDifficultySelector: View {
             
             Spacer()
             
-            VStack(spacing: 15) {
+            VStack(spacing: isLargeDevice ? 15 : 12) {
                 ForEach(levels, id: \.self) { level in
                     NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
-                        HStack {
-                            Text("\(level) Letters")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-                            
-                            if level == viewModel.currentLevel {
-                                Text("Current")
-                                    .font(.caption)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.green.opacity(0.2))
-                                    .cornerRadius(8)
-                            }
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green.gradient)
-                        .cornerRadius(15)
-                        .shadow(radius: 3)
+                        MenuButton(
+                            title: "\(level) Letters",
+                            icon: nil,
+                            color: color(for: level),
+                            showCurrent: level == viewModel.currentLevel
+                        )
                     }
+                    .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
                         viewModel.currentLevel = level
                         viewModel.streak = 0
