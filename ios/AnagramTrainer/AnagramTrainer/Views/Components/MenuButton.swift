@@ -22,62 +22,102 @@ struct MenuButton: View {
         isLargeDevice ? 32.0 : 20.0
     }
 
-    var body: some View {
-        HStack(spacing: 20) {
-            if let icon = icon {
-                Image(systemName: icon)
-                    .font(.custom("Din", size: fontSize))
-                    .padding(.leading, isLargeDevice ? 32.0 : 20.0)
-                    .frame(width: 20.0)
-                Text(title)
-                    .font(.custom("Din", size: fontSize))
-                    .padding(.leading, isLargeDevice ? 64.0 : 20.0)
-            } else {
-                Text(title)
-                    .font(.custom("Din", size: fontSize))
-                    .padding(.leading, isLargeDevice ? 32.0 : 20.0)
-            }
+    @ViewBuilder
+    private var content: some View {
+        if #available(iOS 26.0, *) {
+            GlassEffectContainer {
+                ZStack {
+                    HStack {
+                        if let icon = icon {
+                            Image(systemName: icon)
+                        }
+                        Text(title)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer()
-
-            if showCurrent {
-                Text("Current")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white.opacity(0.9))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.3))
-                    .cornerRadius(8)
-            }
-
-            if let badge = badge {
-                Text(badge)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white.opacity(0.9))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.white.opacity(0.3))
-                    .cornerRadius(8)
-            }
-        }
-        .foregroundColor(.white)
-        .padding()
-        .padding(.vertical, isLargeDevice ? 16 : 0)
-        .frame(maxWidth: .infinity)
-        .background(
+                    HStack {
+                        if showCurrent {
+                            Text("Current")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(Color.primary.opacity(0.9))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(.clear)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .padding()
+            }.glassEffect()
+        } else {
             ZStack {
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(color.opacity(0.3))
+                // Left-aligned content
+                HStack(spacing: 20) {
+                    if let icon = icon {
+                        Image(systemName: icon)
+                            .font(.custom("Din", size: fontSize))
+                            .padding(.leading, isLargeDevice ? 32.0 : 20.0)
+                            .frame(width: 20.0)
+                        Text(title)
+                            .font(.custom("Din", size: fontSize))
+                            .padding(.leading, isLargeDevice ? 64.0 : 20.0)
+                    } else {
+                        Text(title)
+                            .font(.custom("Din", size: fontSize))
+                            .padding(.leading, isLargeDevice ? 32.0 : 20.0)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Right-aligned content
+                HStack(spacing: 10) {
+                    if showCurrent {
+                        Text("Current")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(Color.primary.opacity(0.9))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color.primary.opacity(0.15))
+                            .cornerRadius(8)
+                    }
+
+                    if let badge = badge {
+                        Text(badge)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(Color.primary.opacity(0.9))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color.primary.opacity(0.15))
+                            .cornerRadius(8)
+                    }
+                }
+                .padding(.trailing, isLargeDevice ? 32.0 : 20.0)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .foregroundStyle(.primary)
+            .padding()
+            .padding(.vertical, isLargeDevice ? 16 : 0)
+            .frame(maxWidth: .infinity)
+            .background(Color.white.opacity(0.001))
+            .contentShape(Rectangle())
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            if #available(iOS 26.0, *) {
+                content
+            } else {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                    )
+                    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                
+                content
             }
-        )
-        .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
+        }
+        .contentShape(Rectangle())
     }
 }

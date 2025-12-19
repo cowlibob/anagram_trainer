@@ -1,5 +1,43 @@
 # Changelog
 
+## [Unreleased] - iOS Native App - 2025-12-17
+
+### Added - iOS SwiftUI App
+- **MenuButton unified component**: Created single reusable button component used across all views
+  - Optional icon support for consistent icon placement
+  - Optional badge support for displaying additional info
+  - Optional "Current" indicator for showing active selection
+  - Responsive sizing for iPhone vs iPad/Mac devices
+- **iOS 26+ glass material effects**: Native glass appearance using `.regularMaterial` and `GlassEffectContainer`
+  - Subtle lensing/frosting effect similar to native iOS controls
+  - Removed colored shadows on iOS 26+ for cleaner appearance
+- **Comprehensive dark mode support**:
+  - Adaptive pink-to-burgundy gradient backgrounds (light vs dark)
+  - Separate dark mode app icon (icon_logotype_only_dark.svg) with softer #EAE5E6 color
+  - Semantic `.primary` color for text that adapts to light/dark mode
+  - Darker letter colors in MenuBackgroundView for dark mode (RGB: 0.25, 0.1, 0.18)
+- **Responsive design for all device sizes**:
+  - Device detection using `UIDevice.current.userInterfaceIdiom` (.pad/.mac)
+  - Larger fonts and spacing on iPad/Mac
+  - Letter wrapping for words >5 letters on iPhone (minimum 2 per line)
+  - Adaptive button padding and sizing
+
+### Changed - iOS SwiftUI App
+- **Performance optimization**: Changed MenuBackgroundView letters from transparent to opaque (#DE739F) for better rendering
+- **Pre-iOS 26 button styling**: Unified all buttons to use `.ultraThinMaterial` with shadows instead of colored backgrounds
+- **GameResultView**: Changed to use `.ultraThinMaterial` background on iOS 26+ for glass effect
+- **CampaignResultView**: Now displays as fullscreen modal with transparent background
+- **TrainingMenuView**: Redesigned from List to ScrollView+VStack layout with MenuButton components
+- **All menu buttons**: Migrated to use unified MenuButton component (MainMenuView, GamePlayView, CampaignGameView, TrainingMenuView, GraduatedDifficultySelector)
+
+### Fixed - iOS SwiftUI App
+- **Menu button tap area**: Resolved issue where buttons were only tappable on text/icons
+  - Refactored `MenuButton` to use layered `HStack`s inside a `ZStack` for solid hit-testing
+  - Added `.contentShape(Rectangle())` and a nearly transparent background to eliminate "hollow" areas
+  - Disabled hit-testing on the decorative background letter grid to prevent interference
+- **Button action handling**: Fixed broken actions after MenuButton refactor by making it a view instead of nested Button
+- **Material layering**: Removed black overlay to allow material to properly blur underlying layers
+
 ## [Unreleased] - iOS Native App - 2025-12-08
 
 ### Added - iOS SwiftUI App

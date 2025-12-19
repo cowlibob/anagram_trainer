@@ -67,6 +67,7 @@ class MenuBackgroundViewModel: ObservableObject {
 
 struct MenuBackgroundView: View {
     @StateObject private var viewModel = MenuBackgroundViewModel()
+    @Environment(\.colorScheme) var colorScheme
 
     @State var gridSize: Int = 16
     @State var gap: CGFloat = 1.0
@@ -81,6 +82,36 @@ struct MenuBackgroundView: View {
         .repeatForever(autoreverses: false)
     }
 
+    private var backgroundGradient: LinearGradient {
+        if colorScheme == .dark {
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.2, green: 0.1, blue: 0.15),   // Dark burgundy
+                    Color(red: 0.25, green: 0.12, blue: 0.18), // Deep plum
+                    Color(red: 0.18, green: 0.08, blue: 0.2)   // Dark purple
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            return LinearGradient(
+                colors: [
+                    Color(red: 1.0, green: 0.3, blue: 0.5),  // Vibrant pink
+                    Color(red: 0.95, green: 0.4, blue: 0.6),  // Soft pink
+                    Color(red: 0.8, green: 0.3, blue: 0.7)    // Purple-pink
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    private var letterColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.25, green: 0.1, blue: 0.18)  // Much darker pink for dark mode
+            : Color(red: 0.87, green: 0.45, blue: 0.62) // Light pink for light mode
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let cellSize = max(geometry.size.width, geometry.size.height) / CGFloat(gridSize)
@@ -90,19 +121,14 @@ struct MenuBackgroundView: View {
                 ForEach(0..<gridSize, id: \.self) { y in
                     GridRow {
                         ForEach(0..<gridSize, id: \.self) { x in
-                            Button {
-
-                            } label: {
-                                Text(viewModel.letters[y][x])
-                                    .font(.custom("DIN Condensed", size: scaledFontSize))
-                                    .minimumScaleFactor(0.1)
-                                    .foregroundStyle(.white.opacity(opacity))
-                                    .baselineOffset(-fontSize * 2)
-                            }
-                            .frame(minWidth: cellSize, minHeight: cellSize)
-                            .padding(gap)
-                            .rotationEffect(.degrees(rotationDegrees))
-//                            .border(Color.white.opacity(0.5), width: 1.0)
+                            Text(viewModel.letters[y][x])
+                                .font(.custom("DIN Condensed", size: scaledFontSize))
+                                .minimumScaleFactor(0.1)
+                                .foregroundStyle(letterColor)
+                                .baselineOffset(-fontSize * 2)
+                                .frame(minWidth: cellSize, minHeight: cellSize)
+                                .padding(gap)
+                                .rotationEffect(.degrees(rotationDegrees))
                         }
                     }
                 }
@@ -116,19 +142,10 @@ struct MenuBackgroundView: View {
                     rotationDegrees = 0.0
                 }
             }
-            .background(
-                LinearGradient(
-                    colors: [
-                        Color(red: 1.0, green: 0.3, blue: 0.5),  // Vibrant pink
-                        Color(red: 0.95, green: 0.4, blue: 0.6),  // Soft pink
-                        Color(red: 0.8, green: 0.3, blue: 0.7)    // Purple-pink
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .background(backgroundGradient)
             .foregroundStyle(Color.white)
             .ignoresSafeArea()
+            .allowsHitTesting(false)
         }
     }
 }
