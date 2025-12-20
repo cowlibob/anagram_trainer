@@ -3,6 +3,11 @@
 ## [Unreleased] - iOS Native App - 2025-12-17
 
 ### Added - iOS SwiftUI App
+- **Training mode info popups**: Automatically displays details about letter groupings when entering a specialized training mode
+  - Shows mode description and exact letter patterns (digraphs, clusters, etc.)
+  - Interactive "(?)" button in the gameplay header to re-open the info dialog
+  - Integrated `FlowLayout` for clean pattern display
+- **Automatic definition fetching**: Game now automatically fetches word definitions the moment a round concludes (success or skip)
 - **MenuButton unified component**: Created single reusable button component used across all views
   - Optional icon support for consistent icon placement
   - Optional badge support for displaying additional info
@@ -23,6 +28,9 @@
   - Adaptive button padding and sizing
 
 ### Changed - iOS SwiftUI App
+- **High-contrast Training Info**: Updated `ModeInfoView` tags to use solid backgrounds with white text for maximum readability
+  - Added colored glow effects to mode icons
+  - Changed Suffix Focus color from orange to red for better vibrancy
 - **Performance optimization**: Changed MenuBackgroundView letters from transparent to opaque (#DE739F) for better rendering
 - **Pre-iOS 26 button styling**: Unified all buttons to use `.ultraThinMaterial` with shadows instead of colored backgrounds
 - **GameResultView**: Changed to use `.ultraThinMaterial` background on iOS 26+ for glass effect
@@ -31,6 +39,7 @@
 - **All menu buttons**: Migrated to use unified MenuButton component (MainMenuView, GamePlayView, CampaignGameView, TrainingMenuView, GraduatedDifficultySelector)
 
 ### Fixed - iOS SwiftUI App
+- **GameResultView layout stability**: Reserved fixed space for definitions to prevent "Next Word" button from jumping when text loads
 - **Menu button tap area**: Resolved issue where buttons were only tappable on text/icons
   - Refactored `MenuButton` to use layered `HStack`s inside a `ZStack` for solid hit-testing
   - Added `.contentShape(Rectangle())` and a nearly transparent background to eliminate "hollow" areas

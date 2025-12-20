@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// Training mode categories with associated pattern lists
 enum TrainingMode: String, CaseIterable, Identifiable {
@@ -34,6 +35,32 @@ enum TrainingMode: String, CaseIterable, Identifiable {
         }
     }
     
+    var icon: String {
+        switch self {
+        case .random: return "shuffle"
+        case .graduated: return "chart.bar"
+        case .suffix: return "arrow.right.to.line"
+        case .prefix: return "arrow.left.to.line"
+        case .digraph: return "2.circle"
+        case .vowelCluster: return "a.circle"
+        case .consonantBlend: return "b.circle"
+        case .trigraph: return "3.circle"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .random: return .cyan
+        case .graduated: return .green
+        case .suffix: return .red
+        case .prefix: return .blue
+        case .digraph: return .purple
+        case .vowelCluster: return .pink
+        case .consonantBlend: return .teal
+        case .trigraph: return .indigo
+        }
+    }
+
     var patterns: [String] {
         switch self {
         case .suffix:

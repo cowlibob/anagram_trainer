@@ -89,6 +89,9 @@ class GameViewModel: ObservableObject {
     
     func skipWord() {
         gameState?.completeGame()
+        Task {
+            await fetchDefinition()
+        }
     }
     
     private func handleSuccess() {
@@ -98,6 +101,10 @@ class GameViewModel: ObservableObject {
             gameState = state
         }
         
+        Task {
+            await fetchDefinition()
+        }
+
         // Handle graduated mode level progression
         if currentMode == .graduated {
             streak += 1

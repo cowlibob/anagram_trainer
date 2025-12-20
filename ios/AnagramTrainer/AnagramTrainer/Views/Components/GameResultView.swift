@@ -8,14 +8,7 @@ struct GameResultView: View {
     let onNext: () -> Void
 
     var body: some View {
-        ZStack {
-            // Semi-transparent background overlay
-            Color.black.opacity(0.3)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-
-            // White card overlay
-            VStack(spacing: 24) {
+        VStack(spacing: 24) {
                 Image(systemName: solved ? "checkmark.circle.fill" : "arrow.right.circle.fill")
                     .font(.system(size: 60))
                     .foregroundColor(solved ? .green : .orange)
@@ -23,7 +16,7 @@ struct GameResultView: View {
                 Text(solved ? "Correct!" : "The word was:")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.black)
 
                 if !solved {
                     Text(word.uppercased())
@@ -38,16 +31,30 @@ struct GameResultView: View {
                         .foregroundColor(.secondary)
                 }
 
-                if !definition.isEmpty {
-                    ScrollView {
-                        Text(definition)
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .multilineTextAlignment(.center)
-                            .padding()
+                VStack {
+                    if definition.isEmpty {
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .tint(.secondary)
+                            Text("Fetching definition...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        ScrollView {
+                            Text(definition)
+                                .font(.body)
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                        }
                     }
-                    .frame(maxHeight: 200)
                 }
+                .frame(height: 150) // Fixed height to prevent button jitter
+                .background(Color.primary.opacity(0.03))
+                .cornerRadius(12)
+                .padding(.horizontal)
 
                 Button(action: onNext) {
                     MenuButton(title: "Next Word", icon: "arrow.right.circle", color: .blue)
@@ -57,11 +64,18 @@ struct GameResultView: View {
             }
             .padding(40)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.white)
-                    .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+                Group {
+                    if #available(iOS 26.0, *) {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(.ultraThinMaterial)
+//                            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+                    } else {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(.white)
+                            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+                    }
+                }
             )
             .padding(40)
-        }
     }
 }

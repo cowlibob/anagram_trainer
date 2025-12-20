@@ -10,6 +10,7 @@ struct GamePlayView: View {
     @State private var hintActivationTime: Date?
     @FocusState private var isFocused: Bool
     @State private var keyboardInput: String = ""
+    @State private var showingModeInfo = false
     
     private func resetHintTimer() {
         // Only hide hint when truly resetting (new word)
@@ -115,9 +116,21 @@ struct GamePlayView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.white)
                         } else if !mode.hints.isEmpty {
-                            Text("Patterns: \(mode.hints)")
-                                .font(.caption)
-                                .foregroundColor(.white)
+                            Button(action: {
+                                showingModeInfo = true
+                            }) {
+                                HStack(spacing: 6) {
+                                    Text("Patterns: \(mode.hints)")
+                                        .font(.caption)
+                                    Image(systemName: "questionmark.circle")
+                                        .font(.caption)
+                                }
+                                .foregroundColor(.white.opacity(0.8))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(20)
+                            }
                         }
                     }
                     .padding(.top, 40)
@@ -196,11 +209,6 @@ struct GamePlayView: View {
                             VStack(spacing: 16) {
                                 Button(action: {
                                     viewModel.submitGuess()
-                                    if viewModel.gameState?.isComplete ?? false {
-                                        Task {
-                                            await viewModel.fetchDefinition()
-                                        }
-                                    }
                                 }) {
                                     MenuButton(title: "Submit", icon: "checkmark.circle", color: .blue)
                                 }
@@ -272,11 +280,6 @@ struct GamePlayView: View {
                 } else if press.key == .return {
                     if let state = viewModel.gameState, !state.currentGuess.isEmpty && !state.isComplete {
                         viewModel.submitGuess()
-                        if viewModel.gameState?.isComplete ?? false {
-                            Task {
-                                await viewModel.fetchDefinition()
-                            }
-                        }
                         return .handled
                     }
                 } else if let character = press.characters.first, character.isLetter {
@@ -293,10 +296,26 @@ struct GamePlayView: View {
                 
                 if viewModel.currentMode != mode || viewModel.gameState == nil || levelChanged {
                     viewModel.startNewRound(mode: mode)
+                    
+                    // Show info popup for specific training modes on entry
+                    if mode != .random && mode != .graduated {
+                        showingModeInfo = true
+                    }
                 }
                 
                 // Set focus for keyboard input
                 isFocused = true
+            }
+
+            // Mode Info Overlay
+            if showingModeInfo {
+                ModeInfoView(
+                    mode: mode,
+                    onDismiss: {
+                        showingModeInfo = false
+                    }
+                )
+                .transition(.opacity.combined(with: .scale))
             }
 
             // Result overlay - at outer ZStack level

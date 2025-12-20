@@ -8,36 +8,9 @@ struct TrainingMenuView: View {
         .vowelCluster, .consonantBlend, .digraph, .trigraph
     ]
 
-    private func icon(for mode: TrainingMode) -> String {
-        switch mode {
-        case .random: return "shuffle"
-        case .graduated: return "chart.bar"
-        case .suffix: return "arrow.right.to.line"
-        case .prefix: return "arrow.left.to.line"
-        case .digraph: return "2.circle"
-        case .vowelCluster: return "a.circle"
-        case .consonantBlend: return "b.circle"
-        case .trigraph: return "3.circle"
-        }
-    }
-
-    private func color(for mode: TrainingMode) -> Color {
-        switch mode {
-        case .random: return .cyan
-        case .graduated: return .green
-        case .suffix: return .orange
-        case .prefix: return .blue
-        case .digraph: return .purple
-        case .vowelCluster: return .pink
-        case .consonantBlend: return .teal
-        case .trigraph: return .indigo
-        }
-    }
-
     private var isLargeDevice: Bool {
         UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
     }
-
 
     var body: some View {
         ZStack {
@@ -57,8 +30,8 @@ struct TrainingMenuView: View {
                             NavigationLink(destination: GraduatedDifficultySelector(viewModel: viewModel)) {
                                 MenuButton(
                                     title: mode.rawValue,
-                                    icon: icon(for: mode),
-                                    color: color(for: mode)
+                                    icon: mode.icon,
+                                    color: mode.color
                                 )
                             }
                             .buttonStyle(.plain)
@@ -66,8 +39,8 @@ struct TrainingMenuView: View {
                             NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: mode)) {
                                 MenuButton(
                                     title: mode.rawValue,
-                                    icon: icon(for: mode),
-                                    color: color(for: mode)
+                                    icon: mode.icon,
+                                    color: mode.color
                                 )
                             }
                             .buttonStyle(.plain)
