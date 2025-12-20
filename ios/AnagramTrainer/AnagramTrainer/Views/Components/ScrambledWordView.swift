@@ -38,23 +38,18 @@ struct ScrambledWordView: View {
         if isLargeDevice {
             switch length {
             case ...6: return 70
-            case 7: return 65
-            case 8: return 58
-            case 9: return 52
-            default: return 48
+            case 7: return 70 //65
+            case 8: return 70 //58
+            case 9: return 70 //52
+            default: return 70 //48
             }
         } else {
             switch length {
-            case ...6: return 70
+            case ...6: return 65
             case 7: return 65
             case 8: return 58
             case 9: return 52
             default: return 48
-//            case ...6: return 55
-//            case 7: return 50
-//            case 8: return 45
-//            case 9: return 40
-//            default: return 38
             }
         }
     }
@@ -65,23 +60,18 @@ struct ScrambledWordView: View {
 
     // Calculate letters per row ensuring at least 2 letters on each line
     private var lettersPerRow: Int {
-        let count = displayWord.count
-        if count <= 5 { return count }
-
-        // Try splitting in half first
-        let halfRounded = (count + 1) / 2
-        if count % halfRounded >= 2 || count % halfRounded == 0 {
-            return halfRounded
+        switch displayWord.count {
+        case 5, 6: return 3
+        case 7, 8: return 4
+        case 9, 10: return 5
+        default: return 6
         }
-
-        // Otherwise use 5 per row (works well for 6-10 letters)
-        return min(5, count - 2)
     }
 
     var body: some View {
         Group {
             // Use wrapping layout for long words on small screens, or very long words on any screen
-            if (!isLargeDevice && displayWord.count > 5) || displayWord.count > 8 {
+            if !isLargeDevice {
                 VStack(spacing: 12) {
                     ForEach(Array(stride(from: 0, to: displayWord.count, by: lettersPerRow)), id: \.self) { rowStart in
                         HStack(spacing: letterSpacing) {

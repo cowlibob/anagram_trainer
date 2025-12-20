@@ -3,11 +3,12 @@ import SwiftUI
 struct MainMenuView: View {
     @StateObject private var gameVM = GameViewModel()
     @StateObject private var campaignVM = CampaignViewModel()
+    @Environment(\.colorScheme) var colorScheme
 
     private var isLargeDevice: Bool {
         UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -23,7 +24,7 @@ struct MainMenuView: View {
                 VStack(spacing: 30) {
                     // Title
                     VStack(spacing: 16) {
-                        Image("icon_logotype_only")
+                        Image(colorScheme == .dark ? "icon_logotype_only_dark" : "icon_logotype_only")
                             .resizable()
                             .scaledToFit()
                             .frame(height: 100)
@@ -73,15 +74,8 @@ struct MainMenuView: View {
                     // Menu Options
                     VStack(spacing: 20) {
                         NavigationLink(destination: GamePlayView(viewModel: gameVM, mode: .random)) {
-                            if #available(iOS 26.0, *) {
-                                MenuButton(title: "Try", icon: "shuffle", color: .cyan)
-                                    .buttonStyle(.glassProminent)
-                            } else {
-                                // Fallback on earlier versions
-                                MenuButton(title: "Try", icon: "shuffle", color: .cyan)
-                            }
-                        }
-                        .buttonStyle(.plain)
+                            MenuButton(title: "Try", icon: "shuffle", color: .cyan)
+                        }.buttonStyle(.plain)
 
                         NavigationLink(destination: TrainingMenuView(viewModel: gameVM)) {
                             MenuButton(title: "Train", icon: "graduationcap", color: .purple)
