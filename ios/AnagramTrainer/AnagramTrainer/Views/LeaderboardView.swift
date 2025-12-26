@@ -12,6 +12,7 @@ struct LeaderboardView: View {
                 fontSize: 8.0,
                 rotationDuration: 30.0
             )
+            .ignoresSafeArea()
 
             List {
                 if entries.isEmpty {

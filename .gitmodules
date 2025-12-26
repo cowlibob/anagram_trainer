@@ -1,0 +1,3 @@
+[submodule "external/EOWL"]
+	path = external/EOWL
+	url = https://github.com/kloge/The-English-Open-Word-List

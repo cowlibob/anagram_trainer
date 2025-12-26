@@ -74,7 +74,7 @@ class PersistenceManager {
         var entries = loadLeaderboard()
         entries.append(entry)
         entries.sort { $0.score > $1.score }  // Sort descending
-        entries = Array(entries.prefix(10))    // Keep top 10
+        entries = Array(entries.prefix(25))    // Keep top 25
         saveLeaderboard(entries)
     }
 }
