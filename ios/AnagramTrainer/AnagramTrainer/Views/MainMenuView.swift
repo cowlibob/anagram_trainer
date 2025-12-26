@@ -87,7 +87,9 @@ struct MainMenuView: View {
                         }
                         .buttonStyle(.plain)
 
-                        NavigationLink(destination: LeaderboardView()) {
+                        Button(action: {
+                            GameCenterManager.shared.showLeaderboard()
+                        }) {
                             MenuButton(title: "Leaderboard", icon: "list.number", color: .indigo)
                         }
                         .buttonStyle(.plain)
@@ -101,7 +103,9 @@ struct MainMenuView: View {
                         .foregroundColor(.white.opacity(0.6))
                         .padding(.bottom, 30)
                 }
-                .navigationBarHidden(true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .toolbar(.hidden, for: .navigationBar)
 
             }
             .environmentObject(gameVM)

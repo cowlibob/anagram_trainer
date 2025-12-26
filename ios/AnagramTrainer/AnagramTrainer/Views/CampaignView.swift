@@ -111,28 +111,14 @@ struct CampaignView: View {
                         }
                 }
             } else {
-                // Campaign complete
-                NavigationLink(
-                    destination: LeaderboardDismissWrapper(
-                        onDismiss: {
-                            // First dismiss the leaderboard, then dismiss the campaign
-                            navigateToLeaderboard = false
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                dismiss()
-                            }
-                        }
-                    ),
-                    isActive: $navigateToLeaderboard
-                ) {
-                    EmptyView()
-                }
-                .hidden()
-                
                 CampaignCompleteView(
                     score: viewModel.totalScore,
                     onSubmit: { name in
                         viewModel.submitToLeaderboard(playerName: name)
-                        navigateToLeaderboard = true
+                        // Show Game Center leaderboard
+                        GameCenterManager.shared.showLeaderboard()
+                        // Dismiss campaign view
+                        dismiss()
                     }
                 )
             }

@@ -12,6 +12,9 @@ struct AnagramTrainerApp: App {
     init() {
         // Pre-load dictionary on app launch
         _ = Dictionary.shared
+        
+        // Authenticate Game Center
+        GameCenterManager.shared.authenticateLocalPlayer()
     }
     
     var body: some Scene {

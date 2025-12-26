@@ -281,7 +281,12 @@ class CampaignViewModel: ObservableObject {
     // MARK: - Leaderboard
     
     func submitToLeaderboard(playerName: String) {
+        // Submit to local for backup if desired
         let entry = LeaderboardEntry(playerName: playerName, score: totalScore)
         persistence.addLeaderboardEntry(entry)
+        
+        // Submit to Game Center
+        print("[DEBUG] Submitting campaign score to Game Center: \(totalScore)")
+        GameCenterManager.shared.submitScore(totalScore)
     }
 }

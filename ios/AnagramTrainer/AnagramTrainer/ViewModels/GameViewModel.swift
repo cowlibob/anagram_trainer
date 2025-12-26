@@ -116,6 +116,16 @@ class GameViewModel: ObservableObject {
         } else {
             streak = 0
         }
+
+        // Submit to Game Center
+        if let state = gameState {
+            let baseScore = state.targetWord.count * 100
+            let timePenalty = Int(state.elapsedTime * 10)
+            let score = max(0, baseScore - timePenalty)
+            
+            print("[DEBUG] Submitting score to Game Center: \(score) (Base: \(baseScore), Penalty: \(timePenalty))")
+            GameCenterManager.shared.submitScore(score)
+        }
     }
     
     func resetForNextWord() {

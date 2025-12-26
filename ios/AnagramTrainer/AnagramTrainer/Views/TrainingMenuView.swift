@@ -46,6 +46,17 @@ struct TrainingMenuView: View {
                             .buttonStyle(.plain)
                         }
                     }
+
+                    Button(action: {
+                        GameCenterManager.shared.showLeaderboard()
+                    }) {
+                        MenuButton(
+                            title: "Leaderboards",
+                            icon: "trophy.fill",
+                            color: .orange
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 40)
                 .padding(.top, 20)

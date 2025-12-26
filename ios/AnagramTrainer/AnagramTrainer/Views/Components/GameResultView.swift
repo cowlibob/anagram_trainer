@@ -18,12 +18,10 @@ struct GameResultView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.black)
 
-                if !solved {
-                    Text(word.uppercased())
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(red: 1.0, green: 0.3, blue: 0.5))
-                }
+                Text(word.uppercased())
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(solved ? .green : Color(red: 1.0, green: 0.3, blue: 0.5))
 
                 if solved {
                     Text(String(format: "Time: %.1fs", time))
@@ -64,17 +62,9 @@ struct GameResultView: View {
             }
             .padding(40)
             .background(
-                Group {
-                    if #available(iOS 26.0, *) {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(.ultraThinMaterial)
-//                            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
-                    } else {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(.white)
-                            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
-                    }
-                }
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
             )
             .padding(40)
     }
