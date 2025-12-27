@@ -3,6 +3,7 @@ import SwiftUI
 struct GraduatedDifficultySelector: View {
     @ObservedObject var viewModel: GameViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scalingFactor) var scalingFactor
     
     let levels = Array(5...9)
 
@@ -38,57 +39,80 @@ struct GraduatedDifficultySelector: View {
                 .foregroundStyle(Color.white)
                 .ignoresSafeArea()
 
-            VStack(spacing: 30) {
-                VStack(spacing: 10) {
-                Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.white)
+            GeometryReader { geometry in
+                let isShort = geometry.size.height < 600
+                
+                ScrollView {
+                    VStack(spacing: isShort ? 15 : 30) {
+                        VStack(spacing: isShort ? 4 : 10) {
+                            if !isShort {
+                                Image(systemName: "chart.line.uptrend.xyaxis")
+                                    .font(.system(size: 60 * scalingFactor))
+                                    .foregroundStyle(.white)
+                                    .padding(.bottom, 10)
+                            }
 
-                Text("Graduated Difficulty")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                            Text("Graduated Difficulty")
+                                .font(isShort ? .title3 : .largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
 
-                Text("Select word length")
-                    .font(.title3)
-                    .foregroundColor(.white.opacity(0.9))
-            }
-            .padding(.top, 50)
-            
-            Spacer()
-            
-            VStack(spacing: isLargeDevice ? 15 : 12) {
-                ForEach(levels, id: \.self) { level in
-                    NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
-                        MenuButton(
-                            title: "\(level) Letters",
-                            icon: nil,
-                            color: color(for: level),
-                            showCurrent: level == viewModel.currentLevel
-                        )
+                            Text("Select word length")
+                                .font(isShort ? .caption : .title3)
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                        .padding(.top, isShort ? 10 : 50)
+                        
+                        if isShort {
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                                ForEach(levels, id: \.self) { level in
+                                    difficultyButton(level: level, isCompact: true)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        } else {
+                            VStack(spacing: isLargeDevice ? 15 : 12) {
+                                ForEach(levels, id: \.self) { level in
+                                    difficultyButton(level: level, isCompact: false)
+                                }
+                            }
+                            .padding(.horizontal, 40)
+                        }
+                        
+                        Text("Solve 3 words in a row to advance")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.9))
+                            .padding(.top, isShort ? 5 : 10)
+                            .padding(.bottom, isShort ? 20 : 30)
                     }
-                    .buttonStyle(.plain)
-                    .simultaneousGesture(TapGesture().onEnded {
-                        viewModel.currentLevel = level
-                        viewModel.streak = 0
-                    })
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, isShort ? 10 : 0)
                 }
             }
-            .padding(.horizontal, 40)
-            
-            Spacer()
-
-            Text("Solve 3 words in a row to advance")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.9))
-                .padding(.bottom, 30)
-        }
         }
         .navigationTitle("Select Difficulty")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .tint(.white)
+    }
+
+    @ViewBuilder
+    private func difficultyButton(level: Int, isCompact: Bool) -> some View {
+        NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
+            MenuButton(
+                title: "\(level) Letters",
+                icon: nil,
+                color: color(for: level),
+                showCurrent: level == viewModel.currentLevel,
+                isCompact: isCompact
+            )
+        }
+        .buttonStyle(.plain)
+        .simultaneousGesture(TapGesture().onEnded {
+            viewModel.currentLevel = level
+            viewModel.streak = 0
+        })
     }
 }
 

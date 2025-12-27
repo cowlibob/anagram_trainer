@@ -6,6 +6,7 @@ struct CampaignGameView: View {
     @FocusState private var isFocused: Bool
     @State private var keyboardInput: String = ""
     @State private var showingResult = false
+    @Environment(\.scalingFactor) var scalingFactor
 
     private var isLargeDevice: Bool {
         UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
@@ -74,65 +75,93 @@ struct CampaignGameView: View {
                     }
                 }
 
-        VStack(spacing: isLargeDevice ? 30 : 20) {
-            // Scrambled word
-            ScrambledWordView(
-                scrambled: state.scrambledWord,
-                currentGuess: state.currentGuess,
-                usedPositions: state.usedPositions,
-                mode: .random, // Campaign doesn't show hints
-                targetWord: state.targetWord,
-                showHint: false,
-                onLetterAction: { originalIndex, letter in
-                    viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles both add/remove
-                }
-            )
-            .padding(.horizontal)
-
-            // Current guess with cursor
-            GuessView(
-                guess: state.currentGuess,
-                cursorPosition: state.cursorPosition,
-                isSolved: state.isSolved,
-                onTapPosition: { position in
-                    viewModel.setCursor(at: position)
-                }
-            )
-            .frame(height: 60)
-
-            // Timer
-            TimerView(startTime: state.startTime, endTime: state.endTime)
-
-            Spacer()
-
-            // Action buttons
-            if !state.isComplete {
-                VStack(spacing: 16) {
-                    Button(action: {
-                        viewModel.submitGuess()
-                    }) {
-                        MenuButton(title: "Submit", icon: "checkmark.circle", color: .orange)
+        GeometryReader { geometry in
+            let isShort = geometry.size.height < 600
+            
+            VStack(spacing: isShort ? 10 : (isLargeDevice ? 30 : 20)) {
+                // Inline header for short mode
+                if isShort {
+                    HStack {
+                        HStack(spacing: 4) {
+                            Text("Score:")
+                                .foregroundColor(.white.opacity(0.6))
+                            Text("\(viewModel.totalScore)")
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        
+                        Spacer()
+                        
+                        TimerView(startTime: state.startTime, endTime: state.endTime)
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 4) {
+                            Text("Left:")
+                                .foregroundColor(.white.opacity(0.6))
+                            Text("\(viewModel.wordsRemaining)")
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                        }
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
                     }
-                    .disabled(state.currentGuess.isEmpty)
-                    .buttonStyle(.plain)
-
-                    Button(action: {
-                        viewModel.clearGuess()
-                    }) {
-                        MenuButton(title: "Clear", icon: "xmark.circle", color: .gray)
-                    }
-                    .buttonStyle(.plain)
-
-                    Button(action: {
-                        viewModel.skipWord()
-                    }) {
-                        Text("Skip (No Points)")
-                            .font(isLargeDevice ? .caption : .caption2)
-                            .foregroundColor(.white)
-                    }
+                    .padding(.horizontal)
+                    .padding(.top, 10)
                 }
+
+                // Scrambled word
+                ScrambledWordView(
+                    scrambled: state.scrambledWord,
+                    currentGuess: state.currentGuess,
+                    usedPositions: state.usedPositions,
+                    mode: .random, // Campaign doesn't show hints
+                    targetWord: state.targetWord,
+                    showHint: false,
+                    onLetterAction: { originalIndex, letter in
+                        viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles both add/remove
+                    }
+                )
                 .padding(.horizontal)
-                .padding(.bottom, isLargeDevice ? 20 : 10)
+
+                // Current guess with cursor
+                GuessView(
+                    guess: state.currentGuess,
+                    cursorPosition: state.cursorPosition,
+                    isSolved: state.isSolved,
+                    onTapPosition: { position in
+                        viewModel.setCursor(at: position)
+                    }
+                )
+                .frame(height: isShort ? 40 : 60)
+
+                if !isShort {
+                    // Timer
+                    TimerView(startTime: state.startTime, endTime: state.endTime)
+                }
+
+                Spacer()
+
+                // Action buttons
+                if !state.isComplete {
+                    Group {
+                        if isShort {
+                            HStack(spacing: 8) {
+                                submitButton(isCompact: true, showIcon: false)
+                                clearButton(isCompact: true, showIcon: false)
+                                skipButton(isCompact: true)
+                            }
+                        } else {
+                            VStack(spacing: 16) {
+                                submitButton(isCompact: false, showIcon: true)
+                                clearButton(isCompact: false, showIcon: true)
+                                skipButton(isCompact: false)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, isShort ? 10 : 20)
+                    .padding(.bottom, isShort ? 15 : (isLargeDevice ? 20 : 10))
+                }
             }
         }
         }
@@ -187,5 +216,37 @@ struct CampaignGameView: View {
         .onAppear {
             isFocused = true
         }
+    }
+
+    @ViewBuilder
+    private func submitButton(isCompact: Bool, showIcon: Bool) -> some View {
+        Button(action: {
+            viewModel.submitGuess()
+        }) {
+            MenuButton(title: "Submit", icon: showIcon ? "checkmark.circle" : nil, color: .orange, isCompact: isCompact)
+        }
+        .disabled(state.currentGuess.isEmpty)
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func clearButton(isCompact: Bool, showIcon: Bool) -> some View {
+        Button(action: {
+            viewModel.clearGuess()
+        }) {
+            MenuButton(title: "Clear", icon: showIcon ? "xmark.circle" : nil, color: .gray, isCompact: isCompact)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func skipButton(isCompact: Bool) -> some View {
+        HoldToConfirmButton(
+            title: isCompact ? "Skip" : "Skip (No Points)",
+            icon: nil,
+            color: .red.opacity(0.8),
+            isCompact: isCompact,
+            action: { viewModel.skipWord() }
+        )
     }
 }

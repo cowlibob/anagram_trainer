@@ -20,6 +20,7 @@ struct AnagramTrainerApp: App {
     var body: some Scene {
         WindowGroup {
             MainMenuView()
+                .withDynamicScaling()
         }
     }
 }

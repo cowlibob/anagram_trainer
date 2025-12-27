@@ -10,15 +10,9 @@ struct TimerView: View {
     
     var body: some View {
         Text(formattedTime)
-            .font(.system(size: 24, weight: .semibold, design: .rounded))
+            .font(.system(size: 20, weight: .semibold, design: .rounded))
             .italic()
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.3))
-            )
+            .foregroundColor(.white.opacity(0.5))
             .onReceive(timer) { _ in
                 if let end = endTime {
                     elapsed = end.timeIntervalSince(startTime)

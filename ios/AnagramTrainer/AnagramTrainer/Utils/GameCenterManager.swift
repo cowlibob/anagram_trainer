@@ -54,6 +54,12 @@ class GameCenterManager: NSObject, ObservableObject {
     }
     
     func showLeaderboard() {
+        guard isAuthenticated else {
+            print("Game Center: Player not authenticated. Attempting to re-authenticate...")
+            authenticateLocalPlayer()
+            return
+        }
+        
         let gcVC = GKGameCenterViewController(
             leaderboardID: leaderboardID,
             playerScope: .global,
@@ -64,13 +70,24 @@ class GameCenterManager: NSObject, ObservableObject {
     }
     
     private func present(viewController: UIViewController) {
-        guard let rootVC = UIApplication.shared.windows.first?.rootViewController else { return }
-        rootVC.present(viewController, animated: true)
+        DispatchQueue.main.async {
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let rootVC = windowScene.windows.first?.rootViewController else { return }
+            
+            var topVC = rootVC
+            while let presentedVC = topVC.presentedViewController {
+                topVC = presentedVC
+            }
+            
+            topVC.present(viewController, animated: true)
+        }
     }
 }
 
 extension GameCenterManager: GKGameCenterControllerDelegate {
     func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
-        gameCenterViewController.dismiss(animated: true)
+        DispatchQueue.main.async {
+            gameCenterViewController.dismiss(animated: true)
+        }
     }
 }

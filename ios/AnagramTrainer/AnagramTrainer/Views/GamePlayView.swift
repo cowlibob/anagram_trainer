@@ -11,6 +11,8 @@ struct GamePlayView: View {
     @FocusState private var isFocused: Bool
     @State private var keyboardInput: String = ""
     @State private var showingModeInfo = false
+    @Environment(\.scalingFactor) var scalingFactor
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     
     private func resetHintTimer() {
         // Only hide hint when truly resetting (new word)
@@ -107,145 +109,179 @@ struct GamePlayView: View {
                     }
                 }
             
-            ZStack(alignment: .topTrailing) {
-                VStack(spacing: 50) {
-                    // Header
-                    VStack {
-                        if mode == .graduated {
-                            Text("Level \(viewModel.currentLevel)")
-                                .font(.subheadline)
-                                .foregroundColor(.white)
-                        } else if !mode.hints.isEmpty {
-                            Button(action: {
-                                showingModeInfo = true
-                            }) {
-                                HStack(spacing: 6) {
-                                    Text("Patterns: \(mode.hints)")
-                                        .font(.caption)
-                                    Image(systemName: "questionmark.circle")
-                                        .font(.caption)
+            GeometryReader { geometry in
+                let isShort = geometry.size.height < 600
+                
+                ZStack(alignment: .topTrailing) {
+                    VStack(spacing: isShort ? 20 * scalingFactor : 40 * scalingFactor) {
+                        // Header
+                        Group {
+                            if isShort {
+                                HStack {
+                                    if mode == .graduated {
+                                        Text("Level \(viewModel.currentLevel)")
+                                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+                                    } else if !mode.hints.isEmpty {
+                                        Text(mode.hints)
+                                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if let state = viewModel.gameState {
+                                        TimerView(startTime: state.startTime, endTime: state.endTime)
+                                    }
+                                    
+                                    if mode == .graduated || !mode.hints.isEmpty {
+                                        Spacer()
+                                        // Empty space to balance the timer in the center
+                                        Text(mode == .graduated ? "Level \(viewModel.currentLevel)" : mode.hints)
+                                            .font(.system(size: 14))
+                                            .opacity(0)
+                                    }
                                 }
-                                .foregroundColor(.white.opacity(0.8))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.1))
-                                .cornerRadius(20)
-                            }
-                        }
-                    }
-                    .padding(.top, 40)
-                    .padding(.horizontal, 60)
+                                .padding(.top, 10)
+                            } else {
+                                VStack(spacing: 8) {
+                                    if mode == .graduated {
+                                        Text("Level \(viewModel.currentLevel)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.white)
+                                    } else if !mode.hints.isEmpty {
+                                        Button(action: {
+                                            showingModeInfo = true
+                                        }) {
+                                            HStack(spacing: 6) {
+                                                Text("Patterns: \(mode.hints)")
+                                                    .font(.caption)
+                                                Image(systemName: "questionmark.circle")
+                                                    .font(.caption)
+                                            }
+                                            .foregroundColor(.white.opacity(0.8))
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(Color.white.opacity(0.1))
+                                            .cornerRadius(20)
+                                        }
+                                    }
 
-                    Spacer()
-                        .frame(height: 20)
-
-                    if let state = viewModel.gameState {
-                        // Scrambled word display
-                        ScrambledWordView(
-                            scrambled: state.scrambledWord,
-                            currentGuess: state.currentGuess,
-                            usedPositions: state.usedPositions,
-                            mode: mode,
-                            targetWord: state.targetWord,
-                            showHint: showHint,
-                            onLetterAction: { originalIndex, letter in
-                                if state.usedPositions.contains(originalIndex) {
-                                    // If already used, remove it (toggle off)
-                                    viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles removal if present
-                                } else {
-                                    // If not used, add it (toggle on)
-                                    viewModel.addLetter(at: originalIndex, letter: letter)
+                                    if let state = viewModel.gameState {
+                                        TimerView(startTime: state.startTime, endTime: state.endTime)
+                                    }
                                 }
-                                resetHintTimer()
-                            }
-                        )
-                        .padding(.horizontal, 60)
-                        
-                        // Current guess with cursor
-                        VStack {
-                            GuessView(
-                                guess: state.currentGuess,
-                                cursorPosition: state.cursorPosition,
-                                isSolved: state.isSolved,
-                                onTapPosition: { position in
-                                    let leftPart = String(state.currentGuess.prefix(position))
-                                    let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - position))
-                                    print("👆 CURSOR TAP - Moving to \(position) | Left: '\(leftPart)' | Right: '\(rightPart)'")
-                                    viewModel.setCursor(at: position)
-                                }
-                            )
-                            .frame(height: 60)
-                        }
-                        .onChange(of: state.currentGuess) {
-                            resetHintTimer()
-                        }
-                        .onChange(of: state.scrambledWord) {
-                            // Reset hint completely when new word loads
-                            resetHintForNewWord()
-                        }
-                        .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
-                            // Check if 15 seconds have passed since last interaction
-                            // Don't show hint if all letters are used (guess is complete)
-                            let allLettersUsed = state.currentGuess.count == state.scrambledWord.count
-                            
-                            if let activationTime = hintActivationTime,
-                               Date().timeIntervalSince(activationTime) >= 15.0,
-                               !state.currentGuess.isEmpty || state.usedPositions.isEmpty,
-                               !allLettersUsed {
-                                showHint = true
-                            } else if allLettersUsed {
-                                showHint = false
+                                .padding(.top, 40 * scalingFactor)
                             }
                         }
-                        .onAppear {
-                            resetHintForNewWord()
-                        }
+                        .padding(.horizontal, 20 * scalingFactor)
 
                         Spacer()
-                            .frame(minHeight: 40)
+                            .frame(height: isShort ? 5 : 20)
 
-                        // Action buttons
-                        if !state.isComplete {
-                            VStack(spacing: 16) {
-                                Button(action: {
-                                    viewModel.submitGuess()
-                                }) {
-                                    MenuButton(title: "Submit", icon: "checkmark.circle", color: .blue)
+                        if let state = viewModel.gameState {
+                            // Scrambled word display
+                            ScrambledWordView(
+                                scrambled: state.scrambledWord,
+                                currentGuess: state.currentGuess,
+                                usedPositions: state.usedPositions,
+                                mode: mode,
+                                targetWord: state.targetWord,
+                                showHint: showHint,
+                                onLetterAction: { originalIndex, letter in
+                                    if state.usedPositions.contains(originalIndex) {
+                                        // If already used, remove it (toggle off)
+                                        viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles removal if present
+                                    } else {
+                                        // If not used, add it (toggle on)
+                                        viewModel.addLetter(at: originalIndex, letter: letter)
+                                    }
+                                    resetHintTimer()
                                 }
-                                .disabled(state.currentGuess.isEmpty)
-                                .buttonStyle(.plain)
-
-                                Button(action: {
-                                    viewModel.clearGuess()
-                                }) {
-                                    MenuButton(title: "Clear", icon: "xmark.circle", color: .gray)
-                                }
-                                .buttonStyle(.plain)
-
-                                Button(action: {
-                                    viewModel.skipWord()
-                                }) {
-                                    Text("Give Up / Skip")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.7))
+                            )
+                            .padding(.horizontal, 20 * scalingFactor)
+                            
+                            // Current guess with cursor
+                            VStack {
+                                GuessView(
+                                    guess: state.currentGuess,
+                                    cursorPosition: state.cursorPosition,
+                                    isSolved: state.isSolved,
+                                    onTapPosition: { position in
+                                        let leftPart = String(state.currentGuess.prefix(position))
+                                        let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - position))
+                                        print("👆 CURSOR TAP - Moving to \(position) | Left: '\(leftPart)' | Right: '\(rightPart)'")
+                                        viewModel.setCursor(at: position)
+                                    }
+                                )
+                                .frame(height: isShort ? 44 : 60)
+                            }
+                            .onChange(of: state.currentGuess) {
+                                resetHintTimer()
+                            }
+                            .onChange(of: state.scrambledWord) {
+                                // Reset hint completely when new word loads
+                                resetHintForNewWord()
+                            }
+                            .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
+                                // Check if 15 seconds have passed since last interaction
+                                // Don't show hint if all letters are used (guess is complete)
+                                let allLettersUsed = state.currentGuess.count == state.scrambledWord.count
+                                
+                                if let activationTime = hintActivationTime,
+                                   Date().timeIntervalSince(activationTime) >= 15.0,
+                                   !state.currentGuess.isEmpty || state.usedPositions.isEmpty,
+                                   !allLettersUsed {
+                                    showHint = true
+                                } else if allLettersUsed {
+                                    showHint = false
                                 }
                             }
-                            .padding(.horizontal, 60)
-                            .padding(.bottom, 40)
-                        }
-                    } else {
-                        ProgressView()
                             .onAppear {
-                                viewModel.startNewRound(mode: mode)
+                                resetHintForNewWord()
                             }
+
+                            Spacer()
+                                .frame(minHeight: isShort ? 5 : 40)
+
+                            // Action buttons
+                            if !state.isComplete {
+                                VStack(spacing: isShort ? 12 : 16) {
+                                    // Row for main actions
+                                    Group {
+                                        if isShort {
+                                            HStack(spacing: 8) {
+                                                submitButton(state: state, isCompact: true, showIcon: false)
+                                                clearButton(isCompact: true, showIcon: false)
+                                                skipButton(isCompact: true, showIcon: false)
+                                            }
+                                        } else {
+                                            VStack(spacing: 16) {
+                                                submitButton(state: state, isCompact: false, showIcon: true)
+                                                clearButton(isCompact: false, showIcon: true)
+                                                
+                                                Button(action: {
+                                                    viewModel.skipWord()
+                                                }) {
+                                                    Text("Give Up / Skip")
+                                                        .font(.caption)
+                                                        .foregroundColor(.white.opacity(0.7))
+                                                }
+                                                .padding(.top, 4)
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, isShort ? 10 * scalingFactor : 20 * scalingFactor)
+                                .padding(.bottom, isShort ? 20 * scalingFactor : 40 * scalingFactor)
+                            }
+                        } else {
+                            ProgressView()
+                                .onAppear {
+                                    viewModel.startNewRound(mode: mode)
+                                }
+                        }
                     }
-                }
-                
-                // Timer in top right corner
-                if let state = viewModel.gameState {
-                    TimerView(startTime: state.startTime, endTime: state.endTime)
-                        .padding(.top, 60)
-                        .padding(.trailing, 20)
                 }
             }
             .focusable()
@@ -332,6 +368,38 @@ struct GamePlayView: View {
                 )
             }
         }
+    }
+
+    @ViewBuilder
+    private func submitButton(state: GameState, isCompact: Bool, showIcon: Bool) -> some View {
+        Button(action: {
+            viewModel.submitGuess()
+        }) {
+            MenuButton(title: "Submit", icon: showIcon ? "checkmark.circle" : nil, color: .blue, isCompact: isCompact)
+        }
+        .disabled(state.currentGuess.isEmpty)
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func clearButton(isCompact: Bool, showIcon: Bool) -> some View {
+        Button(action: {
+            viewModel.clearGuess()
+        }) {
+            MenuButton(title: "Clear", icon: showIcon ? "xmark.circle" : nil, color: .gray, isCompact: isCompact)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func skipButton(isCompact: Bool, showIcon: Bool) -> some View {
+        HoldToConfirmButton(
+            title: "Skip",
+            icon: showIcon ? "arrow.right.circle" : nil,
+            color: .red.opacity(0.8),
+            isCompact: isCompact,
+            action: { viewModel.skipWord() }
+        )
     }
 }
 

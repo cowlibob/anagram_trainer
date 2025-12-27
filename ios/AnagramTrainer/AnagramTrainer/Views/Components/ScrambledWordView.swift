@@ -9,6 +9,8 @@ struct ScrambledWordView: View {
     let showHint: Bool
     let onLetterAction: (Int, Character) -> Void // Takes original index and character
     
+    @Environment(\.scalingFactor) var scalingFactor
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @State private var bounceAnimation = false
     
     // Compute hint arrangement if needed
@@ -28,29 +30,17 @@ struct ScrambledWordView: View {
     private var hintIndices: Set<Int> { displayData.hintIndices }
     private var originalIndices: [Int] { displayData.originalIndices }
 
-    private var isLargeDevice: Bool {
-        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
-    }
-
     // Dynamic sizing based on word length and device
     private var letterSize: CGFloat {
         let length = scrambled.count
-        if isLargeDevice {
-            switch length {
-            case ...6: return 70
-            case 7: return 70 //65
-            case 8: return 70 //58
-            case 9: return 70 //52
-            default: return 70 //48
-            }
-        } else {
-            switch length {
-            case ...6: return 65
-            case 7: return 65
-            case 8: return 58
-            case 9: return 52
-            default: return 48
-            }
+        let baseSize: CGFloat = horizontalSizeClass == .regular ? 70 : 65
+        
+        switch length {
+        case ...6: return baseSize * min(1.2, scalingFactor)
+        case 7: return baseSize * min(1.1, scalingFactor)
+        case 8: return (baseSize - 7) * min(1.1, scalingFactor)
+        case 9: return (baseSize - 13) * min(1.1, scalingFactor)
+        default: return (baseSize - 17) * min(1.1, scalingFactor)
         }
     }
     
@@ -70,8 +60,8 @@ struct ScrambledWordView: View {
 
     var body: some View {
         Group {
-            // Use wrapping layout for long words on small screens, or very long words on any screen
-            if !isLargeDevice {
+            // Use wrapping layout for long words on compact screens or large/wide words
+            if horizontalSizeClass == .compact || (displayWord.count > 7 && scalingFactor < 1.0) {
                 VStack(spacing: 12) {
                     ForEach(Array(stride(from: 0, to: displayWord.count, by: lettersPerRow)), id: \.self) { rowStart in
                         HStack(spacing: letterSpacing) {

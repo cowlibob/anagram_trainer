@@ -8,15 +8,12 @@ struct GuessView: View {
     let onTapPosition: (Int) -> Void
     
     @State private var cursorVisible = true
-
-    private var isLargeDevice: Bool {
-        UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
-    }
+    @Environment(\.scalingFactor) var scalingFactor
 
     var body: some View {
         if guess.isEmpty {
             Text("Tap letters or type...")
-                .font(.system(size: isLargeDevice ? 44 : 20, weight: .bold, design: .rounded))
+                .font(.system(size: 24 * scalingFactor, weight: .bold, design: .rounded))
                 .foregroundColor(.white.opacity(0.5))
                 .onTapGesture {
                     onTapPosition(0)
@@ -42,7 +39,7 @@ struct GuessView: View {
 
                         // Letter
                         Text(String(letter).uppercased())
-                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .font(.system(size: 32 * scalingFactor, weight: .bold, design: .rounded))
                             .foregroundColor(isSolved ? .green : .white)
                     }
                     .onTapGesture {
