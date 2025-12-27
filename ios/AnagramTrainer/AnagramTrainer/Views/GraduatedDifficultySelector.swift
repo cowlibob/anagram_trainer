@@ -7,6 +7,12 @@ struct GraduatedDifficultySelector: View {
     @Environment(\.scalingFactor) var scalingFactor
     @Environment(\.colorScheme) var colorScheme
     
+    @State private var animatedBase: Color? = nil
+    
+    private var currentBase: Color {
+        animatedBase ?? TrainingMode.graduated.color
+    }
+    
     let levels = Array(5...9)
 
     private var isLargeDevice: Bool {
@@ -27,7 +33,7 @@ struct GraduatedDifficultySelector: View {
     var body: some View {
         ZStack {
             MenuBackgroundView(scale: 1.0)
-                .background(theme.backgroundGradient(for: colorScheme))
+                .background(ThemeManager.shared.backgroundGradient(for: currentBase, colorScheme: colorScheme))
                 .foregroundStyle(Color.white)
                 .ignoresSafeArea()
 
@@ -87,20 +93,28 @@ struct GraduatedDifficultySelector: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .tint(.white)
+        .environment(\.themeBaseColor, currentBase)
+        .environment(\.themeDarkBaseColor, currentBase)
     }
 
     @ViewBuilder
     private func difficultyButton(level: Int, isCompact: Bool) -> some View {
+        let buttonColor = color(for: level)
         NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
             MenuButton(
                 title: "\(level) Letters",
                 icon: nil,
-                color: color(for: level),
+                color: buttonColor,
                 showCurrent: level == viewModel.currentLevel,
-                isCompact: isCompact    
+                isCompact: isCompact,
+                textColor: .white
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressedButtonStyle(onPressing: { isPressed in
+            withAnimation(.easeInOut(duration: 0.4)) {
+                animatedBase = isPressed ? buttonColor : nil
+            }
+        }))
         .simultaneousGesture(TapGesture().onEnded {
             viewModel.currentLevel = level
             viewModel.streak = 0

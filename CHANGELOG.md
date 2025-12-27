@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased] - iOS Native App - 2025-12-27
+
+### Fixed - iOS SwiftUI App
+- **Background Theme Flicker**: Eliminated background color flicker during navigation swipe-back gestures by decentralizing theme management.
+- **Robust Theme Animations**: Implemented a "Crossfade Strategy" in `MainMenuView` using an opacity-animated overlay layer, ensuring buttery smooth theme transitions even when button presses are cancelled.
+- **Layering and Interaction**: Resolved an issue where theme overlays blocked menu interactions by optimizing `ZStack` layering and removing manual `zIndex` assignments.
+
+### Changed - iOS SwiftUI App
+- **Decentralized Theme Management**: Refactored `ThemeManager` to serve as a functional color utility, moving active theme state from a global singleton into the SwiftUI `Environment`.
+- **Local Animation State**: Individual views now manage their own transient theme animations, preventing global state pollution and ensuring UI stability during navigation.
+- **Environment-based Theming**: Introduced custom `EnvironmentKey`s (`themeBaseColor`, `themeDarkBaseColor`) for propagating view-specific themes down the hierarchy.
+- **MenuBackgroundView**: Updated to be fully transparent, consuming its theme colors from the environment and allowing for rich, layered background effects.
+
 ## [Unreleased] - iOS Native App - 2025-12-17
 
 ### Added - iOS SwiftUI App

@@ -83,7 +83,7 @@ struct GamePlayView: View {
     var body: some View {
         ZStack {
             // Root background gradient to "seal" any potential gaps
-            theme.backgroundGradient(for: colorScheme)
+            ThemeManager.shared.backgroundGradient(for: mode.color, colorScheme: colorScheme)
                 .ignoresSafeArea()
 
             MenuBackgroundView(
@@ -384,6 +384,11 @@ struct GamePlayView: View {
                 )
             }
         }
+        .onAppear {
+            // mode.color is handled by the environment/gradient caller
+        }
+        .environment(\.themeBaseColor, mode.color)
+        .environment(\.themeDarkBaseColor, mode.color)
     }
 
     @ViewBuilder

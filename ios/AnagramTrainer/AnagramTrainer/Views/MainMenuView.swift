@@ -9,6 +9,21 @@ struct MainMenuView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @State private var showingThemeDev = false
     
+    // Local animation state to prevent global flicker during navigation
+    @State private var overlayColor: Color = .clear
+    @State private var showOverlay: Bool = false
+    
+    private let standardLight = Color(red: 0.95, green: 0.4, blue: 0.6)
+    private let standardDark = Color(red: 0.25, green: 0.12, blue: 0.18)
+    
+    private var currentLightBase: Color {
+        showOverlay ? overlayColor : standardLight
+    }
+    
+    private var currentDarkBase: Color {
+        showOverlay ? overlayColor : standardDark
+    }
+    
     private var titleGradient: LinearGradient {
         LinearGradient(
             colors: [
@@ -21,12 +36,23 @@ struct MainMenuView: View {
     }
 
     private var accentColor: Color {
-        colorScheme == .dark ? theme.darkBaseColor : theme.lightBaseColor
+        colorScheme == .dark ? currentDarkBase : currentLightBase
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
+                // Layer 1: Base Gradient (Always visible)
+                ThemeManager.shared.backgroundGradient(for: colorScheme == .dark ? standardDark : standardLight, colorScheme: colorScheme)
+                    .ignoresSafeArea()
+                
+                // Layer 2: Overlay Gradient (Fades in on press)
+                // Layer 2: Overlay Gradient (Fades in on press)
+                ThemeManager.shared.backgroundGradient(for: overlayColor, colorScheme: colorScheme)
+                    .ignoresSafeArea()
+                    .opacity(showOverlay ? 1.0 : 0.0)
+                    .animation(.easeInOut(duration: 0.8), value: showOverlay)
+
                 MenuBackgroundView(
                     gridSize: 10,
                     gap: 10.0 * scalingFactor,
@@ -34,6 +60,7 @@ struct MainMenuView: View {
                     fontSize: 8.0,
                     rotationDuration: 30.0
                 )
+                .ignoresSafeArea()
                 .ignoresSafeArea()
 
             GeometryReader { geometry in
@@ -129,37 +156,92 @@ struct MainMenuView: View {
                 .sheet(isPresented: $showingThemeDev) {
                     ThemeDevView()
                 }
-            }
-
-            }
-            .environmentObject(gameVM)
-            .environmentObject(campaignVM)
-        }
-        .tint(.white)
-    }
+            } // closes GeometryReader
+        } // closes ZStack
+        .environment(\.themeBaseColor, currentLightBase)
+        .environment(\.themeDarkBaseColor, currentDarkBase)
+    } // closes NavigationStack
+    .tint(.white)
+} // closes body
+    
+    
 
     @ViewBuilder
     private func menuButtons(isCompact: Bool) -> some View {
-        NavigationLink(destination: GamePlayView(viewModel: gameVM, mode: .random)) {
-            MenuButton(title: "Try", icon: "shuffle", color: .cyan, isCompact: isCompact)
-        }.buttonStyle(.plain)
+        themeAnimatedNavigationLink(
+            destination: GamePlayView(viewModel: gameVM, mode: .random),
+            title: "Try",
+            icon: "shuffle",
+            color: .cyan,
+            accentOverride: Color.cyan,
+            isCompact: isCompact
+        )
 
-        NavigationLink(destination: TrainingMenuView(viewModel: gameVM)) {
-            MenuButton(title: "Train", icon: "graduationcap", color: .purple, isCompact: isCompact)
-        }
-        .buttonStyle(.plain)
+        themeAnimatedNavigationLink(
+            destination: TrainingMenuView(viewModel: gameVM),
+            title: "Train",
+            icon: "graduationcap",
+            color: .purple,
+            accentOverride: Color.purple,
+            isCompact: isCompact
+        )
 
-        NavigationLink(destination: CampaignView(viewModel: campaignVM)) {
-            MenuButton(title: "Test", icon: "trophy", color: Color(red: 1.0, green: 0.6, blue: 0.4), isCompact: isCompact)
-        }
-        .buttonStyle(.plain)
+        themeAnimatedNavigationLink(
+            destination: CampaignView(viewModel: campaignVM),
+            title: "Test",
+            icon: "trophy",
+            color: Color(red: 1.0, green: 0.6, blue: 0.4),
+            accentOverride: Color(red: 1.0, green: 0.6, blue: 0.4),
+            isCompact: isCompact
+        )
 
         Button(action: {
             GameCenterManager.shared.showLeaderboard()
         }) {
-            MenuButton(title: "Leaderboard", icon: "list.number", color: .indigo, isCompact: isCompact)
+            MenuButton(
+                title: "Leaderboard",
+                icon: "list.number",
+                color: .indigo,
+                isCompact: isCompact,
+                textColor: .white
+            )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressedButtonStyle(onPressing: { isPressed in
+            if isPressed {
+                overlayColor = .indigo
+                showOverlay = true
+            } else {
+                showOverlay = false
+            }
+        }))
+    }
+
+    @ViewBuilder
+    private func themeAnimatedNavigationLink<V: View>(
+        destination: V,
+        title: String,
+        icon: String,
+        color: Color,
+        accentOverride: Color,
+        isCompact: Bool
+    ) -> some View {
+        NavigationLink(destination: destination) {
+            MenuButton(
+                title: title,
+                icon: icon,
+                color: color,
+                isCompact: isCompact,
+                textColor: .white
+            )
+        }
+        .buttonStyle(PressedButtonStyle(onPressing: { isPressed in
+            if isPressed {
+                overlayColor = accentOverride
+                showOverlay = true
+            } else {
+                showOverlay = false
+            }
+        }))
     }
 }
 

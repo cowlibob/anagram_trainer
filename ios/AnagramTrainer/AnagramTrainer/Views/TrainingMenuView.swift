@@ -13,6 +13,13 @@ struct TrainingMenuView: View {
     @Environment(\.scalingFactor) var scalingFactor
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
 
+    // Local animation state
+    @State private var animatedBase: Color? = nil
+    
+    private var currentBase: Color {
+        animatedBase ?? .purple
+    }
+
     var body: some View {
         ZStack {
             MenuBackgroundView(
@@ -22,7 +29,7 @@ struct TrainingMenuView: View {
                 fontSize: 8.0,
                 rotationDuration: 30.0
             )
-            .background(theme.backgroundGradient(for: colorScheme))
+            .background(ThemeManager.shared.backgroundGradient(for: currentBase, colorScheme: colorScheme))
             .ignoresSafeArea()
 
             ScrollView {
@@ -42,6 +49,8 @@ struct TrainingMenuView: View {
                 .padding(.bottom, 40)
             }
         }
+        .environment(\.themeBaseColor, currentBase)
+        .environment(\.themeDarkBaseColor, currentBase) // Training uses purple for both for consistency
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -53,23 +62,19 @@ struct TrainingMenuView: View {
     private var trainingButtons: some View {
         ForEach(trainingModes) { mode in
             if mode == .graduated {
-                NavigationLink(destination: GraduatedDifficultySelector(viewModel: viewModel)) {
-                    MenuButton(
-                        title: mode.rawValue,
-                        icon: mode.icon,
-                        color: mode.color
-                    )
-                }
-                .buttonStyle(.plain)
+                themeAnimatedNavigationLink(
+                    destination: GraduatedDifficultySelector(viewModel: viewModel),
+                    title: mode.rawValue,
+                    icon: mode.icon,
+                    accentColor: mode.color
+                )
             } else {
-                NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: mode)) {
-                    MenuButton(
-                        title: mode.rawValue,
-                        icon: mode.icon,
-                        color: mode.color
-                    )
-                }
-                .buttonStyle(.plain)
+                themeAnimatedNavigationLink(
+                    destination: GamePlayView(viewModel: viewModel, mode: mode),
+                    title: mode.rawValue,
+                    icon: mode.icon,
+                    accentColor: mode.color
+                )
             }
         }
 
@@ -79,10 +84,37 @@ struct TrainingMenuView: View {
             MenuButton(
                 title: "Leaderboards",
                 icon: "trophy.fill",
-                color: .orange
+                color: .orange,
+                textColor: .white
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressedButtonStyle(onPressing: { isPressed in
+            withAnimation(.easeInOut(duration: 0.4)) {
+                animatedBase = isPressed ? .orange : nil
+            }
+        }))
+    }
+
+    @ViewBuilder
+    private func themeAnimatedNavigationLink<V: View>(
+        destination: V,
+        title: String,
+        icon: String,
+        accentColor: Color
+    ) -> some View {
+        NavigationLink(destination: destination) {
+            MenuButton(
+                title: title,
+                icon: icon,
+                color: accentColor,
+                textColor: .white
+            )
+        }
+        .buttonStyle(PressedButtonStyle(onPressing: { isPressed in
+            withAnimation(.easeInOut(duration: 0.4)) {
+                animatedBase = isPressed ? accentColor : nil
+            }
+        }))
     }
 }
 

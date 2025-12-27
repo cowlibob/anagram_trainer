@@ -14,12 +14,11 @@ struct ThemeDevView: View {
                 
                 Section(header: Text("Actions")) {
                     Button("Log Hex Codes to Console") {
-                        theme.logBaseColors()
+                        theme.logBaseColors(light: theme.lightBaseColor, dark: theme.darkBaseColor)
                     }
                     
                     Button("Reset to Defaults") {
-                        theme.lightBaseColor = Color(red: 0.95, green: 0.4, blue: 0.6)
-                        theme.darkBaseColor = Color(red: 0.25, green: 0.12, blue: 0.18)
+                        theme.resetToDefaults()
                     }
                     .foregroundColor(.red)
                 }
@@ -30,7 +29,7 @@ struct ThemeDevView: View {
                             Text("Light Mode")
                                 .font(.caption)
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(theme.backgroundGradient(for: .light))
+                                .fill(ThemeManager.shared.backgroundGradient(for: theme.lightBaseColor, colorScheme: .light))
                                 .frame(height: 60)
                         }
                         
@@ -38,7 +37,7 @@ struct ThemeDevView: View {
                             Text("Dark Mode")
                                 .font(.caption)
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(theme.backgroundGradient(for: .dark))
+                                .fill(ThemeManager.shared.backgroundGradient(for: theme.darkBaseColor, colorScheme: .dark))
                                 .frame(height: 60)
                         }
                     }

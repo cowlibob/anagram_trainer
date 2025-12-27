@@ -2,6 +2,8 @@ import SwiftUI
 
 struct CampaignView: View {
     @ObservedObject var viewModel: CampaignViewModel
+    @ObservedObject var theme = ThemeManager.shared
+    @Environment(\.colorScheme) var colorScheme
     @State private var showingLeaderboardEntry = false
     @State private var playerName = ""
     @State private var navigateToLeaderboard = false
@@ -21,6 +23,7 @@ struct CampaignView: View {
                 fontSize: 8.0,
                 rotationDuration: 30.0
             )
+            .background(ThemeManager.shared.backgroundGradient(for: Color(red: 1.0, green: 0.6, blue: 0.4), colorScheme: colorScheme))
             .ignoresSafeArea()
 
             GeometryReader { geometry in
@@ -129,6 +132,8 @@ struct CampaignView: View {
                 viewModel.startNewCampaign()
             }
         }
+        .environment(\.themeBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
+        .environment(\.themeDarkBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
     }
     @ViewBuilder
     private func scoreColumn(title: String, value: String, color: Color = .white, isShort: Bool) -> some View {

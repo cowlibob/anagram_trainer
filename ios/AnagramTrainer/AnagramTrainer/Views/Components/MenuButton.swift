@@ -101,6 +101,19 @@ struct MenuButton: View {
                     .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 0)
             }
         }
-        .contentShape(Rectangle()) // Essential for hit testing
+        .contentShape(Rectangle())
+    }
+}
+
+struct PressedButtonStyle: ButtonStyle {
+    let onPressing: ((Bool) -> Void)?
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { isPressed in
+                onPressing?(isPressed)
+            }
     }
 }
