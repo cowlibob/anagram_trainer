@@ -14,6 +14,7 @@ struct MenuButton: View {
     var badge: String? = nil
     var showCurrent: Bool = false
     var isCompact: Bool = false
+    var textColor: Color = .primary
 
     @Environment(\.scalingFactor) var scalingFactor
     
@@ -70,7 +71,7 @@ struct MenuButton: View {
             .padding(.trailing, horizontalPadding)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .foregroundStyle(.primary)
+        .foregroundStyle(textColor)
         .padding()
         .padding(.vertical, 8 * scalingFactor)
         .frame(maxWidth: .infinity)

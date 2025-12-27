@@ -134,6 +134,14 @@ class GameViewModel: ObservableObject {
         definition = ""
     }
     
+    func pauseGame() {
+        gameState?.pauseTimer()
+    }
+    
+    func resumeGame() {
+        gameState?.resumeTimer()
+    }
+    
     // MARK: - Input Handling
     
     func addLetter(at position: Int, letter: Character) {

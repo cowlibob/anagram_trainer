@@ -117,58 +117,55 @@ struct GamePlayView: View {
                         // Header
                         Group {
                             if isShort {
-                                HStack {
-                                    if mode == .graduated {
-                                        Text("Level \(viewModel.currentLevel)")
-                                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                                ZStack {
+                                    // Left-aligned Pause/Rules button
+                                    HStack {
+                                        Button(action: {
+                                            viewModel.pauseGame()
+                                            showingModeInfo = true
+                                        }) {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "pause.fill")
+                                                    .font(.system(size: 12))
+                                                Text("Rules")
+                                                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                                            }
                                             .foregroundColor(.white)
-                                    } else if !mode.hints.isEmpty {
-                                        Text(mode.hints)
-                                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                                            .foregroundColor(.white.opacity(0.8))
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    if let state = viewModel.gameState {
-                                        TimerView(startTime: state.startTime, endTime: state.endTime)
-                                    }
-                                    
-                                    if mode == .graduated || !mode.hints.isEmpty {
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 6)
+                                            .background(Color.white.opacity(0.1))
+                                            .cornerRadius(8)
+                                        }
                                         Spacer()
-                                        // Empty space to balance the timer in the center
-                                        Text(mode == .graduated ? "Level \(viewModel.currentLevel)" : mode.hints)
-                                            .font(.system(size: 14))
-                                            .opacity(0)
+                                    }
+                                    
+                                    // Centered Timer
+                                    if let state = viewModel.gameState {
+                                        TimerView(startTime: state.startTime, endTime: state.endTime, isPaused: state.pausedTime != nil)
                                     }
                                 }
                                 .padding(.top, 10)
                             } else {
                                 VStack(spacing: 8) {
-                                    if mode == .graduated {
-                                        Text("Level \(viewModel.currentLevel)")
-                                            .font(.subheadline)
-                                            .foregroundColor(.white)
-                                    } else if !mode.hints.isEmpty {
-                                        Button(action: {
-                                            showingModeInfo = true
-                                        }) {
-                                            HStack(spacing: 6) {
-                                                Text("Patterns: \(mode.hints)")
-                                                    .font(.caption)
-                                                Image(systemName: "questionmark.circle")
-                                                    .font(.caption)
-                                            }
-                                            .foregroundColor(.white.opacity(0.8))
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(Color.white.opacity(0.1))
-                                            .cornerRadius(20)
+                                    Button(action: {
+                                        viewModel.pauseGame()
+                                        showingModeInfo = true
+                                    }) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "pause.circle.fill")
+                                            Text("Pause & Rules")
+                                                .fontWeight(.bold)
                                         }
+                                        .font(.subheadline)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.white.opacity(0.15))
+                                        .cornerRadius(20)
                                     }
 
                                     if let state = viewModel.gameState {
-                                        TimerView(startTime: state.startTime, endTime: state.endTime)
+                                        TimerView(startTime: state.startTime, endTime: state.endTime, isPaused: state.pausedTime != nil)
                                     }
                                 }
                                 .padding(.top, 40 * scalingFactor)
@@ -345,13 +342,25 @@ struct GamePlayView: View {
 
             // Mode Info Overlay
             if showingModeInfo {
-                ModeInfoView(
-                    mode: mode,
-                    onDismiss: {
-                        showingModeInfo = false
-                    }
-                )
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.resumeGame()
+                            showingModeInfo = false
+                        }
+                    
+                    ModeInfoView(
+                        mode: mode,
+                        buttonTitle: "Continue",
+                        onDismiss: {
+                            viewModel.resumeGame()
+                            showingModeInfo = false
+                        }
+                    )
+                }
                 .transition(.opacity.combined(with: .scale))
+                .zIndex(2)
             }
 
             // Result overlay - at outer ZStack level
@@ -375,7 +384,7 @@ struct GamePlayView: View {
         Button(action: {
             viewModel.submitGuess()
         }) {
-            MenuButton(title: "Submit", icon: showIcon ? "checkmark.circle" : nil, color: .blue, isCompact: isCompact)
+            MenuButton(title: "Submit", icon: showIcon ? "checkmark.circle" : nil, color: .blue, isCompact: isCompact, textColor: .white)
         }
         .disabled(state.currentGuess.isEmpty)
         .buttonStyle(.plain)
@@ -386,7 +395,7 @@ struct GamePlayView: View {
         Button(action: {
             viewModel.clearGuess()
         }) {
-            MenuButton(title: "Clear", icon: showIcon ? "xmark.circle" : nil, color: .gray, isCompact: isCompact)
+            MenuButton(title: "Clear", icon: showIcon ? "xmark.circle" : nil, color: .gray, isCompact: isCompact, textColor: .white)
         }
         .buttonStyle(.plain)
     }

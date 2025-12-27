@@ -105,7 +105,7 @@ struct GraduatedDifficultySelector: View {
                 icon: nil,
                 color: color(for: level),
                 showCurrent: level == viewModel.currentLevel,
-                isCompact: isCompact
+                isCompact: isCompact    
             )
         }
         .buttonStyle(.plain)

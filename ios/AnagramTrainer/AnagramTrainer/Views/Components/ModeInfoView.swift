@@ -2,85 +2,101 @@ import SwiftUI
 
 struct ModeInfoView: View {
     let mode: TrainingMode
+    let buttonTitle: String
     let onDismiss: () -> Void
+
+    init(mode: TrainingMode, buttonTitle: String = "Start Training", onDismiss: @escaping () -> Void) {
+        self.mode = mode
+        self.buttonTitle = buttonTitle
+        self.onDismiss = onDismiss
+    }
 
     private var isLargeDevice: Bool {
         UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
     }
 
+    @Environment(\.scalingFactor) var scalingFactor
+    
     var body: some View {
-        VStack(spacing: 24) {
-            ZStack {
-                Circle()
-                    .fill(mode.color.opacity(0.15))
-                    .frame(width: 100, height: 100)
-                    .blur(radius: 20)
+        GeometryReader { geometry in
+            let isShort = geometry.size.height < 600
+            
+            VStack(spacing: isShort ? 12 : 24) {
+                ZStack {
+                    Circle()
+                        .fill(mode.color.opacity(0.15))
+                        .frame(width: isShort ? 60 : 100, height: isShort ? 60 : 100)
+                        .blur(radius: isShort ? 10 : 20)
 
-                Image(systemName: mode.icon)
-                    .font(.system(size: 60))
-                    .foregroundColor(mode.color)
-                    .shadow(color: mode.color.opacity(0.5), radius: 10, x: 0, y: 5)
-            }
+                    Image(systemName: mode.icon)
+                        .font(.system(size: (isShort ? 30 : 60) * scalingFactor))
+                        .foregroundColor(mode.color)
+                        .shadow(color: mode.color.opacity(0.5), radius: 10, x: 0, y: 5)
+                }
+                .padding(.top, isShort ? 0 : 10)
 
-            VStack(spacing: 8) {
-                Text(mode.rawValue)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                VStack(spacing: 4) {
+                    Text(mode.rawValue)
+                        .font(isShort ? .headline : .title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
 
-                Text(mode.description)
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            }
+                    Text(mode.description)
+                        .font(isShort ? .subheadline : .headline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(isShort ? 2 : nil)
+                }
 
-            if !mode.patterns.isEmpty {
-                VStack(spacing: 12) {
-                    Text("Target Patterns")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary.opacity(0.8))
-                        .textCase(.uppercase)
+                if !mode.patterns.isEmpty {
+                    VStack(spacing: isShort ? 6 : 12) {
+                        Text("Target Patterns")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary.opacity(0.8))
+                            .textCase(.uppercase)
 
-                    FlowLayout(spacing: 10) {
-                        ForEach(mode.patterns, id: \.self) { pattern in
-                            Text(pattern.uppercased())
-                                .font(.system(.subheadline, design: .monospaced))
-                                .fontWeight(.black)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(mode.color)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                                .shadow(color: mode.color.opacity(0.3), radius: 4, x: 0, y: 2)
+                        FlowLayout(spacing: isShort ? 6 : 10) {
+                            ForEach(mode.patterns, id: \.self) { pattern in
+                                Text(pattern.uppercased())
+                                    .font(.system(isShort ? .caption : .subheadline, design: .monospaced))
+                                    .fontWeight(.black)
+                                    .padding(.horizontal, isShort ? 8 : 14)
+                                    .padding(.vertical, isShort ? 4 : 8)
+                                    .background(mode.color)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                            }
                         }
                     }
+                    .padding(isShort ? 10 : 16)
+                    .background(Color.primary.opacity(0.03))
+                    .cornerRadius(isShort ? 10 : 15)
                 }
-                .padding()
-                .background(Color.primary.opacity(0.03))
-                .cornerRadius(15)
-            }
 
-            Button(action: onDismiss) {
-                MenuButton(title: "Start Training", icon: "play.fill", color: mode.color)
-            }
-            .buttonStyle(.plain)
-            .padding(.top, 8)
-        }
-        .padding(40)
-        .background(
-            Group {
-                if #available(iOS 26.0, *) {
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(.ultraThinMaterial)
-                } else {
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(.white)
-                        .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+                Button(action: onDismiss) {
+                    MenuButton(title: buttonTitle, icon: isShort ? nil : "play.fill", color: mode.color, isCompact: isShort)
                 }
+                .buttonStyle(.plain)
+                .padding(.top, isShort ? 0 : 8)
             }
-        )
-        .padding(isLargeDevice ? 100 : 20)
+            .padding(isShort ? 20 : 40)
+            .background(
+                Group {
+                    if #available(iOS 26.0, *) {
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(.ultraThinMaterial)
+                    } else {
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(.white)
+                            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+                    }
+                }
+            )
+            .padding(.horizontal, isShort ? 20 : (isLargeDevice ? 100 : 20))
+            .padding(.vertical, isShort ? 20 : (isLargeDevice ? 100 : 20))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 }
 
