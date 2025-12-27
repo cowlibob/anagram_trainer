@@ -32,7 +32,7 @@ struct GameResultView: View {
                         Text(word.uppercased())
                             .font(isShort ? .title : .largeTitle)
                             .fontWeight(.bold)
-                            .foregroundColor(solved ? .green : Color(red: 1.0, green: 0.3, blue: 0.5))
+                            .foregroundColor(solved ? .green : ThemeManager.shared.lightBaseColor)
                         
                         if solved && isShort {
                             Text(String(format: "Time: %.1fs", time))

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TrainingMenuView: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var theme = ThemeManager.shared
+    @Environment(\.colorScheme) var colorScheme
 
     private let trainingModes: [TrainingMode] = [
         .graduated, .suffix, .prefix,
@@ -20,6 +22,7 @@ struct TrainingMenuView: View {
                 fontSize: 8.0,
                 rotationDuration: 30.0
             )
+            .background(theme.backgroundGradient(for: colorScheme))
             .ignoresSafeArea()
 
             ScrollView {

@@ -2,8 +2,10 @@ import SwiftUI
 
 struct GraduatedDifficultySelector: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scalingFactor) var scalingFactor
+    @Environment(\.colorScheme) var colorScheme
     
     let levels = Array(5...9)
 
@@ -25,17 +27,7 @@ struct GraduatedDifficultySelector: View {
     var body: some View {
         ZStack {
             MenuBackgroundView(scale: 1.0)
-                .background(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 1.0, green: 0.3, blue: 0.5),  // Vibrant pink
-                            Color(red: 0.95, green: 0.4, blue: 0.6),  // Soft pink
-                            Color(red: 0.8, green: 0.3, blue: 0.7)    // Purple-pink
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .background(theme.backgroundGradient(for: colorScheme))
                 .foregroundStyle(Color.white)
                 .ignoresSafeArea()
 

@@ -3,6 +3,7 @@ import Combine
 
 struct GamePlayView: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var theme = ThemeManager.shared
     let mode: TrainingMode
     @Environment(\.dismiss) private var dismiss
     @State private var showingResult = false
@@ -13,6 +14,7 @@ struct GamePlayView: View {
     @State private var showingModeInfo = false
     @Environment(\.scalingFactor) var scalingFactor
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @Environment(\.colorScheme) var colorScheme
     
     private func resetHintTimer() {
         // Only hide hint when truly resetting (new word)
@@ -80,6 +82,10 @@ struct GamePlayView: View {
 
     var body: some View {
         ZStack {
+            // Root background gradient to "seal" any potential gaps
+            theme.backgroundGradient(for: colorScheme)
+                .ignoresSafeArea()
+
             MenuBackgroundView(
                 gridSize: 5,
                 gap: -10.0,
@@ -89,6 +95,7 @@ struct GamePlayView: View {
                 opacity: 0.05
             )
             .ignoresSafeArea()
+            .allowsHitTesting(false)
 
             // Hidden TextField for keyboard input capture
             TextField("", text: $keyboardInput)

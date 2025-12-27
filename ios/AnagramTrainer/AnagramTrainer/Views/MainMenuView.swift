@@ -3,9 +3,11 @@ import SwiftUI
 struct MainMenuView: View {
     @StateObject private var gameVM = GameViewModel()
     @StateObject private var campaignVM = CampaignViewModel()
+    @ObservedObject var theme = ThemeManager.shared
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.scalingFactor) var scalingFactor
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
+    @State private var showingThemeDev = false
     
     private var titleGradient: LinearGradient {
         LinearGradient(
@@ -16,6 +18,10 @@ struct MainMenuView: View {
             startPoint: .top,
             endPoint: .bottom
         )
+    }
+
+    private var accentColor: Color {
+        colorScheme == .dark ? theme.darkBaseColor : theme.lightBaseColor
     }
 
     var body: some View {
@@ -66,7 +72,7 @@ struct MainMenuView: View {
                                     .scaledToFit()
                                     .frame(height: 100 * scalingFactor)
                                     .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                    .shadow(color: Color(red: 1.0, green: 0.3, blue: 0.5).opacity(0.3), radius: 12, x: 0, y: 4)
+                                    .shadow(color: accentColor.opacity(0.3), radius: 12, x: 0, y: 4)
 
                                 HStack {
                                     Text("Letter")
@@ -74,19 +80,22 @@ struct MainMenuView: View {
                                         .kerning(2)
                                         .foregroundStyle(titleGradient)
                                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                        .shadow(color: Color(red: 1.0, green: 0.3, blue: 0.5).opacity(0.3), radius: 12, x: 0, y: 4)
+                                        .shadow(color: accentColor.opacity(0.3), radius: 12, x: 0, y: 4)
                                         .padding(.trailing, -10)
                                     Text("Shift")
                                         .font(.custom("DIN Condensed", size: 64 * scalingFactor))
                                         .kerning(2)
                                         .foregroundStyle(titleGradient)
                                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                        .shadow(color: Color(red: 1.0, green: 0.3, blue: 0.5).opacity(0.3), radius: 12, x: 0, y: 4)
+                                        .shadow(color: accentColor.opacity(0.3), radius: 12, x: 0, y: 4)
                                         .padding(.top, 15)
                                 }
                             }
                             .padding(.top, 50 * scalingFactor)
                         }
+                    }
+                    .onLongPressGesture(minimumDuration: 1.0) {
+                        showingThemeDev = true
                     }
 
                     if !isShort {
@@ -117,6 +126,9 @@ struct MainMenuView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .toolbar(.hidden, for: .navigationBar)
+                .sheet(isPresented: $showingThemeDev) {
+                    ThemeDevView()
+                }
             }
 
             }

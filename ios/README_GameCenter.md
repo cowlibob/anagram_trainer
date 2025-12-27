@@ -34,3 +34,24 @@ In modern iOS versions, the Sandbox settings have moved out of the Game Center m
 
 > [!NOTE]
 > These options often only appear on a physical device **after** you have installed a development build via Xcode at least once.
+
+## 4. Troubleshooting
+
+### "Could not load services for GameKit" or "com.apple.gamed invalidated"
+The error you are seeing confirms the app lacks the **Game Center Entitlement**.
+
+**To fix this:**
+1. In Xcode, select the blue **AnagramTrainer** project icon at the top of the Navigator.
+2. Select the **AnagramTrainer** target.
+3. Go to the **Signing & Capabilities** tab.
+4. Click the **+ Capability** button (top left of the tab).
+5. Search for **Game Center** and double-click it.
+6. Xcode will automatically create an `.entitlements` file and add the required keys.
+7. Clean and Re-run (**Cmd + Shift + K**, then **Cmd + R**).
+
+### "Local player has not been authenticated"
+This happens if you are not signed into a Game Center account in the device/simulator settings.
+1. On your device/simulator, go to **Settings > Game Center**.
+2. Ensure Game Center is **ON**.
+3. Sign in with your Apple ID or a Sandbox account.
+4. If you are already signed in, try signing out and back in again.
