@@ -4,10 +4,16 @@
 
 ### Added - iOS SwiftUI App
 - **Campaign History Review**: Deep session tracking for local leaderboard entries.
-    - Records word-by-word attempts including duration and outcome (Solved, Exact Match, Skipped).
+    - Records word-by-word attempts including duration and outcome (Solved, Exact Match, Skillpped).
     - Added `CampaignHistoryView` with indigo-themed detailed breakdown.
     - Interactive chevrons in the local leaderboard to tap through to session history.
     - **UI Polish**: "Local" tab is now default; history entries use a semi-transparent glass style for clarity.
+- **Voice Input Integration**: Added hands-free answering using Apple's Speech Framework.
+    - **SpeechRecognitionManager**: On-device transcription for privacy and speed.
+    - **Intelligent Input**: Processes speech incrementally, only adding new letters to the guess.
+    - **Visual Feedback**: Pulsing red microphone indicator when actively listening.
+    - **Privacy**: Automatic authorization handling and Info.plist usage descriptions.
+    - **Simulator Safety**: Graceful error handling for missing audio input on the iOS Simulator.
 
 ## [Unreleased] - iOS Native App - 2025-12-27
 

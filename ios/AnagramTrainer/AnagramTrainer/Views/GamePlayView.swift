@@ -16,6 +16,7 @@ struct GamePlayView: View {
     @Environment(\.scalingFactor) var scalingFactor
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.colorScheme) var colorScheme
+    @StateObject private var speechManager = SpeechRecognitionManager()
     
     private func resetHintTimer() {
         // Only hide hint when truly resetting (new word)
@@ -223,19 +224,53 @@ struct GamePlayView: View {
                             )
                             .padding(.horizontal, 20 * scalingFactor)
                             
-                            // Current guess with cursor
-                            VStack {
+                            // Current guess with cursor and mic button
+                            HStack(spacing: 16) {
+                                Spacer()
+                                
                                 GuessView(
                                     guess: state.currentGuess,
                                     cursorPosition: state.cursorPosition,
                                     isSolved: state.isSolved,
                                     onTapPosition: { position in
-                                        let leftPart = String(state.currentGuess.prefix(position))
-                                        let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - position))
                                         viewModel.setCursor(at: position)
                                     }
                                 )
                                 .frame(height: isShort ? 44 : 60)
+                                
+                                Spacer()
+                                
+                                // Microphone button
+                                Button(action: {
+                                    if !speechManager.isAuthorized {
+                                        speechManager.requestAuthorization()
+                                    }
+                                    speechManager.toggleListening()
+                                }) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(speechManager.isListening ? Color.red : Color.white.opacity(0.2))
+                                            .frame(width: 44, height: 44)
+                                        
+                                        Image(systemName: speechManager.isListening ? "mic.fill" : "mic")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
+                                    .scaleEffect(speechManager.isListening ? 1.1 : 1.0)
+                                    .animation(speechManager.isListening ? .easeInOut(duration: 0.5).repeatForever(autoreverses: true) : .easeInOut(duration: 0.2), value: speechManager.isListening)
+                                }
+                                .padding(.trailing, 20)
+                            }
+                            .onAppear {
+                                // Request authorization on first appear
+                                speechManager.requestAuthorization()
+                                
+                                // Connect speech recognition to input handling
+                                speechManager.onTextRecognized = { text in
+                                    for char in text {
+                                        handleKeyPress(String(char))
+                                    }
+                                }
                             }
                             .onChange(of: state.currentGuess) {
                                 resetHintTimer()
@@ -243,6 +278,16 @@ struct GamePlayView: View {
                             .onChange(of: state.scrambledWord) {
                                 // Reset hint completely when new word loads
                                 resetHintForNewWord()
+                                // Stop listening on new word
+                                if speechManager.isListening {
+                                    speechManager.stopListening()
+                                }
+                            }
+                            .onChange(of: state.isComplete) {
+                                // Stop listening when game is complete (answer submitted or skipped)
+                                if state.isComplete && speechManager.isListening {
+                                    speechManager.stopListening()
+                                }
                             }
                             .onReceive(Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()) { _ in
                                 // Check if 15 seconds have passed since last interaction
@@ -265,36 +310,15 @@ struct GamePlayView: View {
                             Spacer()
                                 .frame(minHeight: isShort ? 5 : 40)
 
-                            // Action buttons
+                            // Concentric Experimental UI
                             if !state.isComplete {
-                                VStack(spacing: isShort ? 12 : 16) {
-                                    // Row for main actions
-                                    Group {
-                                        if isShort {
-                                            HStack(spacing: 8) {
-                                                submitButton(state: state, isCompact: true, showIcon: false)
-                                                clearButton(isCompact: true, showIcon: false)
-                                                skipButton(isCompact: true, showIcon: false)
-                                            }
-                                        } else {
-                                            VStack(spacing: 16) {
-                                                submitButton(state: state, isCompact: false, showIcon: true)
-                                                clearButton(isCompact: false, showIcon: true)
-                                                
-                                                Button(action: {
-                                                    viewModel.skipWord()
-                                                }) {
-                                                    Text("Give Up / Skip")
-                                                        .font(.caption)
-                                                        .foregroundColor(.white.opacity(0.7))
-                                                }
-                                                .padding(.top, 4)
-                                            }
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal, isShort ? 10 * scalingFactor : 20 * scalingFactor)
-                                .padding(.bottom, isShort ? 20 * scalingFactor : 40 * scalingFactor)
+                                ConcentricCircularButtons(
+                                    onSubmit: { viewModel.submitGuess() },
+                                    onClear: { viewModel.clearGuess() },
+                                    onSkip: { viewModel.skipWord() },
+                                    isSubmitDisabled: state.currentGuess.isEmpty
+                                )
+                                .zIndex(5)
                             }
                         } else {
                             ProgressView()
@@ -423,37 +447,6 @@ struct GamePlayView: View {
         .environment(\.themeDarkBaseColor, mode.color)
     }
 
-    @ViewBuilder
-    private func submitButton(state: GameState, isCompact: Bool, showIcon: Bool) -> some View {
-        Button(action: {
-            viewModel.submitGuess()
-        }) {
-            MenuButton(title: "Submit", icon: showIcon ? "checkmark.circle" : nil, color: .blue, isCompact: isCompact, textColor: .white)
-        }
-        .disabled(state.currentGuess.isEmpty)
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private func clearButton(isCompact: Bool, showIcon: Bool) -> some View {
-        Button(action: {
-            viewModel.clearGuess()
-        }) {
-            MenuButton(title: "Clear", icon: showIcon ? "xmark.circle" : nil, color: .gray, isCompact: isCompact, textColor: .white)
-        }
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private func skipButton(isCompact: Bool, showIcon: Bool) -> some View {
-        HoldToConfirmButton(
-            title: "Skip",
-            icon: showIcon ? "arrow.right.circle" : nil,
-            color: .red.opacity(0.8),
-            isCompact: isCompact,
-            action: { viewModel.skipWord() }
-        )
-    }
 }
 
 #Preview {
