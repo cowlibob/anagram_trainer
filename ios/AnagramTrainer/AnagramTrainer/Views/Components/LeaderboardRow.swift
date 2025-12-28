@@ -4,6 +4,10 @@ struct LeaderboardRow: View {
     let entry: LeaderboardEntry
     let rank: Int
 
+    private var hasHistory: Bool {
+        entry.history != nil && !entry.history!.isEmpty
+    }
+
     var body: some View {
         HStack(spacing: 15) {
             // Rank with medal
@@ -44,14 +48,17 @@ struct LeaderboardRow: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                if let history = entry.history, !history.isEmpty {
+                if hasHistory {
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.5))
                 }
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 15)
+        .background(hasHistory ? Color.white.opacity(0.2) : Color.clear)
+        .cornerRadius(hasHistory ? 12 : 0)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
     }
@@ -70,7 +77,7 @@ struct LeaderboardRow: View {
         case 1: return "trophy.fill"
         case 2: return "medal.fill"
         case 3: return "medal.fill"
-        default: return ""
+        default: return "\(String(format: "%02d", rank)).circle.fill"
         }
     }
 }

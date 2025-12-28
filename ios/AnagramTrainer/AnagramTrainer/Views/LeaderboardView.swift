@@ -2,12 +2,12 @@ import SwiftUI
 
 struct LeaderboardView: View {
     enum LeaderboardType: String, CaseIterable {
-        case global = "Global"
         case local = "Local"
+        case global = "Global"
     }
 
     @State private var entries: [LeaderboardEntry] = []
-    @State private var selectedType: LeaderboardType = .global
+    @State private var selectedType: LeaderboardType = .local
     @State private var isLoading = false
     @State private var errorMessage: String? = nil
     
@@ -115,7 +115,7 @@ struct LeaderboardView: View {
                                 if selectedType == .local && entry.history != nil && !entry.history!.isEmpty {
                                     NavigationLink(destination: CampaignHistoryView(entry: entry)) {
                                         LeaderboardRow(entry: entry, rank: index + 1)
-                                    }
+                                    }.background(Color.clear)
                                 } else {
                                     LeaderboardRow(entry: entry, rank: index + 1)
                                 }

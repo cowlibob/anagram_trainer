@@ -7,6 +7,7 @@
     - Records word-by-word attempts including duration and outcome (Solved, Exact Match, Skipped).
     - Added `CampaignHistoryView` with indigo-themed detailed breakdown.
     - Interactive chevrons in the local leaderboard to tap through to session history.
+    - **UI Polish**: "Local" tab is now default; history entries use a semi-transparent glass style for clarity.
 
 ## [Unreleased] - iOS Native App - 2025-12-27
 
