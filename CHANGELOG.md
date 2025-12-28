@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] - iOS Native App - 2025-12-28
+
+### Added - iOS SwiftUI App
+- **Campaign History Review**: Deep session tracking for local leaderboard entries.
+    - Records word-by-word attempts including duration and outcome (Solved, Exact Match, Skipped).
+    - Added `CampaignHistoryView` with indigo-themed detailed breakdown.
+    - Interactive chevrons in the local leaderboard to tap through to session history.
+
 ## [Unreleased] - iOS Native App - 2025-12-27
 
 ### Fixed - iOS SwiftUI App

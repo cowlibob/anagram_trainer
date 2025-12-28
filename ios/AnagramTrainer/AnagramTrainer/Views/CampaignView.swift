@@ -80,17 +80,17 @@ struct CampaignView: View {
                                 }
                         }
                     } else {
-                CampaignCompleteView(
-                    score: viewModel.totalScore,
-                    onSubmit: { name in
-                        viewModel.submitToLeaderboard(playerName: name)
-                        // Show Game Center leaderboard
-                        GameCenterManager.shared.showLeaderboard()
-                        // Dismiss campaign view
-                        dismiss()
+                        CampaignCompleteView(
+                            score: viewModel.totalScore,
+                            onSubmit: { name in
+                                viewModel.submitToLeaderboard(playerName: name)
+                                navigateToLeaderboard = true
+                            }
+                        )
+                        .navigationDestination(isPresented: $navigateToLeaderboard) {
+                            LeaderboardView()
+                        }
                     }
-                )
-            }
                 }
             }
         }

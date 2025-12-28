@@ -195,25 +195,14 @@ struct MainMenuView: View {
             isCompact: isCompact
         )
 
-        Button(action: {
-            GameCenterManager.shared.showLeaderboard()
-        }) {
-            MenuButton(
-                title: "Leaderboard",
-                icon: "list.number",
-                color: .indigo,
-                isCompact: isCompact,
-                textColor: .white
-            )
-        }
-        .buttonStyle(PressedButtonStyle(onPressing: { isPressed in
-            if isPressed {
-                overlayColor = .indigo
-                showOverlay = true
-            } else {
-                showOverlay = false
-            }
-        }))
+        themeAnimatedNavigationLink(
+            destination: LeaderboardView(),
+            title: "Leaderboard",
+            icon: "list.number",
+            color: .indigo,
+            accentOverride: .indigo,
+            isCompact: isCompact
+        )
     }
 
     @ViewBuilder

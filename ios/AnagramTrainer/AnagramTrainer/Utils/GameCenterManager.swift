@@ -68,6 +68,32 @@ class GameCenterManager: NSObject, ObservableObject {
         gcVC.gameCenterDelegate = self
         present(viewController: gcVC)
     }
+
+    func fetchTopScores() async throws -> [LeaderboardEntry] {
+        guard isAuthenticated else {
+            throw NSError(domain: "GameCenterManager", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
+        }
+        
+        let leaderboards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboardID])
+        guard let leaderboard = leaderboards.first else {
+            print("Leaderboard not found: \(leaderboardID)")
+            return []
+        }
+        
+        let (_, entries, _) = try await leaderboard.loadEntries(
+            for: .global,
+            timeScope: .allTime,
+            range: NSRange(location: 1, length: 50)
+        )
+        
+        return entries.map { entry in
+            LeaderboardEntry(
+                playerName: entry.player.displayName,
+                score: entry.score,
+                date: entry.date
+            )
+        }
+    }
     
     private func present(viewController: UIViewController) {
         DispatchQueue.main.async {

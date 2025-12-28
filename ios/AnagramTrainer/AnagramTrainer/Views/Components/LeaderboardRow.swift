@@ -38,10 +38,18 @@ struct LeaderboardRow: View {
             Spacer()
 
             // Score - right aligned
-            Text("\(entry.score)")
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("\(entry.score)")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                if let history = entry.history, !history.isEmpty {
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
         }
         .padding(.vertical, 8)
         .listRowBackground(Color.clear)

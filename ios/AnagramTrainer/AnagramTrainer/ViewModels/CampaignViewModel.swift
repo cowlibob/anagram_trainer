@@ -11,6 +11,9 @@ class CampaignViewModel: ObservableObject {
     @Published var isComplete: Bool = false
     @Published var gameState: GameState?
     
+    // Track session history
+    private var currentHistory: [WordAttempt] = []
+    
     private let dictionary = Dictionary.shared
     private let persistence = PersistenceManager.shared
     
@@ -65,6 +68,7 @@ class CampaignViewModel: ObservableObject {
         totalScore = 0
         isComplete = false
         resetStageProgress()
+        currentHistory = []
         persistence.clearCampaignProgress()
         startNextWord()
     }
@@ -147,6 +151,15 @@ class CampaignViewModel: ObservableObject {
     }
     
     func recordSkip() {
+        // Record attempt info
+        if let target = gameState?.targetWord {
+            currentHistory.append(WordAttempt(
+                word: target.uppercased(),
+                duration: gameState?.elapsedTime ?? 0,
+                outcome: .skipped
+            ))
+        }
+        
         // Called after showing result, advance game
         wordsRemaining -= 1
         checkStageCompletion()
@@ -168,6 +181,16 @@ class CampaignViewModel: ObservableObject {
         totalScore += points
         lastRoundPoints = points
         wordsRemaining -= 1
+        
+        // Record attempt info
+        if let target = gameState?.targetWord {
+            let isExact = gameState?.currentGuess.uppercased() == target.uppercased()
+            currentHistory.append(WordAttempt(
+                word: target.uppercased(),
+                duration: timeToken,
+                outcome: isExact ? .exact : .correct
+            ))
+        }
         
         checkStageCompletion()
         saveProgress()
@@ -282,7 +305,11 @@ class CampaignViewModel: ObservableObject {
     
     func submitToLeaderboard(playerName: String) {
         // Submit to local for backup if desired
-        let entry = LeaderboardEntry(playerName: playerName, score: totalScore)
+        let entry = LeaderboardEntry(
+            playerName: playerName, 
+            score: totalScore, 
+            history: currentHistory
+        )
         persistence.addLeaderboardEntry(entry)
         
         // Submit to Game Center

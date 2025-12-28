@@ -78,21 +78,12 @@ struct TrainingMenuView: View {
             }
         }
 
-        Button(action: {
-            GameCenterManager.shared.showLeaderboard()
-        }) {
-            MenuButton(
-                title: "Leaderboards",
-                icon: "trophy.fill",
-                color: .orange,
-                textColor: .white
-            )
-        }
-        .buttonStyle(PressedButtonStyle(onPressing: { isPressed in
-            withAnimation(.easeInOut(duration: 0.4)) {
-                animatedBase = isPressed ? .orange : nil
-            }
-        }))
+        themeAnimatedNavigationLink(
+            destination: LeaderboardView(),
+            title: "Leaderboards",
+            icon: "trophy.fill",
+            accentColor: .orange
+        )
     }
 
     @ViewBuilder
