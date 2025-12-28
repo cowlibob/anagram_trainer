@@ -78,12 +78,6 @@ struct TrainingMenuView: View {
             }
         }
 
-        themeAnimatedNavigationLink(
-            destination: LeaderboardView(),
-            title: "Leaderboards",
-            icon: "trophy.fill",
-            accentColor: .orange
-        )
     }
 
     @ViewBuilder

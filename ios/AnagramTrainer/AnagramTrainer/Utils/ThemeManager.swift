@@ -117,20 +117,6 @@ class ThemeManager: ObservableObject {
         colorScheme == .dark ? letterColorDark(for: base) : letterColorLight(for: base)
     }
     
-    func logBaseColors(light: Color, dark: Color) {
-        print("--- Theme Manager Colors ---")
-        print("Light Base: \(light.description)")
-        print("Dark Base: \(dark.description)")
-        
-        let uiLight = UIColor(light)
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        uiLight.getRed(&r, green: &g, blue: &b, alpha: &a)
-        print("Light RGB: \(r), \(g), \(b)")
-
-        let uiDark = UIColor(dark)
-        uiDark.getRed(&r, green: &g, blue: &b, alpha: &a)
-        print("Dark RGB: \(r), \(g), \(b)")
-    }
     
     private func adjustColor(_ color: Color, hueShift: Double = 0, saturation: Double = 1.0, brightness: Double = 1.0) -> Color {
         let uiColor = UIColor(color)

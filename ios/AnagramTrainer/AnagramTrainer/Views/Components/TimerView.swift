@@ -4,6 +4,7 @@ import Combine
 struct TimerView: View {
     let startTime: Date
     let endTime: Date?
+    let totalPausedDuration: TimeInterval
     var isPaused: Bool = false
     @State private var elapsed: TimeInterval = 0
     
@@ -17,16 +18,16 @@ struct TimerView: View {
             .onReceive(timer) { _ in
                 guard !isPaused else { return }
                 if let end = endTime {
-                    elapsed = end.timeIntervalSince(startTime)
+                    elapsed = end.timeIntervalSince(startTime) - totalPausedDuration
                 } else {
-                    elapsed = Date().timeIntervalSince(startTime)
+                    elapsed = Date().timeIntervalSince(startTime) - totalPausedDuration
                 }
             }
             .onAppear {
                 if let end = endTime {
-                    elapsed = end.timeIntervalSince(startTime)
+                    elapsed = end.timeIntervalSince(startTime) - totalPausedDuration
                 } else {
-                    elapsed = Date().timeIntervalSince(startTime)
+                    elapsed = Date().timeIntervalSince(startTime) - totalPausedDuration
                 }
             }
     }
@@ -35,5 +36,12 @@ struct TimerView: View {
         let seconds = Int(elapsed)
         let decimal = Int((elapsed - Double(seconds)) * 10)
         return String(format: "%02d.%01ds", seconds, decimal)
+    }
+}
+
+#Preview {
+    ZStack {
+        Color.black
+        TimerView(startTime: Date(), endTime: nil, totalPausedDuration: 0)
     }
 }

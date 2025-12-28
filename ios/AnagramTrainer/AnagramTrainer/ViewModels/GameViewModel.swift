@@ -10,6 +10,7 @@ class GameViewModel: ObservableObject {
     @Published var streak: Int = 0
     @Published var showingDefinition: Bool = false
     @Published var definition: String = ""
+    @Published var sessionHistory: [WordAttempt] = []
     
     private let dictionary = Dictionary.shared
     private let persistence = PersistenceManager.shared
@@ -57,13 +58,11 @@ class GameViewModel: ObservableObject {
             minLength: currentLevel,
             maxLength: mode == .graduated ? currentLevel : nil
         ) else {
-            print("ERROR: Could not find word for mode \(mode)")
             return
         }
         
         let scrambled = dictionary.scramble(word)
         gameState = GameState(targetWord: word, scrambledWord: scrambled)
-        print("[DEBUG] Target word: \(word.uppercased())")
     }
     
     func submitGuess() {
@@ -75,9 +74,6 @@ class GameViewModel: ObservableObject {
             scrambledLetters: state.scrambledWord
         )
         
-        print("[PERFORMANCE] Guess validation took \(String(format: "%.4f", validationTime * 1000))ms")
-        
-        print("[DEBUG] isValidAnagram returned: \(isValid)")
         
         if isValid {
             handleSuccess()
@@ -88,6 +84,15 @@ class GameViewModel: ObservableObject {
     }
     
     func skipWord() {
+        if let state = gameState {
+            let attempt = WordAttempt(
+                word: state.targetWord,
+                duration: state.elapsedTime,
+                outcome: .skipped
+            )
+            sessionHistory.append(attempt)
+        }
+        
         gameState?.completeGame()
         Task {
             await fetchDefinition()
@@ -95,10 +100,16 @@ class GameViewModel: ObservableObject {
     }
     
     private func handleSuccess() {
-        print("[DEBUG] Handling success for word: \(gameState?.targetWord ?? "unknown")")
         if var state = gameState {
             state.completeGame(solved: true)
             gameState = state
+            
+            let attempt = WordAttempt(
+                word: state.targetWord,
+                duration: state.elapsedTime,
+                outcome: state.targetWord == state.currentGuess ? .exact : .correct
+            )
+            sessionHistory.append(attempt)
         }
         
         Task {
@@ -117,15 +128,6 @@ class GameViewModel: ObservableObject {
             streak = 0
         }
 
-        // Submit to Game Center
-        if let state = gameState {
-            let baseScore = state.targetWord.count * 100
-            let timePenalty = Int(state.elapsedTime * 10)
-            let score = max(0, baseScore - timePenalty)
-            
-            print("[DEBUG] Submitting score to Game Center: \(score) (Base: \(baseScore), Penalty: \(timePenalty))")
-            GameCenterManager.shared.submitScore(score)
-        }
     }
     
     func resetForNextWord() {

@@ -13,9 +13,6 @@ struct ThemeDevView: View {
                 }
                 
                 Section(header: Text("Actions")) {
-                    Button("Log Hex Codes to Console") {
-                        theme.logBaseColors(light: theme.lightBaseColor, dark: theme.darkBaseColor)
-                    }
                     
                     Button("Reset to Defaults") {
                         theme.resetToDefaults()

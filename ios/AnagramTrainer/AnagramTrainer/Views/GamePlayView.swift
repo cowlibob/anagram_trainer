@@ -12,6 +12,7 @@ struct GamePlayView: View {
     @FocusState private var isFocused: Bool
     @State private var keyboardInput: String = ""
     @State private var showingModeInfo = false
+    @State private var showPauseMenu = false
     @Environment(\.scalingFactor) var scalingFactor
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.colorScheme) var colorScheme
@@ -54,9 +55,7 @@ struct GamePlayView: View {
             let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - state.cursorPosition))
             let charToRemove = String(state.currentGuess[state.currentGuess.index(state.currentGuess.startIndex, offsetBy: state.cursorPosition - 1)])
 
-            print("🔙 BACKSPACE - Guess: '\(state.currentGuess)' | Scrambled: '\(state.scrambledWord)'")
-            print("   Left: '\(leftPart)' | Right: '\(rightPart)' | CursorPos: \(state.cursorPosition)")
-            print("   Char to remove: '\(charToRemove)' at guess index \(state.cursorPosition - 1)")
+            // Debug logging removed
 
             // Use helper to find which scrambled position to remove
             if let positionToRemove = KeyboardInputHelper.getPositionToRemove(
@@ -66,7 +65,6 @@ struct GamePlayView: View {
                 usedPositions: state.usedPositions
             ) {
                 let letterAtScrambledPos = state.scrambledWord[state.scrambledWord.index(state.scrambledWord.startIndex, offsetBy: positionToRemove)]
-                print("   Removing scrambled position \(positionToRemove) which has letter '\(letterAtScrambledPos)'")
 
                 let newCursorPosition = state.cursorPosition - 1
                 viewModel.addLetter(at: positionToRemove, letter: letterAtScrambledPos)
@@ -125,42 +123,66 @@ struct GamePlayView: View {
                         Group {
                             if isShort {
                                 ZStack {
-                                    // Left-aligned Pause/Rules button
+                                    // Left-aligned Timer (swapped position)
                                     HStack {
-                                        Button(action: {
-                                            viewModel.pauseGame()
-                                            showingModeInfo = true
-                                        }) {
-                                            HStack(spacing: 4) {
-                                                Image(systemName: "pause.fill")
-                                                    .font(.system(size: 12))
-                                                Text("Rules")
-                                                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                                            }
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                            .background(Color.white.opacity(0.1))
-                                            .cornerRadius(8)
+                                        if let state = viewModel.gameState {
+                                            TimerView(
+                                                startTime: state.startTime,
+                                                endTime: state.endTime,
+                                                totalPausedDuration: state.totalPausedDuration,
+                                                isPaused: state.pausedTime != nil
+                                            )
                                         }
                                         Spacer()
+                                        
+                                        // Right-aligned Pause Button
+                                        Button(action: {
+                                            viewModel.pauseGame()
+                                            // showingModeInfo = true // Replaced by pause menu
+                                            showPauseMenu = true
+                                        }) {
+                                            Image(systemName: "pause.circle.fill")
+                                                .font(.system(size: 24))
+                                                .foregroundColor(.white)
+                                                .padding(8)
+                                                .background(Color.white.opacity(0.1))
+                                                .clipShape(Circle())
+                                        }
                                     }
                                     
                                     // Centered Timer
                                     if let state = viewModel.gameState {
-                                        TimerView(startTime: state.startTime, endTime: state.endTime, isPaused: state.pausedTime != nil)
+                                        TimerView(
+                                            startTime: state.startTime,
+                                            endTime: state.endTime,
+                                            totalPausedDuration: state.totalPausedDuration,
+                                            isPaused: state.pausedTime != nil
+                                        )
                                     }
                                 }
                                 .padding(.top, 10)
                             } else {
-                                VStack(spacing: 8) {
+                                ZStack(alignment: .topTrailing) {
+                                    VStack(spacing: 8) {
+                                        if let state = viewModel.gameState {
+                                            TimerView(
+                                                startTime: state.startTime,
+                                                endTime: state.endTime,
+                                                totalPausedDuration: state.totalPausedDuration,
+                                                isPaused: state.pausedTime != nil
+                                            )
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity) // Center the timer
+                                    
+                                    // Top right pause button
                                     Button(action: {
                                         viewModel.pauseGame()
-                                        showingModeInfo = true
+                                        showPauseMenu = true
                                     }) {
                                         HStack(spacing: 8) {
                                             Image(systemName: "pause.circle.fill")
-                                            Text("Pause & Rules")
+                                            Text("Pause")
                                                 .fontWeight(.bold)
                                         }
                                         .font(.subheadline)
@@ -169,10 +191,6 @@ struct GamePlayView: View {
                                         .padding(.vertical, 8)
                                         .background(Color.white.opacity(0.15))
                                         .cornerRadius(20)
-                                    }
-
-                                    if let state = viewModel.gameState {
-                                        TimerView(startTime: state.startTime, endTime: state.endTime, isPaused: state.pausedTime != nil)
                                     }
                                 }
                                 .padding(.top, 40 * scalingFactor)
@@ -214,7 +232,6 @@ struct GamePlayView: View {
                                     onTapPosition: { position in
                                         let leftPart = String(state.currentGuess.prefix(position))
                                         let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - position))
-                                        print("👆 CURSOR TAP - Moving to \(position) | Left: '\(leftPart)' | Right: '\(rightPart)'")
                                         viewModel.setCursor(at: position)
                                     }
                                 )
@@ -292,6 +309,7 @@ struct GamePlayView: View {
             .focused($isFocused)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .tint(.white)
@@ -304,7 +322,6 @@ struct GamePlayView: View {
                         let newPos = state.cursorPosition - 1
                         let leftPart = String(state.currentGuess.prefix(newPos))
                         let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - newPos))
-                        print("⬅️ CURSOR LEFT - Moving to \(newPos) | Left: '\(leftPart)' | Right: '\(rightPart)'")
                         viewModel.setCursor(at: newPos)
                     }
                     return .handled
@@ -313,7 +330,6 @@ struct GamePlayView: View {
                         let newPos = state.cursorPosition + 1
                         let leftPart = String(state.currentGuess.prefix(newPos))
                             let rightPart = String(state.currentGuess.suffix(state.currentGuess.count - newPos))
-                        print("➡️ CURSOR RIGHT - Moving to \(newPos) | Left: '\(leftPart)' | Right: '\(rightPart)'")
                         viewModel.setCursor(at: newPos)
                     }
                     return .handled
@@ -380,6 +396,22 @@ struct GamePlayView: View {
                     onNext: {
                         viewModel.resetForNextWord()
                         viewModel.startNewRound(mode: mode)
+                    }
+                )
+            }
+            
+            // Pause Menu Overlay
+            if showPauseMenu {
+                PauseMenuView(
+                    history: viewModel.sessionHistory,
+                    quitTitle: "Quit training",
+                    onResume: {
+                        viewModel.resumeGame()
+                        showPauseMenu = false
+                    },
+                    onQuit: {
+                        showPauseMenu = false
+                        dismiss()
                     }
                 )
             }

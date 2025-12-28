@@ -24,6 +24,7 @@ struct GameState {
     }
     
     var isSolved: Bool = false
+    var winningWord: String?
     
     mutating func addLetterAt(position: Int, letter: Character) {
         currentGuess.append(letter)
@@ -75,9 +76,10 @@ struct GameState {
         positionOrder.removeAll()
         cursorPosition = 0
     }
-    mutating func completeGame(solved: Bool = false) {
+    mutating func completeGame(solved: Bool = false, winningWord: String? = nil) {
         isComplete = true
         isSolved = solved
+        self.winningWord = winningWord
         endTime = Date()
     }
     

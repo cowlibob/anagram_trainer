@@ -20,7 +20,6 @@ class GameCenterManager: NSObject, ObservableObject {
         localPlayer.authenticateHandler = { [weak self] viewController, error in
             if let error = error {
                 self?.lastError = error
-                print("Game Center Authentication Error: \(error.localizedDescription)")
                 return
             }
             
@@ -48,14 +47,12 @@ class GameCenterManager: NSObject, ObservableObject {
             if let error = error {
                 print("Error submitting score: \(error.localizedDescription)")
             } else {
-                print("Score submitted successfully: \(score)")
             }
         }
     }
     
     func showLeaderboard() {
         guard isAuthenticated else {
-            print("Game Center: Player not authenticated. Attempting to re-authenticate...")
             authenticateLocalPlayer()
             return
         }
@@ -76,7 +73,6 @@ class GameCenterManager: NSObject, ObservableObject {
         
         let leaderboards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboardID])
         guard let leaderboard = leaderboards.first else {
-            print("Leaderboard not found: \(leaderboardID)")
             return []
         }
         

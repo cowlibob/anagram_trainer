@@ -22,7 +22,6 @@ class MenuBackgroundViewModel: ObservableObject {
     private func loadDictionary() {
         guard let path = Bundle.main.path(forResource: "dictionary", ofType: "txt"),
               let content = try? String(contentsOfFile: path, encoding: .utf8) else {
-            print("Failed to load dictionary.txt")
             return
         }
 
@@ -122,7 +121,6 @@ struct MenuBackgroundView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
             .onAppear {
                 viewModel.gridSize = gridSize
-                print("scale: \(scale), cellSize: \(cellSize)")
                 withAnimation(rotateAnimation) {
                     rotationDegrees = 0.0
                 }

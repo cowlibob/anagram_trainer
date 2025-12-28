@@ -39,14 +39,24 @@ struct MainMenuView: View {
         colorScheme == .dark ? currentDarkBase : currentLightBase
     }
 
+    // Navigation Path State
+    @State private var path = NavigationPath()
+    
+    // Route Definition
+    enum AppRoute: Hashable {
+        case game
+        case train
+        case campaign
+        case leaderboard
+    }
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ZStack {
                 // Layer 1: Base Gradient (Always visible)
                 ThemeManager.shared.backgroundGradient(for: colorScheme == .dark ? standardDark : standardLight, colorScheme: colorScheme)
                     .ignoresSafeArea()
                 
-                // Layer 2: Overlay Gradient (Fades in on press)
                 // Layer 2: Overlay Gradient (Fades in on press)
                 ThemeManager.shared.backgroundGradient(for: overlayColor, colorScheme: colorScheme)
                     .ignoresSafeArea()
@@ -60,7 +70,6 @@ struct MainMenuView: View {
                     fontSize: 8.0,
                     rotationDuration: 30.0
                 )
-                .ignoresSafeArea()
                 .ignoresSafeArea()
 
             GeometryReader { geometry in
@@ -158,6 +167,23 @@ struct MainMenuView: View {
                 }
             } // closes GeometryReader
         } // closes ZStack
+        .navigationDestination(for: AppRoute.self) { route in
+            switch route {
+            case .game:
+                GamePlayView(viewModel: gameVM, mode: .random)
+            case .train:
+                TrainingMenuView(viewModel: gameVM)
+            case .campaign:
+                CampaignView(viewModel: campaignVM, onNavigateToLeaderboard: {
+                    // Pop CampaignView
+                    path.removeLast()
+                    // Push LeaderboardView
+                    path.append(AppRoute.leaderboard)
+                })
+            case .leaderboard:
+                LeaderboardView()
+            }
+        }
         .environment(\.themeBaseColor, currentLightBase)
         .environment(\.themeDarkBaseColor, currentDarkBase)
     } // closes NavigationStack
@@ -168,8 +194,8 @@ struct MainMenuView: View {
 
     @ViewBuilder
     private func menuButtons(isCompact: Bool) -> some View {
-        themeAnimatedNavigationLink(
-            destination: GamePlayView(viewModel: gameVM, mode: .random),
+        themeAnimatedNavigationButton(
+            route: .game,
             title: "Try",
             icon: "shuffle",
             color: .cyan,
@@ -177,8 +203,8 @@ struct MainMenuView: View {
             isCompact: isCompact
         )
 
-        themeAnimatedNavigationLink(
-            destination: TrainingMenuView(viewModel: gameVM),
+        themeAnimatedNavigationButton(
+            route: .train,
             title: "Train",
             icon: "graduationcap",
             color: .purple,
@@ -186,18 +212,18 @@ struct MainMenuView: View {
             isCompact: isCompact
         )
 
-        themeAnimatedNavigationLink(
-            destination: CampaignView(viewModel: campaignVM),
-            title: "Test",
+        themeAnimatedNavigationButton(
+            route: .campaign,
+            title: "Challenge",
             icon: "trophy",
             color: Color(red: 1.0, green: 0.6, blue: 0.4),
             accentOverride: Color(red: 1.0, green: 0.6, blue: 0.4),
             isCompact: isCompact
         )
 
-        themeAnimatedNavigationLink(
-            destination: LeaderboardView(),
-            title: "Leaderboard",
+        themeAnimatedNavigationButton(
+            route: .leaderboard,
+            title: "Leaderboards",
             icon: "list.number",
             color: .indigo,
             accentOverride: .indigo,
@@ -206,15 +232,17 @@ struct MainMenuView: View {
     }
 
     @ViewBuilder
-    private func themeAnimatedNavigationLink<V: View>(
-        destination: V,
+    private func themeAnimatedNavigationButton(
+        route: AppRoute,
         title: String,
         icon: String,
         color: Color,
         accentOverride: Color,
         isCompact: Bool
     ) -> some View {
-        NavigationLink(destination: destination) {
+        Button(action: {
+            path.append(route)
+        }) {
             MenuButton(
                 title: title,
                 icon: icon,

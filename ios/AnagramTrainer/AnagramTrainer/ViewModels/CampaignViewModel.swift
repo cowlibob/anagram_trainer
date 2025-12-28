@@ -12,8 +12,8 @@ class CampaignViewModel: ObservableObject {
     @Published var gameState: GameState?
     
     // Track session history
-    private var currentHistory: [WordAttempt] = []
-    
+    @Published var currentHistory: [WordAttempt] = []
+
     private let dictionary = Dictionary.shared
     private let persistence = PersistenceManager.shared
     
@@ -86,6 +86,14 @@ class CampaignViewModel: ObservableObject {
         persistence.clearCampaignProgress()
     }
     
+    func pauseGame() {
+        gameState?.pauseTimer()
+    }
+    
+    func resumeGame() {
+        gameState?.resumeTimer()
+    }
+    
     // MARK: - Debug Helpers
     
     #if DEBUG
@@ -116,13 +124,11 @@ class CampaignViewModel: ObservableObject {
             minLength: minLength,
             maxLength: maxLength
         ) else {
-            print("ERROR: Could not find word for stage \(stage.name)")
             return
         }
         
         let scrambled = dictionary.scramble(word)
         gameState = GameState(targetWord: word, scrambledWord: scrambled)
-        print("[DEBUG] Target word: \(word.uppercased())")
     }
     
     func submitGuess() {
@@ -134,7 +140,6 @@ class CampaignViewModel: ObservableObject {
             scrambledLetters: state.scrambledWord
         )
         
-        print("[PERFORMANCE] Campaign guess validation took \(String(format: "%.4f", validationTime * 1000))ms")
         
         if isValid {
             recordSuccess(timeToken: state.elapsedTime)
@@ -145,13 +150,7 @@ class CampaignViewModel: ObservableObject {
     }
     
     func skipWord() {
-        // Mark as complete to show result screen
-        gameState?.completeGame()
-        lastRoundPoints = 0
-    }
-    
-    func recordSkip() {
-        // Record attempt info
+        // Record attempt info FIRST
         if let target = gameState?.targetWord {
             currentHistory.append(WordAttempt(
                 word: target.uppercased(),
@@ -160,16 +159,26 @@ class CampaignViewModel: ObservableObject {
             ))
         }
         
-        // Called after showing result, advance game
+        // Mark as complete
+        gameState?.completeGame(solved: false)
+        lastRoundPoints = 0
+        
+        // Advance game state immediately (consistent with recordSuccess)
         wordsRemaining -= 1
         checkStageCompletion()
         saveProgress()
     }
     
+    // Deprecated: Logic moved to skipWord for consistency. 
+    // Kept empty or removed to prevent double-counting if view calls it.
+    func recordSkip() {
+        // No-op: handled in skipWord
+    }
+    
     private func recordSuccess(timeToken: TimeInterval) {
         // Mark as complete to show result screen
         if var state = gameState {
-            state.completeGame(solved: true)
+            state.completeGame(solved: true, winningWord: state.currentGuess)
             gameState = state
         }
         
@@ -313,7 +322,6 @@ class CampaignViewModel: ObservableObject {
         persistence.addLeaderboardEntry(entry)
         
         // Submit to Game Center
-        print("[DEBUG] Submitting campaign score to Game Center: \(totalScore)")
         GameCenterManager.shared.submitScore(totalScore)
     }
 }

@@ -21,15 +21,11 @@ class Dictionary {
     private func loadDictionaries() {
         let words = loadWordList(filename: "dictionary")
         allWords = Set(words.map { $0.lowercased() })
-        print("[DEBUG] Loaded \(allWords.count) words into dictionary")
         
         // Debug check for problematic words
         let checkWords = ["scrub", "broth"]
         for word in checkWords {
             if allWords.contains(word) {
-                print("[DEBUG] '\(word)' is present in dictionary")
-            } else {
-                print("[DEBUG] WARNING: '\(word)' is MISSING from dictionary")
             }
         }
         
@@ -143,9 +139,6 @@ class Dictionary {
         let scrambledSignature = anagramSignature(scrambledLetters)
         
         guard guessSignature == scrambledSignature else {
-            print("[DEBUG] Validation failed: Signature mismatch")
-            print("[DEBUG] Guess: \(guess) (\(guessSignature))")
-            print("[DEBUG] Scrambled: \(scrambledLetters) (\(scrambledSignature))")
             let elapsed = Date().timeIntervalSince(startTime)
             return (false, elapsed)
         }
@@ -154,7 +147,6 @@ class Dictionary {
         let isValid = wordExists(guess)
         
         if !isValid {
-            print("[DEBUG] Validation failed: Word not found in dictionary: '\(guess)'")
         }
         
         let elapsed = Date().timeIntervalSince(startTime)

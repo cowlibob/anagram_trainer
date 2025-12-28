@@ -93,7 +93,12 @@ struct CampaignGameView: View {
                         
                         Spacer()
                         
-                        TimerView(startTime: state.startTime, endTime: state.endTime)
+                        TimerView(
+                            startTime: state.startTime,
+                            endTime: state.endTime,
+                            totalPausedDuration: state.totalPausedDuration,
+                            isPaused: state.pausedTime != nil
+                        )
                         
                         Spacer()
                         
@@ -137,7 +142,12 @@ struct CampaignGameView: View {
 
                 if !isShort {
                     // Timer
-                    TimerView(startTime: state.startTime, endTime: state.endTime)
+                    TimerView(
+                        startTime: state.startTime,
+                        endTime: state.endTime,
+                        totalPausedDuration: state.totalPausedDuration,
+                        isPaused: state.pausedTime != nil
+                    )
                 }
 
                 Spacer()
@@ -169,13 +179,10 @@ struct CampaignGameView: View {
         .focused($isFocused)
         .fullScreenCover(isPresented: $showingResult) {
             CampaignResultView(
-                word: state.targetWord,
+                word: state.winningWord ?? state.targetWord,
                 solved: state.isSolved,
                 points: viewModel.lastRoundPoints,
                 onNext: {
-                    if !state.isSolved {
-                        viewModel.recordSkip()
-                    }
                     showingResult = false
                     viewModel.resetForNextWord()
                     viewModel.startNextWord()
