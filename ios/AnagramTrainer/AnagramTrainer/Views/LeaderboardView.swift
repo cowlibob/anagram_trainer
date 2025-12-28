@@ -113,9 +113,13 @@ struct LeaderboardView: View {
                         } else {
                             ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                                 if selectedType == .local && entry.history != nil && !entry.history!.isEmpty {
-                                    NavigationLink(destination: CampaignHistoryView(entry: entry)) {
-                                        LeaderboardRow(entry: entry, rank: index + 1)
-                                    }.background(Color.clear)
+                                    LeaderboardRow(entry: entry, rank: index + 1)
+                                        .background(
+                                            NavigationLink("", destination: CampaignHistoryView(entry: entry))
+                                                .opacity(0)
+                                        )
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
                                 } else {
                                     LeaderboardRow(entry: entry, rank: index + 1)
                                 }
