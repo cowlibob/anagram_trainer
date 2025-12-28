@@ -152,25 +152,15 @@ struct CampaignGameView: View {
 
                 Spacer()
 
-                // Action buttons
+                // Concentric Experimental UI
                 if !state.isComplete {
-                    Group {
-                        if isShort {
-                            HStack(spacing: 8) {
-                                submitButton(isCompact: true, showIcon: false)
-                                clearButton(isCompact: true, showIcon: false)
-                                skipButton(isCompact: true)
-                            }
-                        } else {
-                            VStack(spacing: 16) {
-                                submitButton(isCompact: false, showIcon: true)
-                                clearButton(isCompact: false, showIcon: true)
-                                skipButton(isCompact: false)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, isShort ? 10 : 20)
-                    .padding(.bottom, isShort ? 15 : (isLargeDevice ? 20 : 10))
+                    ConcentricCircularButtons(
+                        onSubmit: { viewModel.submitGuess() },
+                        onClear: { viewModel.clearGuess() },
+                        onSkip: { viewModel.skipWord() },
+                        isSubmitDisabled: state.currentGuess.isEmpty
+                    )
+                    .zIndex(5)
                 }
             }
         }
@@ -225,35 +215,4 @@ struct CampaignGameView: View {
         }
     }
 
-    @ViewBuilder
-    private func submitButton(isCompact: Bool, showIcon: Bool) -> some View {
-        Button(action: {
-            viewModel.submitGuess()
-        }) {
-            MenuButton(title: "Submit", icon: showIcon ? "checkmark.circle" : nil, color: .orange, isCompact: isCompact)
-        }
-        .disabled(state.currentGuess.isEmpty)
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private func clearButton(isCompact: Bool, showIcon: Bool) -> some View {
-        Button(action: {
-            viewModel.clearGuess()
-        }) {
-            MenuButton(title: "Clear", icon: showIcon ? "xmark.circle" : nil, color: .gray, isCompact: isCompact)
-        }
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private func skipButton(isCompact: Bool) -> some View {
-        HoldToConfirmButton(
-            title: isCompact ? "Skip" : "Skip (No Points)",
-            icon: nil,
-            color: .red.opacity(0.8),
-            isCompact: isCompact,
-            action: { viewModel.skipWord() }
-        )
-    }
 }

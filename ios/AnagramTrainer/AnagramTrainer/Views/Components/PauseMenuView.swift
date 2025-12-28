@@ -8,6 +8,7 @@ struct PauseMenuView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.scalingFactor) var scalingFactor
+    @ObservedObject var userSettings = UserSettings.shared
     
     var body: some View {
         ZStack {
@@ -98,6 +99,24 @@ struct PauseMenuView: View {
                         )
                 )
                 .padding(.horizontal)
+                
+                // Handedness Setting
+                VStack(spacing: 8) {
+                    Text("Handedness")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                    
+                    Picker("Handedness", selection: $userSettings.handedness) {
+                        ForEach(Handedness.allCases) { hand in
+                            Text(hand.rawValue).tag(hand)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                .padding(.horizontal, 40)
+                .padding(.top, 10)
                 
                 // Action Buttons
                 VStack(spacing: 15) {
