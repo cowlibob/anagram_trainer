@@ -267,8 +267,10 @@ struct GamePlayView: View {
                                 
                                 // Connect speech recognition to input handling
                                 speechManager.onTextRecognized = { text in
-                                    for char in text {
-                                        handleKeyPress(String(char))
+                                    Task { @MainActor in
+                                        for char in text {
+                                            self.handleKeyPress(String(char))
+                                        }
                                     }
                                 }
                             }
@@ -309,17 +311,6 @@ struct GamePlayView: View {
 
                             Spacer()
                                 .frame(minHeight: isShort ? 5 : 40)
-
-                            // Concentric Experimental UI
-                            if !state.isComplete {
-                                ConcentricCircularButtons(
-                                    onSubmit: { viewModel.submitGuess() },
-                                    onClear: { viewModel.clearGuess() },
-                                    onSkip: { viewModel.skipWord() },
-                                    isSubmitDisabled: state.currentGuess.isEmpty
-                                )
-                                .zIndex(5)
-                            }
                         } else {
                             ProgressView()
                                 .onAppear {
@@ -438,6 +429,17 @@ struct GamePlayView: View {
                         dismiss()
                     }
                 )
+            }
+            
+            // Concentric Experimental UI - Moved to outer ZStack for correct corner anchoring
+            if let state = viewModel.gameState, !state.isComplete {
+                ConcentricCircularButtons(
+                    onSubmit: { viewModel.submitGuess() },
+                    onClear: { viewModel.clearGuess() },
+                    onSkip: { viewModel.skipWord() },
+                    isSubmitDisabled: state.currentGuess.isEmpty
+                )
+                .zIndex(5)
             }
         }
         .onAppear {

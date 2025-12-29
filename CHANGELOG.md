@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased] - iOS Native App - 2025-12-29
+
+### Added - iOS SwiftUI App
+- **Concentric Circular Buttons**: Completely redesigned the game controls (Submit, Clear, Skip) into a compact, ergonomic corner cluster.
+    - **Smart Positioning**: Automatically anchors to the bottom-right or bottom-left based on user handedness.
+    - **Compression Animation**: Rings compress dynamically (down to 10pt) as the center button grows, maintaining visibility and context.
+    - **Hold-to-Confirm Skip**: "SKIP" button requires a deliberate hold-and-release action to prevent accidental skips.
+    - **Haptic Integration**: Distinctive feedback for "ready" state and successful trigger.
+- **Handedness Support**:
+    - Added "Left/Right Handed" toggle in the Pause menu.
+    - Persists preference via `UserSettings` and seamlessly updates all UI components.
+- **Simulation Tools**: Added `simulate_growth.py` to model and visualize animation curves for UI tuning.
+
+### Fixed - iOS SwiftUI App
+- **Animation Synchronization**: Fixed a "double-growth" bug where the center button outpaced the surrounding rings.
+- **Input Latency**: Eliminated visual lag in the Skip button by removing conflicting explicit animations, ensuring lock-step frame updates.
+- **Gesture Precision**: Fixed a coordinate space bug where touches were calculated from top-left, causing erratic "move away" cancellation behavior. Interaction is now center-relative and stable.
+
 ## [Unreleased] - iOS Native App - 2025-12-28
 
 ### Added - iOS SwiftUI App

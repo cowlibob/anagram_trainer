@@ -151,18 +151,18 @@ struct CampaignGameView: View {
                 }
 
                 Spacer()
-
-                // Concentric Experimental UI
-                if !state.isComplete {
-                    ConcentricCircularButtons(
-                        onSubmit: { viewModel.submitGuess() },
-                        onClear: { viewModel.clearGuess() },
-                        onSkip: { viewModel.skipWord() },
-                        isSubmitDisabled: state.currentGuess.isEmpty
-                    )
-                    .zIndex(5)
-                }
             }
+        }
+        
+        // Concentric Experimental UI - Moved to outer ZStack for correct corner anchoring
+        if !state.isComplete {
+            ConcentricCircularButtons(
+                onSubmit: { viewModel.submitGuess() },
+                onClear: { viewModel.clearGuess() },
+                onSkip: { viewModel.skipWord() },
+                isSubmitDisabled: state.currentGuess.isEmpty
+            )
+            .zIndex(5)
         }
         }
         .focusable()

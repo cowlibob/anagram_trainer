@@ -9,12 +9,14 @@ struct ConcentricCircularButtons: View {
     @ObservedObject var userSettings = UserSettings.shared
     @Environment(\.scalingFactor) var scalingFactor
     
-    // Maximum radii (from center) - used on larger screens
-    private let maxRSkip: CGFloat = 35    // Diameter 70
-    private let maxRClearInner: CGFloat = 39
-    private let maxRClearOuter: CGFloat = 139  // 100pt thickness
-    private let maxRSubmitInner: CGFloat = 143
-    private let maxRSubmitOuter: CGFloat = 283
+    // Maximum radii (from center) - tuned for balanced layout
+    private let maxRSkip: CGFloat = 40
+    private let maxRClearInner: CGFloat = 45
+    private let maxRClearOuter: CGFloat = 125 // Thickness 80
+    private let maxRSubmitInner: CGFloat = 130
+    private let maxRSubmitOuter: CGFloat = 210 // Thickness 80
+    
+    @State private var skipProgress: Double = 0
     
     var body: some View {
         GeometryReader { geo in
@@ -22,22 +24,49 @@ struct ConcentricCircularButtons: View {
             
             // Size the button cluster based on the smaller screen dimension
             let availableSize = min(geo.size.width, geo.size.height)
-            // The cluster needs to fit within this, with the center at the corner
-            // Only half the cluster (the NW/NE quadrant) is visible, so we can use full size if availableSize >= radius
-            let clusterScale = min(1.0, availableSize / maxRSubmitOuter)
+            // Ensure the radius fits within the screen with some margin
+            let clusterScale = min(1.0, (availableSize * 0.8) / maxRSubmitOuter)
             
             // Scaled radii
-            let rSkip = maxRSkip * clusterScale
-            let rClearInner = maxRClearInner * clusterScale
-            let rClearOuter = maxRClearOuter * clusterScale
-            let rSubmitInner = maxRSubmitInner * clusterScale
             let rSubmitOuter = maxRSubmitOuter * clusterScale
             
             // NW bearing for right-handed, NE bearing for left-handed
             let textAngle: Angle = isRight ? .degrees(-135) : .degrees(-45)
             
-            // The button cluster ZStack, centered at origin
+            // Dynamic Layout Calculation (Compression Model)
+            // Fixed outer boundary (rSubmitOuter).
+            // Rings compress against this boundary as the center expands.
+            
+            let startThickness: CGFloat = 80.0
+            let endThickness: CGFloat = 10.0
+            
+            let startGap: CGFloat = 5.0
+            let endGap: CGFloat = 1.0
+            
+            // Linear Interpolation
+            let currentThickness = startThickness + (endThickness - startThickness) * skipProgress
+            let currentGap = startGap + (endGap - startGap) * skipProgress
+            
+            // Calculate Radii from Outside In
+            // rSubmitOuter is fixed (maxRSubmitOuter * clusterScale)
+            let rSubmitInner = rSubmitOuter - currentThickness
+            let rClearOuter = rSubmitInner - currentGap
+            let rClearInner = rClearOuter - currentThickness
+            let rSkip = rClearInner - currentGap // Added gap for consistency
+            
+            // Corner offset based on fixed outer radius + margin
+            let cornerOffset: CGFloat = (rSubmitOuter / 2) // Tuck it in nicely
+            
+            // The button cluster ZStack
             ZStack {
+                // Skip Button (Center Circle) - Fills remaining space
+                CircularHoldButton(
+                    currentRadius: rSkip,
+                    maxRadius: rSubmitOuter, // Logic uses this for progress calc
+                    progress: $skipProgress,
+                    action: onSkip
+                )
+                
                 // Submit Button (Outer Ring)
                 Button(action: onSubmit) {
                     ZStack {
@@ -52,9 +81,10 @@ struct ConcentricCircularButtons: View {
                             text: "SUBMIT",
                             radius: (rSubmitInner + rSubmitOuter) / 2,
                             startAngle: textAngle,
-                            fontSize: 20 * clusterScale,
+                            fontSize: 20 * clusterScale * (currentThickness / startThickness), // Scale text too
                             color: isSubmitDisabled ? .white.opacity(0.3) : .white
                         )
+                        .opacity(currentThickness > 20 ? 1.0 : 0.0) // Fade text out if too thin
                     }
                 }
                 .disabled(isSubmitDisabled)
@@ -75,26 +105,20 @@ struct ConcentricCircularButtons: View {
                             text: "CLEAR",
                             radius: (rClearInner + rClearOuter) / 2,
                             startAngle: textAngle,
-                            fontSize: 18 * clusterScale,
+                            fontSize: 18 * clusterScale * (currentThickness / startThickness),
                             color: .white
                         )
+                        .opacity(currentThickness > 20 ? 1.0 : 0.0)
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
                 .frame(width: rClearOuter * 2, height: rClearOuter * 2)
-                
-                // Skip Button (Center Circle with Hold-to-Confirm)
-                CircularHoldButton(
-                    baseRadius: rSkip,
-                    maxRadius: rSubmitOuter,
-                    action: onSkip
-                )
             }
-            // Position the ZStack so its center is at the corner
+            // Position the ZStack so its center is near the corner
             .frame(width: rSubmitOuter * 2, height: rSubmitOuter * 2)
             .position(
-                x: isRight ? geo.size.width : 0,
-                y: geo.size.height
+                x: isRight ? geo.size.width - cornerOffset : cornerOffset,
+                y: geo.size.height - cornerOffset
             )
         }
         .scaleEffect(scalingFactor)
@@ -104,55 +128,72 @@ struct ConcentricCircularButtons: View {
 
 // MARK: - Circular Hold-to-Confirm Button
 struct CircularHoldButton: View {
-    let baseRadius: CGFloat
+    let currentRadius: CGFloat
     let maxRadius: CGFloat
+    @Binding var progress: Double
     let action: () -> Void
     
-    @State private var progress: Double = 0
     @State private var isPressing = false
     @State private var timer: Timer?
     @State private var hasTriggered = false
+    @State private var isOutside = false
     
     private let holdDuration: Double = 1.0
     private let updateInterval: Double = 0.02
     
-    // Scale factor interpolates from 1.0 to maxRadius/baseRadius based on progress
-    private var scaleFactor: CGFloat {
-        1.0 + CGFloat(progress) * (maxRadius / baseRadius - 1.0)
-    }
-    
     var body: some View {
         ZStack {
-            // Base circle at fixed size, scaled up via transform
-            Circle()
+            // Base circle at current dynamic size
+            // Use RingShape for identical rendering characteristics to sibling buttons
+            RingShape(innerRadius: 0, outerRadius: currentRadius)
                 .fill(Material.thickMaterial)
             
-            Circle()
-                .fill(Color.red.opacity(0.3))
+            RingShape(innerRadius: 0, outerRadius: currentRadius)
+                .fill(isOutside ? Color.gray.opacity(0.3) : Color.red.opacity(0.3))
             
-            Circle()
-                .stroke(Color.red.opacity(0.5), lineWidth: 1)
+            RingShape(innerRadius: 0, outerRadius: currentRadius)
+                .stroke(isOutside ? Color.white.opacity(0.2) : Color.red.opacity(0.5), lineWidth: 1)
             
-            // Icon stays at center
-            Image(systemName: "forward.fill")
-                .font(.system(size: 22))
-                .foregroundColor(.white)
+            // Text stays at center
+            Text("SKIP")
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundColor(isOutside ? .white.opacity(0.5) : .white)
                 .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
-                .scaleEffect(1.0 / scaleFactor) // Counter-scale to keep icon same size
         }
-        .frame(width: baseRadius * 2, height: baseRadius * 2)
-        .scaleEffect(scaleFactor)
-        .animation(.easeOut(duration: 0.08), value: progress)
+        .frame(width: maxRadius * 2, height: maxRadius * 2) // Stable frame for gesture
+        .animation(.easeInOut(duration: 0.2), value: isOutside)
         .contentShape(Circle())
         .gesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { _ in
+                .onChanged { value in
                     if !isPressing && !hasTriggered {
                         startPressing()
                     }
+                    
+                    // Fixed Interaction Logic: 
+                    // Calculate distance relative to the CENTER (maxRadius, maxRadius)
+                    // instead of top-left (0,0).
+                    let center = CGPoint(x: maxRadius, y: maxRadius)
+                    let dx = value.location.x - center.x
+                    let dy = value.location.y - center.y
+                    let distance = sqrt(dx*dx + dy*dy)
+                    
+                    let limit = maxRadius
+                    isOutside = distance > limit
                 }
-                .onEnded { _ in
-                    stopPressing()
+                .onEnded { value in
+                    let center = CGPoint(x: maxRadius, y: maxRadius)
+                    let dx = value.location.x - center.x
+                    let dy = value.location.y - center.y
+                    let distance = sqrt(dx*dx + dy*dy)
+                    
+                    let limit = maxRadius
+                    
+                    if progress >= 1.0 && distance <= limit {
+                        triggerAction()
+                    } else {
+                        cancelPressing()
+                    }
                 }
         )
     }
@@ -160,28 +201,36 @@ struct CircularHoldButton: View {
     private func startPressing() {
         isPressing = true
         hasTriggered = false
+        isOutside = false
         progress = 0
         
         UISelectionFeedbackGenerator().selectionChanged()
         
         timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { _ in
-            progress += updateInterval / holdDuration
-            
-            if progress >= 1.0 {
-                triggerAction()
+            if !isOutside {
+                progress += updateInterval / holdDuration
+                if progress > 1.0 { 
+                    progress = 1.0
+                    // Subtle haptic when "ready"
+                    if !hasTriggered {
+                        UISelectionFeedbackGenerator().selectionChanged()
+                    }
+                }
+            } else {
+                // Slowly decay progress if outside
+                progress = max(0, progress - (updateInterval / holdDuration) * 2)
             }
         }
     }
     
-    private func stopPressing() {
+    private func cancelPressing() {
         isPressing = false
+        isOutside = false
         timer?.invalidate()
         timer = nil
         
-        if !hasTriggered {
-            withAnimation(.easeOut(duration: 0.3)) {
-                progress = 0
-            }
+        withAnimation(.easeOut(duration: 0.3)) {
+            progress = 0
         }
     }
     
@@ -193,7 +242,7 @@ struct CircularHoldButton: View {
         
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             action()
             reset()
         }
@@ -202,6 +251,7 @@ struct CircularHoldButton: View {
     private func reset() {
         isPressing = false
         hasTriggered = false
+        isOutside = false
         withAnimation(.easeOut(duration: 0.3)) {
             progress = 0
         }
@@ -239,8 +289,16 @@ struct CurvedText: View {
 
 // MARK: - Ring Shape
 struct RingShape: Shape {
-    let innerRadius: CGFloat
-    let outerRadius: CGFloat
+    var innerRadius: CGFloat
+    var outerRadius: CGFloat
+    
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(innerRadius, outerRadius) }
+        set {
+            innerRadius = newValue.first
+            outerRadius = newValue.second
+        }
+    }
     
     func path(in rect: CGRect) -> Path {
         var path = Path()
