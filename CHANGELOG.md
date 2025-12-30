@@ -17,6 +17,10 @@
 - **Animation Synchronization**: Fixed a "double-growth" bug where the center button outpaced the surrounding rings.
 - **Input Latency**: Eliminated visual lag in the Skip button by removing conflicting explicit animations, ensuring lock-step frame updates.
 - **Gesture Precision**: Fixed a coordinate space bug where touches were calculated from top-left, causing erratic "move away" cancellation behavior. Interaction is now center-relative and stable.
+- **Ghost Voice Input**: Resolved a race condition where clearing the guess and stopping the microphone would cause the cleared letters to re-appear.
+
+### Changed - iOS SwiftUI App
+- **Smart Voice Context**: Integrated partial anagram matching and singular letter context to `SFSpeechRecognizer` for significantly higher accuracy.
 
 ## [Unreleased] - iOS Native App - 2025-12-28
 

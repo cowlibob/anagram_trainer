@@ -153,4 +153,9 @@ class Dictionary {
         
         return (isValid, elapsed)
     }
+    /// Find all valid anagrams for a given set of letters
+    func validAnagrams(for letters: String) -> [String] {
+        let signature = anagramSignature(letters)
+        return allWords.filter { anagramSignature($0) == signature }
+    }
 }

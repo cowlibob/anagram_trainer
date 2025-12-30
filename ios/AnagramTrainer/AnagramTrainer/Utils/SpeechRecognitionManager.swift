@@ -61,7 +61,7 @@ class SpeechRecognitionManager: ObservableObject {
     
     // MARK: - Recording Control
     
-    func startListening() {
+    func startListening(contextualStrings: [String] = []) {
         // Check authorization first
         guard isAuthorized else {
             requestAuthorization()
@@ -77,7 +77,11 @@ class SpeechRecognitionManager: ObservableObject {
         stopListening()
         
         do {
-            try startRecording()
+            // Reset state for new session
+            transcribedText = ""
+            processedLetterCount = 0
+            
+            try startRecording(contextualStrings: contextualStrings)
             isListening = true
             errorMessage = nil
         } catch {
@@ -94,22 +98,19 @@ class SpeechRecognitionManager: ObservableObject {
         recognitionTask = nil
         recognitionRequest = nil
         isListening = false
-        // Clear the buffer so it doesn't replay on next start
-        transcribedText = ""
-        processedLetterCount = 0
     }
     
-    func toggleListening() {
+    func toggleListening(contextualStrings: [String] = []) {
         if isListening {
             stopListening()
         } else {
-            startListening()
+            startListening(contextualStrings: contextualStrings)
         }
     }
     
     // MARK: - Private Methods
     
-    private func startRecording() throws {
+    private func startRecording(contextualStrings: [String]) throws {
         // Configure audio session
         let audioSession = AVAudioSession.sharedInstance()
         try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
@@ -117,6 +118,11 @@ class SpeechRecognitionManager: ObservableObject {
         
         // Create recognition request
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        
+        // Apply contextual strings to improve accuracy
+        if !contextualStrings.isEmpty {
+            recognitionRequest?.contextualStrings = contextualStrings
+        }
         
         guard let recognitionRequest = recognitionRequest else {
             throw NSError(domain: "SpeechRecognition", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unable to create recognition request"])
@@ -133,7 +139,7 @@ class SpeechRecognitionManager: ObservableObject {
         // Start recognition task
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
             Task { @MainActor in
-                guard let self = self else { return }
+                guard let self = self, self.isListening else { return }
                 
                 if let result = result {
                     let text = result.bestTranscription.formattedString.uppercased()

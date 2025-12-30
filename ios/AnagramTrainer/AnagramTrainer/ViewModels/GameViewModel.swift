@@ -230,4 +230,18 @@ class GameViewModel: ObservableObject {
             }
         }
     }
+
+    
+    func getSpeechContext() -> [String] {
+        guard let state = gameState else { return [] }
+        // Get all valid words that can be made from these letters
+        var context = dictionary.validAnagrams(for: state.scrambledWord)
+        
+        // Add individual letters to help with spelling out the word
+        // e.g. "A", "B", "C"
+        let letters = state.scrambledWord.map { String($0).uppercased() }
+        context.append(contentsOf: letters)
+        
+        return context
+    }
 }

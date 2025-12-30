@@ -245,7 +245,10 @@ struct GamePlayView: View {
                                     if !speechManager.isAuthorized {
                                         speechManager.requestAuthorization()
                                     }
-                                    speechManager.toggleListening()
+                                    
+                                    // Provide context to improve accuracy (target words + letters)
+                                    let context = viewModel.getSpeechContext()
+                                    speechManager.toggleListening(contextualStrings: context)
                                 }) {
                                     ZStack {
                                         Circle()
