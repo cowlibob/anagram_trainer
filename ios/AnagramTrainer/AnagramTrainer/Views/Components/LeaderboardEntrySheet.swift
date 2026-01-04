@@ -4,6 +4,7 @@ struct LeaderboardEntrySheet: View {
     let score: Int
     let isPartial: Bool
     let onSubmit: (String) -> Void
+    let onCancel: () -> Void
     @State private var playerName = ""
     @Environment(\.dismiss) private var dismiss
     
@@ -55,6 +56,7 @@ struct LeaderboardEntrySheet: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancel") {
+                        onCancel()
                         dismiss()
                     }
                 }

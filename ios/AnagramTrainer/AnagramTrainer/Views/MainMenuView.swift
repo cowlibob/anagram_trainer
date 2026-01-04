@@ -96,7 +96,7 @@ struct MainMenuView: View {
                                         .font(.custom("DIN Condensed", size: 44 * scalingFactor))
                                         .kerning(1)
                                         .foregroundStyle(titleGradient)
-                                        .padding(.top, 10)
+                                        .padding(.top, 6)
                                 }
                                 .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                             }

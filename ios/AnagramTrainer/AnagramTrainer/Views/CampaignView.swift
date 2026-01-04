@@ -77,14 +77,13 @@ struct CampaignView: View {
                     viewModel.resetCampaign()
                     showingLeaderboardEntry = false
                     onNavigateToLeaderboard() // Also navigate on quit submission
+                },
+                onCancel: {
+                    // User canceled - resume the game without resetting
+                    showingLeaderboardEntry = false
+                    viewModel.resumeGame()
                 }
             )
-            .onDisappear {
-                // Reset campaign if sheet was dismissed without submitting
-                if showingLeaderboardEntry {
-                    viewModel.resetCampaign()
-                }
-            }
         }
         .onAppear {
             // If returning to campaign after completion, start fresh
