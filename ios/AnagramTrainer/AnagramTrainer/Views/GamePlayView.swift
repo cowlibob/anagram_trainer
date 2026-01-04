@@ -203,28 +203,7 @@ struct GamePlayView: View {
                             .frame(height: isShort ? 5 : 20)
 
                         if let state = viewModel.gameState {
-                            // Scrambled word display
-                            ScrambledWordView(
-                                scrambled: state.scrambledWord,
-                                currentGuess: state.currentGuess,
-                                usedPositions: state.usedPositions,
-                                mode: mode,
-                                targetWord: state.targetWord,
-                                showHint: showHint,
-                                onLetterAction: { originalIndex, letter in
-                                    if state.usedPositions.contains(originalIndex) {
-                                        // If already used, remove it (toggle off)
-                                        viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles removal if present
-                                    } else {
-                                        // If not used, add it (toggle on)
-                                        viewModel.addLetter(at: originalIndex, letter: letter)
-                                    }
-                                    resetHintTimer()
-                                }
-                            )
-                            .padding(.horizontal, 20 * scalingFactor)
-                            
-                            // Current guess with cursor and mic button
+                            // Current guess with cursor and mic button - moved above letter buttons
                             HStack(spacing: 16) {
                                 Spacer()
                                 
@@ -264,6 +243,27 @@ struct GamePlayView: View {
                                 }
                                 .padding(.trailing, 20)
                             }
+                            
+                            // Scrambled word display - moved below guessed word
+                            ScrambledWordView(
+                                scrambled: state.scrambledWord,
+                                currentGuess: state.currentGuess,
+                                usedPositions: state.usedPositions,
+                                mode: mode,
+                                targetWord: state.targetWord,
+                                showHint: showHint,
+                                onLetterAction: { originalIndex, letter in
+                                    if state.usedPositions.contains(originalIndex) {
+                                        // If already used, remove it (toggle off)
+                                        viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles removal if present
+                                    } else {
+                                        // If not used, add it (toggle on)
+                                        viewModel.addLetter(at: originalIndex, letter: letter)
+                                    }
+                                    resetHintTimer()
+                                }
+                            )
+                            .padding(.horizontal, 20 * scalingFactor)
                             .onAppear {
                                 // Request authorization on first appear
                                 speechManager.requestAuthorization()
