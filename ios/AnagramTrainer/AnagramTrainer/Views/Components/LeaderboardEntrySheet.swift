@@ -5,7 +5,9 @@ struct LeaderboardEntrySheet: View {
     let isPartial: Bool
     let onSubmit: (String) -> Void
     let onCancel: () -> Void
+    let onSkip: () -> Void
     @State private var playerName = ""
+    @State private var showingSkipConfirmation = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -48,6 +50,21 @@ struct LeaderboardEntrySheet: View {
                     }
                     .padding(.horizontal)
                     .disabled(playerName.isEmpty)
+                    
+                    // Skip button
+                    Button(action: {
+                        showingSkipConfirmation = true
+                    }) {
+                        Text("Skip")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(15)
+                    }
+                    .padding(.horizontal)
                 }
             }
             .padding()
@@ -60,6 +77,15 @@ struct LeaderboardEntrySheet: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Skip Score Submission?", isPresented: $showingSkipConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Skip", role: .destructive) {
+                    onSkip()
+                    dismiss()
+                }
+            } message: {
+                Text("Your score will not be saved to the leaderboard. This cannot be undone.")
             }
         }
     }

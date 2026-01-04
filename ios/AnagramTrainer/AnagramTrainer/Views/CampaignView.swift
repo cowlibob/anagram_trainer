@@ -82,6 +82,12 @@ struct CampaignView: View {
                     // User canceled - resume the game without resetting
                     showingLeaderboardEntry = false
                     viewModel.resumeGame()
+                },
+                onSkip: {
+                    // User skipped - reset campaign without submitting score
+                    viewModel.resetCampaign()
+                    showingLeaderboardEntry = false
+                    onNavigateToLeaderboard()
                 }
             )
         }
