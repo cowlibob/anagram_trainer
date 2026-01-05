@@ -32,7 +32,7 @@ struct CampaignResultView: View {
                             Text(solved ? "Correct!" : "Skipped")
                                 .font(isShort ? .subheadline : .title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
 
                             Text(word.uppercased())
                                 .font(isShort ? .title : .largeTitle)
@@ -58,7 +58,7 @@ struct CampaignResultView: View {
                     .padding(isShort ? 20 : 40)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white)
+                            .fill(Color(.systemBackground))
                             .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
                     )
                     .padding(.horizontal, isShort ? 20 : 40)

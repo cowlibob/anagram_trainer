@@ -30,7 +30,7 @@ struct PauseMenuView: View {
                         Text("PAUSED")
                             .font(.custom("DIN Condensed", size: (isShort ? 32 : 48) * scalingFactor))
                             .kerning(4)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
 
                         // Content Card
                         VStack(spacing: 0) {
@@ -147,7 +147,7 @@ struct PauseMenuView: View {
                     .padding(isShort ? 20 : 40)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(.white)
+                            .fill(Color(.systemBackground))
                             .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
                     )
                     .padding(.horizontal, isShort ? 20 : 40)

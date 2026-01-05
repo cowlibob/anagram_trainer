@@ -85,7 +85,7 @@ struct ModeInfoView: View {
             .padding(isShort ? 20 : 40)
             .background(
                 RoundedRectangle(cornerRadius: 25)
-                    .fill(.white)
+                    .fill(Color(.systemBackground))
                     .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
             )
             .padding(.horizontal, isShort ? 20 : (isLargeDevice ? 100 : 20))

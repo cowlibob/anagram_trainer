@@ -13,9 +13,11 @@ struct GamePlayView: View {
     @State private var keyboardInput: String = ""
     @State private var showingModeInfo = false
     @State private var showPauseMenu = false
+    @State private var wasBackgrounded = false
     @Environment(\.scalingFactor) var scalingFactor
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.scenePhase) var scenePhase
     @StateObject private var speechManager = SpeechRecognitionManager()
     
     private func resetHintTimer() {
@@ -85,6 +87,12 @@ struct GamePlayView: View {
             ThemeManager.shared.backgroundGradient(for: mode.color, colorScheme: colorScheme)
                 .ignoresSafeArea()
 
+            // SpriteMenuBackgroundView(
+            //     gridSize: 5,
+            //     fontSize: 10.0,
+            //     rotationDuration: 300.0,
+            //     opacity: 0.05
+            // )
             MenuBackgroundView(
                 gridSize: 5,
                 gap: -10.0,
@@ -448,6 +456,22 @@ struct GamePlayView: View {
         }
         .onAppear {
             // mode.color is handled by the environment/gradient caller
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            // Pause when app becomes inactive or goes to background
+            if newPhase == .inactive || newPhase == .background {
+                if !showPauseMenu && viewModel.gameState?.isComplete == false {
+                    viewModel.pauseGame()
+                    wasBackgrounded = true
+                }
+            }
+            // Show pause menu when returning to active after backgrounding
+            else if newPhase == .active {
+                if wasBackgrounded && !showPauseMenu && viewModel.gameState?.isComplete == false {
+                    showPauseMenu = true
+                    wasBackgrounded = false
+                }
+            }
         }
         .environment(\.themeBaseColor, mode.color)
         .environment(\.themeDarkBaseColor, mode.color)

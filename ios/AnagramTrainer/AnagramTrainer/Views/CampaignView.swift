@@ -4,9 +4,11 @@ struct CampaignView: View {
     @ObservedObject var viewModel: CampaignViewModel
     @ObservedObject var theme = ThemeManager.shared
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.scenePhase) var scenePhase
     @State private var showingLeaderboardEntry = false
     @State private var playerName = ""
     @State private var navigateToLeaderboard = false
+    @State private var wasBackgrounded = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scalingFactor) var scalingFactor
 
@@ -97,11 +99,34 @@ struct CampaignView: View {
                 viewModel.startNewCampaign()
             }
         }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            // Pause when app becomes inactive or goes to background
+            if newPhase == .inactive || newPhase == .background {
+                if !showPauseMenu && !viewModel.isComplete {
+                    viewModel.pauseGame()
+                    wasBackgrounded = true
+                }
+            }
+            // Show pause menu when returning to active after backgrounding
+            else if newPhase == .active {
+                if wasBackgrounded && !showPauseMenu && !viewModel.isComplete {
+                    showPauseMenu = true
+                    wasBackgrounded = false
+                }
+            }
+        }
         .environment(\.themeBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
         .environment(\.themeDarkBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
     }
 
     private var backgroundView: some View {
+        // SpriteMenuBackgroundView(
+        //     gridSize: 10,
+        //     fontSize: 8.0,
+        //     rotationDuration: 30.0
+        // )
+        // .environment(\.themeBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
+        // .environment(\.themeDarkBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
         MenuBackgroundView(
             gridSize: 10,
             gap: isLargeDevice ? 50.0 : 10.0,
