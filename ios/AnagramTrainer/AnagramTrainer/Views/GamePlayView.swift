@@ -390,7 +390,7 @@ struct GamePlayView: View {
                             viewModel.resumeGame()
                             showingModeInfo = false
                         }
-                    
+
                     ModeInfoView(
                         mode: mode,
                         buttonTitle: "Continue",
@@ -401,7 +401,7 @@ struct GamePlayView: View {
                     )
                 }
                 .transition(.opacity.combined(with: .scale))
-                .zIndex(2)
+                .zIndex(10)
             }
 
             // Result overlay - at outer ZStack level
@@ -432,6 +432,7 @@ struct GamePlayView: View {
                         dismiss()
                     }
                 )
+                .zIndex(10)
             }
             
             // Concentric Experimental UI - Moved to outer ZStack for correct corner anchoring

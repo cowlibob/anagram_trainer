@@ -78,20 +78,15 @@ struct ModeInfoView: View {
                     MenuButton(title: buttonTitle, icon: isShort ? nil : "play.fill", color: mode.color, isCompact: isShort)
                 }
                 .buttonStyle(.plain)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal)
                 .padding(.top, isShort ? 0 : 8)
             }
             .padding(isShort ? 20 : 40)
             .background(
-                Group {
-                    if #available(iOS 26.0, *) {
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(.ultraThinMaterial)
-                    } else {
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(.white)
-                            .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
-                    }
-                }
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(.white)
+                    .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
             )
             .padding(.horizontal, isShort ? 20 : (isLargeDevice ? 100 : 20))
             .padding(.vertical, isShort ? 20 : (isLargeDevice ? 100 : 20))
