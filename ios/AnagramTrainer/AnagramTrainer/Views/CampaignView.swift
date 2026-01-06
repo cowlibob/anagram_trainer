@@ -123,20 +123,20 @@ struct CampaignView: View {
     }
 
     private var backgroundView: some View {
-        // SpriteMenuBackgroundView(
-        //     gridSize: 10,
-        //     fontSize: 8.0,
-        //     rotationDuration: 30.0
-        // )
-        // .environment(\.themeBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
-        // .environment(\.themeDarkBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
-        MenuBackgroundView(
-            gridSize: 10,
-            gap: isLargeDevice ? 50.0 : 10.0,
-            scale: 1.0,
-            fontSize: 8.0,
-            rotationDuration: 30.0
+        SpriteMenuBackgroundView(
+           gridSize: 6,
+           fontSize: 120.0,
+           rotationDuration: 180.0
         )
+         .environment(\.themeBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
+         .environment(\.themeDarkBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
+//        MenuBackgroundView(
+//            gridSize: 10,
+//            gap: isLargeDevice ? 50.0 : 10.0,
+//            scale: 1.0,
+//            fontSize: 8.0,
+//            rotationDuration: 30.0
+//        )
         .background(
             ThemeManager.shared.backgroundGradient(
                 for: colorScheme == .dark ? standardDark : standardLight,

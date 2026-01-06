@@ -63,19 +63,20 @@ struct MainMenuView: View {
                     .opacity(showOverlay ? 1.0 : 0.0)
                     .animation(.easeInOut(duration: 0.8), value: showOverlay)
 
-                // SpriteMenuBackgroundView(
+                SpriteMenuBackgroundView(
+                   gridSize: 6,
+                   fontSize: 120.0,
+                   rotationDuration: 180.0
+                )
+                .ignoresSafeArea()
+                // MenuBackgroundView(
                 //     gridSize: 10,
+                //     gap: 10.0 * scalingFactor,
+                //     scale: 1.0,
                 //     fontSize: 8.0,
                 //     rotationDuration: 30.0
                 // )
-                MenuBackgroundView(
-                    gridSize: 10,
-                    gap: 10.0 * scalingFactor,
-                    scale: 1.0,
-                    fontSize: 8.0,
-                    rotationDuration: 30.0
-                )
-                .ignoresSafeArea()
+                // .ignoresSafeArea()
 
             GeometryReader { geometry in
                 let isShort = geometry.size.height < 600

@@ -25,19 +25,19 @@ struct TrainingMenuView: View {
 
     var body: some View {
         ZStack {
-            // SpriteMenuBackgroundView(
-            //     gridSize: 10,
-            //     fontSize: 8.0,
-            //     rotationDuration: 30.0
-            // )
-            MenuBackgroundView(
-                gridSize: 10,
-                gap: 10.0 * scalingFactor,
-                scale: 1.0,
-                fontSize: 8.0,
-                rotationDuration: 30.0
+            SpriteMenuBackgroundView(
+               gridSize: 6,
+               fontSize: 120.0,
+               rotationDuration: 180.0
             )
-            .background(ThemeManager.shared.backgroundGradient(for: currentBase, colorScheme: colorScheme))
+//            MenuBackgroundView(
+//                gridSize: 10,
+//                gap: 10.0 * scalingFactor,
+//                scale: 1.0,
+//                fontSize: 8.0,
+//                rotationDuration: 30.0
+//            )
+//            .background(ThemeManager.shared.backgroundGradient(for: currentBase, colorScheme: colorScheme))
             .ignoresSafeArea()
 
             ScrollView {

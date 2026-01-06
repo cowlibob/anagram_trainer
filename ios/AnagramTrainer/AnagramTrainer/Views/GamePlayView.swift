@@ -87,20 +87,19 @@ struct GamePlayView: View {
             ThemeManager.shared.backgroundGradient(for: colorScheme == .dark ? mode.darkColor : mode.color, colorScheme: colorScheme)
                 .ignoresSafeArea()
 
-            // SpriteMenuBackgroundView(
-            //     gridSize: 5,
-            //     fontSize: 10.0,
-            //     rotationDuration: 300.0,
-            //     opacity: 0.05
-            // )
-            MenuBackgroundView(
-                gridSize: 5,
-                gap: -10.0,
-                scale: 0.5,
-                fontSize: 10.0,
-                rotationDuration: 300.0,
-                opacity: 0.05
-            )
+             SpriteMenuBackgroundView(
+                gridSize: 6,
+                fontSize: 120.0,
+                rotationDuration: 180.0
+             )
+//            MenuBackgroundView(
+//                gridSize: 5,
+//                gap: -10.0,
+//                scale: 0.5,
+//                fontSize: 10.0,
+//                rotationDuration: 300.0,
+//                opacity: 0.05
+//            )
             .ignoresSafeArea()
             .allowsHitTesting(false)
 

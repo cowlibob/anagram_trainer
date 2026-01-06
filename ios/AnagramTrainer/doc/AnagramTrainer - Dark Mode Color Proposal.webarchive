@@ -1,0 +1,460 @@
+bplist00Ñ_WebMainResourceÕ	
+_WebResourceMIMEType_WebResourceFrameName^WebResourceURL_WebResourceTextEncodingName_WebResourceDataYtext/htmlP_(http://localhost:8080/color_preview.htmlUUTF-8OJó<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnagramTrainer - Dark Mode Color Proposal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        thead {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            padding: 20px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: white;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 20px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .screen-name {
+            font-weight: 600;
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .color-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .color-patch {
+            width: 80px;
+            height: 50px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        .gradient-patch {
+            width: 120px;
+            height: 50px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        .color-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .color-label {
+            font-size: 0.75em;
+            color: #a0a0a0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .color-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e0e0e0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-has-dark {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-needs-dark {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ffb74d;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        .note {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+            color: #bbdefb;
+        }
+
+        .note strong {
+            color: #64b5f6;
+        }
+
+        @media (max-width: 768px) {
+            .gradient-patch {
+                width: 100px;
+                height: 40px;
+            }
+
+            .color-patch {
+                width: 60px;
+                height: 40px;
+            }
+
+            th, td {
+                padding: 12px 8px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AnagramTrainer Color Scheme</h1>
+        <p class="subtitle">Proposed Dark Mode Colors for All Screens</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Screen Name</th>
+                    <th>Status</th>
+                    <th>Light Mode</th>
+                    <th>Dark Mode (Proposed)</th>
+                    <th>Gradient Preview</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Main Menu -->
+                <tr>
+                    <td class="screen-name">Main Menu</td>
+                    <td><span class="status-badge status-has-dark">Has Dark Mode</span></td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(242, 102, 153);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Base</span>
+                                    <span class="color-value">rgb(242, 102, 153)</span>
+                                    <span class="color-value">#F26699</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(64, 31, 46);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Base</span>
+                                    <span class="color-value">rgb(64, 31, 46)</span>
+                                    <span class="color-value">#401F2E</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-item">
+                            <div class="gradient-patch" style="background: linear-gradient(135deg, rgb(64, 31, 46) 0%, rgb(51, 25, 37) 50%, rgb(54, 28, 42) 100%);"></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Training Menu -->
+                <tr>
+                    <td class="screen-name">Training Menu</td>
+                    <td><span class="status-badge status-needs-dark">Needs Dark Mode</span></td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(175, 82, 222);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Base (Purple)</span>
+                                    <span class="color-value">rgb(175, 82, 222)</span>
+                                    <span class="color-value">#AF52DE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(51, 26, 64);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Proposed Base</span>
+                                    <span class="color-value">rgb(51, 26, 64)</span>
+                                    <span class="color-value">#331A40</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-item">
+                            <div class="gradient-patch" style="background: linear-gradient(135deg, rgb(41, 21, 51) 0%, rgb(51, 26, 64) 50%, rgb(46, 24, 61) 100%);"></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Campaign -->
+                <tr>
+                    <td class="screen-name">Campaign</td>
+                    <td><span class="status-badge status-needs-dark">Needs Dark Mode</span></td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(255, 153, 102);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Base (Orange)</span>
+                                    <span class="color-value">rgb(255, 153, 102)</span>
+                                    <span class="color-value">#FF9966</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(77, 46, 31);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Proposed Base</span>
+                                    <span class="color-value">rgb(77, 46, 31)</span>
+                                    <span class="color-value">#4D2E1F</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-item">
+                            <div class="gradient-patch" style="background: linear-gradient(135deg, rgb(62, 37, 25) 0%, rgb(77, 46, 31) 50%, rgb(71, 43, 30) 100%);"></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Leaderboard -->
+                <tr>
+                    <td class="screen-name">Leaderboard</td>
+                    <td><span class="status-badge status-needs-dark">Needs Dark Mode</span></td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(88, 86, 214);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Base (Indigo)</span>
+                                    <span class="color-value">rgb(88, 86, 214)</span>
+                                    <span class="color-value">#5856D6</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(26, 26, 64);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Proposed Base</span>
+                                    <span class="color-value">rgb(26, 26, 64)</span>
+                                    <span class="color-value">#1A1A40</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-item">
+                            <div class="gradient-patch" style="background: linear-gradient(135deg, rgb(21, 21, 51) 0%, rgb(26, 26, 64) 50%, rgb(24, 24, 61) 100%);"></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Campaign History -->
+                <tr>
+                    <td class="screen-name">Campaign History</td>
+                    <td><span class="status-badge status-needs-dark">Needs Dark Mode</span></td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(88, 86, 214);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Base (Indigo)</span>
+                                    <span class="color-value">rgb(88, 86, 214)</span>
+                                    <span class="color-value">#5856D6</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(26, 26, 64);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Proposed Base</span>
+                                    <span class="color-value">rgb(26, 26, 64)</span>
+                                    <span class="color-value">#1A1A40</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-item">
+                            <div class="gradient-patch" style="background: linear-gradient(135deg, rgb(21, 21, 51) 0%, rgb(26, 26, 64) 50%, rgb(24, 24, 61) 100%);"></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Graduated Difficulty Selector -->
+                <tr>
+                    <td class="screen-name">Graduated Selector</td>
+                    <td><span class="status-badge status-needs-dark">Needs Dark Mode</span></td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(175, 82, 222);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Base (Graduated)</span>
+                                    <span class="color-value">rgb(175, 82, 222)</span>
+                                    <span class="color-value">#AF52DE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: rgb(51, 26, 64);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Proposed Base</span>
+                                    <span class="color-value">rgb(51, 26, 64)</span>
+                                    <span class="color-value">#331A40</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-item">
+                            <div class="gradient-patch" style="background: linear-gradient(135deg, rgb(41, 21, 51) 0%, rgb(51, 26, 64) 50%, rgb(46, 24, 61) 100%);"></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Gameplay -->
+                <tr>
+                    <td class="screen-name">Gameplay</td>
+                    <td><span class="status-badge status-needs-dark">Needs Dark Mode</span></td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: linear-gradient(90deg, rgb(90, 200, 250) 0%, rgb(175, 82, 222) 25%, rgb(255, 153, 102) 50%, rgb(88, 86, 214) 75%, rgb(52, 199, 89) 100%);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Varies by Mode</span>
+                                    <span class="color-value">8 different colors</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-preview">
+                            <div class="color-item">
+                                <div class="color-patch" style="background: linear-gradient(90deg, rgb(27, 60, 75) 0%, rgb(51, 26, 64) 25%, rgb(77, 46, 31) 50%, rgb(26, 26, 64) 75%, rgb(16, 60, 27) 100%);"></div>
+                                <div class="color-info">
+                                    <span class="color-label">Proposed Variants</span>
+                                    <span class="color-value">Dark versions per mode</span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="color-info">
+                            <span class="color-label">Multiple</span>
+                            <span class="color-value" style="font-size: 0.85em;">See training modes</span>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>Implementation Note:</strong> The proposed dark mode colors follow the same pattern as the existing Main Menu dark mode. Each dark variant is approximately 25-30% of the brightness of the light mode color, maintaining the same hue family. The ThemeManager's gradient formulas will automatically derive the three-color gradients (darkBurgundy â†’ base â†’ darkPurple) for each dark mode base color.
+        </div>
+
+        <div class="note" style="margin-top: 20px; border-left-color: #4caf50;">
+            <strong>Color Derivation Formula:</strong> Dark mode base colors were calculated by reducing RGB values by approximately 70-75% while maintaining color temperature and hue relationships. This ensures visual consistency across all screens while providing proper contrast in dark mode.
+        </div>
+    </div>
+
+
+</body></html>    ( > U d ‚ ” ž Ÿ Ê Ð                           KÇ

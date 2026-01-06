@@ -35,10 +35,14 @@ struct GraduatedDifficultySelector: View {
 
     var body: some View {
         ZStack {
-            // SpriteMenuBackgroundView()
-            MenuBackgroundView(scale: 1.0)
-                .background(ThemeManager.shared.backgroundGradient(for: currentBase, colorScheme: colorScheme))
-                .foregroundStyle(Color.white)
+            SpriteMenuBackgroundView(
+               gridSize: 6,
+               fontSize: 120.0,
+               rotationDuration: 180.0
+            )
+//            MenuBackgroundView(scale: 1.0)
+//                .background(ThemeManager.shared.backgroundGradient(for: currentBase, colorScheme: colorScheme))
+//                .foregroundStyle(Color.white)
                 .ignoresSafeArea()
 
             GeometryReader { geometry in
