@@ -17,7 +17,8 @@ struct ConcentricCircularButtons: View {
     private let maxRSubmitOuter: CGFloat = 210 // Thickness 80
     
     @State private var skipProgress: Double = 0
-    
+    @State private var clearProgress: Double = 0
+
     var body: some View {
         GeometryReader { geo in
             let isRight = userSettings.handedness == .right
@@ -33,26 +34,47 @@ struct ConcentricCircularButtons: View {
             // NW bearing for right-handed, NE bearing for left-handed
             let textAngle: Angle = isRight ? .degrees(-135) : .degrees(-45)
             
-            // Dynamic Layout Calculation (Compression Model)
-            // Fixed outer boundary (rSubmitOuter).
-            // Rings compress against this boundary as the center expands.
-            
+            // Dynamic Layout Calculation
             let startThickness: CGFloat = 80.0
             let endThickness: CGFloat = 10.0
-            
             let startGap: CGFloat = 5.0
             let endGap: CGFloat = 1.0
-            
-            // Linear Interpolation
-            let currentThickness = startThickness + (endThickness - startThickness) * skipProgress
-            let currentGap = startGap + (endGap - startGap) * skipProgress
-            
-            // Calculate Radii from Outside In
-            // rSubmitOuter is fixed (maxRSubmitOuter * clusterScale)
-            let rSubmitInner = rSubmitOuter - currentThickness
-            let rClearOuter = rSubmitInner - currentGap
-            let rClearInner = rClearOuter - currentThickness
-            let rSkip = rClearInner - currentGap // Added gap for consistency
+
+            // Base layout (when nothing is being held)
+            let baseSubmitInner = rSubmitOuter - startThickness
+            let baseClearOuter = baseSubmitInner - startGap
+            let baseClearInner = baseClearOuter - startThickness
+            let baseSkip = baseClearInner - startGap
+
+            // Calculate radii based on which button is being held
+            let (rSubmitInner, rClearOuter, rClearInner, rSkip, currentThickness): (CGFloat, CGFloat, CGFloat, CGFloat, CGFloat) = {
+                if clearProgress > 0 {
+                    // Clear button expansion mode
+                    let clearInner = baseClearInner
+                    let clearOuter = baseClearOuter + (rSubmitOuter - baseClearOuter - startGap) * clearProgress
+                    let submitInner = clearOuter + startGap
+                    let skip = baseSkip
+                    return (submitInner, clearOuter, clearInner, skip, startThickness)
+                } else {
+                    // Skip button compression mode (original behavior)
+                    let thickness = startThickness + (endThickness - startThickness) * skipProgress
+                    let gap = startGap + (endGap - startGap) * skipProgress
+                    let submitInner = rSubmitOuter - thickness
+                    let clearOuter = submitInner - gap
+                    let clearInner = clearOuter - thickness
+                    let skip = clearInner - gap
+                    return (submitInner, clearOuter, clearInner, skip, thickness)
+                }
+            }()
+
+            // Submit button text scaling - scales down for both skip and clear
+            let submitTextScale: CGFloat = {
+                if clearProgress > 0 {
+                    return 1.0 - (clearProgress * 0.875) // Scale down as clear grows
+                } else {
+                    return currentThickness / startThickness // Scale down as skip grows
+                }
+            }()
             
             // Corner offset based on fixed outer radius + margin
             let cornerOffset: CGFloat = (rSubmitOuter / 2) // Tuck it in nicely
@@ -62,8 +84,9 @@ struct ConcentricCircularButtons: View {
                 // Skip Button (Center Circle) - Fills remaining space
                 CircularHoldButton(
                     currentRadius: rSkip,
-                    maxRadius: rSubmitOuter, // Logic uses this for progress calc
+                    maxRadius: rSubmitOuter,
                     progress: $skipProgress,
+                    otherProgress: $clearProgress,
                     action: onSkip
                 )
                 
@@ -81,10 +104,10 @@ struct ConcentricCircularButtons: View {
                             text: "SUBMIT",
                             radius: (rSubmitInner + rSubmitOuter) / 2,
                             startAngle: textAngle,
-                            fontSize: 20 * clusterScale * (currentThickness / startThickness), // Scale text too
+                            fontSize: 20 * clusterScale * submitTextScale,
                             color: isSubmitDisabled ? .white.opacity(0.3) : .white
                         )
-                        .opacity(currentThickness > 20 ? 1.0 : 0.0) // Fade text out if too thin
+                        .opacity(submitTextScale > 0.25 ? 1.0 : 0.0)
                     }
                 }
                 .disabled(isSubmitDisabled)
@@ -92,27 +115,18 @@ struct ConcentricCircularButtons: View {
                 .frame(width: rSubmitOuter * 2, height: rSubmitOuter * 2)
                 
                 // Clear Button (Middle Ring)
-                Button(action: onClear) {
-                    ZStack {
-                        RingShape(innerRadius: rClearInner, outerRadius: rClearOuter)
-                            .fill(Material.thickMaterial)
-                        RingShape(innerRadius: rClearInner, outerRadius: rClearOuter)
-                            .fill(Color.yellow.opacity(0.3))
-                        RingShape(innerRadius: rClearInner, outerRadius: rClearOuter)
-                            .stroke(Color.yellow.opacity(0.5), lineWidth: 1)
-                        
-                        CurvedText(
-                            text: "CLEAR",
-                            radius: (rClearInner + rClearOuter) / 2,
-                            startAngle: textAngle,
-                            fontSize: 18 * clusterScale * (currentThickness / startThickness),
-                            color: .white
-                        )
-                        .opacity(currentThickness > 20 ? 1.0 : 0.0)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                .frame(width: rClearOuter * 2, height: rClearOuter * 2)
+                RingHoldButton(
+                    innerRadius: rClearInner,
+                    outerRadius: rClearOuter,
+                    maxRadius: rSubmitOuter,
+                    progress: $clearProgress,
+                    otherProgress: $skipProgress,
+                    textAngle: textAngle,
+                    clusterScale: clusterScale,
+                    currentThickness: currentThickness,
+                    startThickness: startThickness,
+                    action: onClear
+                )
             }
             // Position the ZStack so its center is near the corner
             .frame(width: rSubmitOuter * 2, height: rSubmitOuter * 2)
@@ -131,13 +145,15 @@ struct CircularHoldButton: View {
     let currentRadius: CGFloat
     let maxRadius: CGFloat
     @Binding var progress: Double
+    @Binding var otherProgress: Double
     let action: () -> Void
-    
+
     @State private var isPressing = false
     @State private var timer: Timer?
     @State private var hasTriggered = false
     @State private var isOutside = false
-    
+    @Environment(\.scenePhase) private var scenePhase
+
     private let holdDuration: Double = 1.0
     private let updateInterval: Double = 0.02
     
@@ -169,15 +185,15 @@ struct CircularHoldButton: View {
                     if !isPressing && !hasTriggered {
                         startPressing()
                     }
-                    
-                    // Fixed Interaction Logic: 
+
+                    // Fixed Interaction Logic:
                     // Calculate distance relative to the CENTER (maxRadius, maxRadius)
                     // instead of top-left (0,0).
                     let center = CGPoint(x: maxRadius, y: maxRadius)
                     let dx = value.location.x - center.x
                     let dy = value.location.y - center.y
                     let distance = sqrt(dx*dx + dy*dy)
-                    
+
                     let limit = maxRadius
                     isOutside = distance > limit
                 }
@@ -186,9 +202,9 @@ struct CircularHoldButton: View {
                     let dx = value.location.x - center.x
                     let dy = value.location.y - center.y
                     let distance = sqrt(dx*dx + dy*dy)
-                    
+
                     let limit = maxRadius
-                    
+
                     if progress >= 1.0 && distance <= limit {
                         triggerAction()
                     } else {
@@ -196,6 +212,11 @@ struct CircularHoldButton: View {
                     }
                 }
         )
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .background {
+                cancelPressing()
+            }
+        }
     }
     
     private func startPressing() {
@@ -203,7 +224,8 @@ struct CircularHoldButton: View {
         hasTriggered = false
         isOutside = false
         progress = 0
-        
+        otherProgress = 0 // Cancel other button
+
         UISelectionFeedbackGenerator().selectionChanged()
         
         timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { _ in
@@ -248,6 +270,146 @@ struct CircularHoldButton: View {
         }
     }
     
+    private func reset() {
+        isPressing = false
+        hasTriggered = false
+        isOutside = false
+        withAnimation(.easeOut(duration: 0.3)) {
+            progress = 0
+        }
+    }
+}
+
+// MARK: - Ring Hold-to-Confirm Button
+struct RingHoldButton: View {
+    let innerRadius: CGFloat
+    let outerRadius: CGFloat
+    let maxRadius: CGFloat
+    @Binding var progress: Double
+    @Binding var otherProgress: Double
+    let textAngle: Angle
+    let clusterScale: CGFloat
+    let currentThickness: CGFloat
+    let startThickness: CGFloat
+    let action: () -> Void
+
+    @State private var isPressing = false
+    @State private var timer: Timer?
+    @State private var hasTriggered = false
+    @State private var isOutside = false
+    @Environment(\.scenePhase) private var scenePhase
+
+    private let holdDuration: Double = 1.0
+    private let updateInterval: Double = 0.02
+
+    var body: some View {
+        ZStack {
+            RingShape(innerRadius: innerRadius, outerRadius: outerRadius)
+                .fill(Material.thickMaterial)
+            RingShape(innerRadius: innerRadius, outerRadius: outerRadius)
+                .fill(isOutside ? Color.gray.opacity(0.3) : Color.yellow.opacity(0.3))
+            RingShape(innerRadius: innerRadius, outerRadius: outerRadius)
+                .stroke(isOutside ? Color.white.opacity(0.2) : Color.yellow.opacity(0.5), lineWidth: 1)
+
+            CurvedText(
+                text: "CLEAR",
+                radius: (innerRadius + outerRadius) / 2,
+                startAngle: textAngle,
+                fontSize: 18 * clusterScale * (currentThickness / startThickness),
+                color: isOutside ? .white.opacity(0.5) : .white
+            )
+            .opacity(currentThickness > 20 ? 1.0 : 0.0)
+        }
+        .frame(width: maxRadius * 2, height: maxRadius * 2)
+        .animation(.easeInOut(duration: 0.2), value: isOutside)
+        .contentShape(RingShape(innerRadius: innerRadius, outerRadius: outerRadius))
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    if !isPressing && !hasTriggered {
+                        startPressing()
+                    }
+
+                    // Check if touch is within the ring
+                    let center = CGPoint(x: maxRadius, y: maxRadius)
+                    let dx = value.location.x - center.x
+                    let dy = value.location.y - center.y
+                    let distance = sqrt(dx*dx + dy*dy)
+
+                    // Inside the ring if between inner and outer radius
+                    isOutside = distance < innerRadius || distance > outerRadius
+                }
+                .onEnded { value in
+                    let center = CGPoint(x: maxRadius, y: maxRadius)
+                    let dx = value.location.x - center.x
+                    let dy = value.location.y - center.y
+                    let distance = sqrt(dx*dx + dy*dy)
+
+                    let insideRing = distance >= innerRadius && distance <= outerRadius
+
+                    if progress >= 1.0 && insideRing {
+                        triggerAction()
+                    } else {
+                        cancelPressing()
+                    }
+                }
+        )
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .background {
+                cancelPressing()
+            }
+        }
+    }
+
+    private func startPressing() {
+        isPressing = true
+        hasTriggered = false
+        isOutside = false
+        progress = 0
+        otherProgress = 0 // Cancel other button
+
+        UISelectionFeedbackGenerator().selectionChanged()
+
+        timer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { _ in
+            if !isOutside {
+                progress += updateInterval / holdDuration
+                if progress > 1.0 {
+                    progress = 1.0
+                    if !hasTriggered {
+                        UISelectionFeedbackGenerator().selectionChanged()
+                    }
+                }
+            } else {
+                progress = max(0, progress - (updateInterval / holdDuration) * 2)
+            }
+        }
+    }
+
+    private func cancelPressing() {
+        isPressing = false
+        isOutside = false
+        timer?.invalidate()
+        timer = nil
+
+        withAnimation(.easeOut(duration: 0.3)) {
+            progress = 0
+        }
+    }
+
+    private func triggerAction() {
+        timer?.invalidate()
+        timer = nil
+        hasTriggered = true
+        progress = 1.0
+
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            action()
+            reset()
+        }
+    }
+
     private func reset() {
         isPressing = false
         hasTriggered = false

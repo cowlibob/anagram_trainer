@@ -6,12 +6,13 @@ struct HoldToConfirmButton: View {
     let color: Color
     var isCompact: Bool = false
     let action: () -> Void
-    
+
     @State private var progress: Double = 0
     @State private var isPressing = false
     @State private var timer: Timer?
     @State private var hasTriggered = false
-    
+    @Environment(\.scenePhase) private var scenePhase
+
     private let holdDuration: Double = 1.0
     private let updateInterval: Double = 0.05
 
@@ -63,6 +64,11 @@ struct HoldToConfirmButton: View {
                     stopPressing()
                 }
         )
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .background {
+                stopPressing()
+            }
+        }
     }
     
     private func startPressing() {
