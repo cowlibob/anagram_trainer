@@ -61,6 +61,19 @@ enum TrainingMode: String, CaseIterable, Identifiable {
         }
     }
 
+    var darkColor: Color {
+        switch self {
+        case .random: return Color(red: 0.106, green: 0.235, blue: 0.294) // Dark cyan
+        case .graduated: return Color(red: 0.063, green: 0.235, blue: 0.106) // Dark green
+        case .suffix: return Color(red: 0.302, green: 0.071, blue: 0.055) // Dark red
+        case .prefix: return Color(red: 0.0, green: 0.145, blue: 0.302) // Dark blue
+        case .digraph: return Color(red: 0.2, green: 0.102, blue: 0.251) // Dark purple
+        case .vowelCluster: return Color(red: 0.302, green: 0.055, blue: 0.102) // Dark pink
+        case .consonantBlend: return Color(red: 0.106, green: 0.235, blue: 0.294) // Dark teal
+        case .trigraph: return Color(red: 0.102, green: 0.102, blue: 0.251) // Dark indigo
+        }
+    }
+
     var patterns: [String] {
         switch self {
         case .suffix:

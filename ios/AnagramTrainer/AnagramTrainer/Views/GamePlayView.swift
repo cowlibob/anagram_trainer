@@ -84,7 +84,7 @@ struct GamePlayView: View {
     var body: some View {
         ZStack {
             // Root background gradient to "seal" any potential gaps
-            ThemeManager.shared.backgroundGradient(for: mode.color, colorScheme: colorScheme)
+            ThemeManager.shared.backgroundGradient(for: colorScheme == .dark ? mode.darkColor : mode.color, colorScheme: colorScheme)
                 .ignoresSafeArea()
 
             // SpriteMenuBackgroundView(
@@ -473,8 +473,8 @@ struct GamePlayView: View {
                 }
             }
         }
-        .environment(\.themeBaseColor, mode.color)
-        .environment(\.themeDarkBaseColor, mode.color)
+        .environment(\.themeBaseColor, colorScheme == .dark ? mode.darkColor : mode.color)
+        .environment(\.themeDarkBaseColor, mode.darkColor)
     }
 
 }

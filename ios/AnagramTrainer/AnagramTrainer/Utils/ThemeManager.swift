@@ -8,7 +8,8 @@ class ThemeManager: ObservableObject {
     // Default base colors to revert to
     static let defaultLightBase: Color = Color(red: 0.95, green: 0.4, blue: 0.6)
     static let defaultDarkBase: Color = Color(red: 0.25, green: 0.12, blue: 0.18)
-    
+//    static let defaultLightBase: Color = Color(red: 0.955, green: 0.46, blue: 0.64)
+//    static let defaultDarkBase: Color = Color(red: 0.225, green: 0.108, blue: 0.162)
     @Published var lightBaseColor: Color = defaultLightBase
     @Published var darkBaseColor: Color = defaultDarkBase
     
@@ -81,7 +82,7 @@ class ThemeManager: ObservableObject {
     }
     
     func letterColorLight(for base: Color) -> Color {
-        adjustColor(base, brightness: 0.9)
+        adjustColor(base, brightness: 0.5)
     }
     
     // Derived dark colors
@@ -94,7 +95,7 @@ class ThemeManager: ObservableObject {
     }
     
     func letterColorDark(for base: Color) -> Color {
-        adjustColor(base, brightness: 0.85)
+        adjustColor(base, brightness: 1.7)
     }
     
     func backgroundGradient(for base: Color, colorScheme: ColorScheme) -> LinearGradient {

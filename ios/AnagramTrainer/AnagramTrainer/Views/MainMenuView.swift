@@ -63,6 +63,11 @@ struct MainMenuView: View {
                     .opacity(showOverlay ? 1.0 : 0.0)
                     .animation(.easeInOut(duration: 0.8), value: showOverlay)
 
+                // SpriteMenuBackgroundView(
+                //     gridSize: 10,
+                //     fontSize: 8.0,
+                //     rotationDuration: 30.0
+                // )
                 MenuBackgroundView(
                     gridSize: 10,
                     gap: 10.0 * scalingFactor,

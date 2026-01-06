@@ -13,9 +13,19 @@ struct LeaderboardView: View {
     
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.scalingFactor) var scalingFactor
-    
+
+    private let standardLight = Color.indigo
+    private let standardDark = Color(red: 0.102, green: 0.102, blue: 0.251)
+
     var body: some View {
         ZStack {
+            // SpriteMenuBackgroundView(
+            //     gridSize: 10,
+            //     fontSize: 8.0,
+            //     rotationDuration: 30.0
+            // )
+            // .environment(\.themeBaseColor, .indigo)
+            // .environment(\.themeDarkBaseColor, .indigo)
             MenuBackgroundView(
                 gridSize: 10,
                 gap: 10.0 * scalingFactor,
@@ -23,7 +33,7 @@ struct LeaderboardView: View {
                 fontSize: 8.0,
                 rotationDuration: 30.0
             )
-            .background(ThemeManager.shared.backgroundGradient(for: .indigo, colorScheme: colorScheme))
+            .background(ThemeManager.shared.backgroundGradient(for: colorScheme == .dark ? standardDark : standardLight, colorScheme: colorScheme))
             .ignoresSafeArea()
 
             VStack(spacing: 0) {

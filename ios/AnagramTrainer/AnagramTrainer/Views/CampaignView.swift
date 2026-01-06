@@ -13,8 +13,11 @@ struct CampaignView: View {
     @Environment(\.scalingFactor) var scalingFactor
 
     var onNavigateToLeaderboard: () -> Void = {}
-    
+
     @State private var showPauseMenu = false
+
+    private let standardLight = Color(red: 1.0, green: 0.6, blue: 0.4)
+    private let standardDark = Color(red: 0.302, green: 0.180, blue: 0.122)
 
     private var isLargeDevice: Bool {
         UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.userInterfaceIdiom == .mac
@@ -115,8 +118,8 @@ struct CampaignView: View {
                 }
             }
         }
-        .environment(\.themeBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
-        .environment(\.themeDarkBaseColor, Color(red: 1.0, green: 0.6, blue: 0.4))
+        .environment(\.themeBaseColor, colorScheme == .dark ? standardDark : standardLight)
+        .environment(\.themeDarkBaseColor, standardDark)
     }
 
     private var backgroundView: some View {
@@ -136,7 +139,7 @@ struct CampaignView: View {
         )
         .background(
             ThemeManager.shared.backgroundGradient(
-                for: Color(red: 1.0, green: 0.6, blue: 0.4),
+                for: colorScheme == .dark ? standardDark : standardLight,
                 colorScheme: colorScheme
             )
         )

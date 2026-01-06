@@ -8,9 +8,12 @@ struct GraduatedDifficultySelector: View {
     @Environment(\.colorScheme) var colorScheme
     
     @State private var animatedBase: Color? = nil
-    
+
+    private let standardLight = TrainingMode.graduated.color
+    private let standardDark = TrainingMode.graduated.darkColor
+
     private var currentBase: Color {
-        animatedBase ?? TrainingMode.graduated.color
+        animatedBase ?? (colorScheme == .dark ? standardDark : standardLight)
     }
     
     let levels = Array(5...9)
@@ -32,6 +35,7 @@ struct GraduatedDifficultySelector: View {
 
     var body: some View {
         ZStack {
+            // SpriteMenuBackgroundView()
             MenuBackgroundView(scale: 1.0)
                 .background(ThemeManager.shared.backgroundGradient(for: currentBase, colorScheme: colorScheme))
                 .foregroundStyle(Color.white)
@@ -93,8 +97,8 @@ struct GraduatedDifficultySelector: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .tint(.white)
-        .environment(\.themeBaseColor, currentBase)
-        .environment(\.themeDarkBaseColor, currentBase)
+        .environment(\.themeBaseColor, colorScheme == .dark ? standardDark : standardLight)
+        .environment(\.themeDarkBaseColor, standardDark)
     }
 
     @ViewBuilder

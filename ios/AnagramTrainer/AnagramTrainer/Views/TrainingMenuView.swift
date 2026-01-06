@@ -15,13 +15,21 @@ struct TrainingMenuView: View {
 
     // Local animation state
     @State private var animatedBase: Color? = nil
-    
+
+    private let standardLight = Color.purple
+    private let standardDark = Color(red: 0.2, green: 0.102, blue: 0.251)
+
     private var currentBase: Color {
-        animatedBase ?? .purple
+        animatedBase ?? (colorScheme == .dark ? standardDark : standardLight)
     }
 
     var body: some View {
         ZStack {
+            // SpriteMenuBackgroundView(
+            //     gridSize: 10,
+            //     fontSize: 8.0,
+            //     rotationDuration: 30.0
+            // )
             MenuBackgroundView(
                 gridSize: 10,
                 gap: 10.0 * scalingFactor,
@@ -49,8 +57,8 @@ struct TrainingMenuView: View {
                 .padding(.bottom, 40)
             }
         }
-        .environment(\.themeBaseColor, currentBase)
-        .environment(\.themeDarkBaseColor, currentBase) // Training uses purple for both for consistency
+        .environment(\.themeBaseColor, colorScheme == .dark ? standardDark : standardLight)
+        .environment(\.themeDarkBaseColor, standardDark)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
