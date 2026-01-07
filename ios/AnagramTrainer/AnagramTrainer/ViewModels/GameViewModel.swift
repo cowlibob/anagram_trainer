@@ -103,9 +103,10 @@ class GameViewModel: ObservableObject {
         if var state = gameState {
             state.completeGame(solved: true)
             gameState = state
-            
+
             let attempt = WordAttempt(
                 word: state.targetWord,
+                guessedWord: state.currentGuess,
                 duration: state.elapsedTime,
                 outcome: state.targetWord == state.currentGuess ? .exact : .correct
             )

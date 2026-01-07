@@ -68,6 +68,8 @@ struct MainMenuView: View {
                    fontSize: 120.0,
                    rotationDuration: 180.0
                 )
+                .environment(\.themeBaseColor, standardLight)
+                .environment(\.themeDarkBaseColor, standardDark)
                 .ignoresSafeArea()
                 // MenuBackgroundView(
                 //     gridSize: 10,
@@ -171,6 +173,10 @@ struct MainMenuView: View {
                 .sheet(isPresented: $showingThemeDev) {
                     ThemeDevView()
                 }
+                .onAppear {
+                    // Reset overlay state when returning to main menu
+                    showOverlay = false
+                }
             } // closes GeometryReader
         } // closes ZStack
         .navigationDestination(for: AppRoute.self) { route in
@@ -190,8 +196,6 @@ struct MainMenuView: View {
                 LeaderboardView()
             }
         }
-        .environment(\.themeBaseColor, currentLightBase)
-        .environment(\.themeDarkBaseColor, currentDarkBase)
     } // closes NavigationStack
     .tint(.white)
 } // closes body
@@ -247,6 +251,7 @@ struct MainMenuView: View {
         isCompact: Bool
     ) -> some View {
         Button(action: {
+            // Keep overlay visible during navigation transition
             path.append(route)
         }) {
             MenuButton(
@@ -261,9 +266,8 @@ struct MainMenuView: View {
             if isPressed {
                 overlayColor = accentOverride
                 showOverlay = true
-            } else {
-                showOverlay = false
             }
+            // Don't hide overlay on release - let onAppear handle reset
         }))
     }
 }

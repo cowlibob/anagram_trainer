@@ -192,10 +192,11 @@ class CampaignViewModel: ObservableObject {
         wordsRemaining -= 1
         
         // Record attempt info
-        if let target = gameState?.targetWord {
-            let isExact = gameState?.currentGuess.uppercased() == target.uppercased()
+        if let target = gameState?.targetWord, let guess = gameState?.currentGuess {
+            let isExact = guess.uppercased() == target.uppercased()
             currentHistory.append(WordAttempt(
                 word: target.uppercased(),
+                guessedWord: guess.uppercased(),
                 duration: timeToken,
                 outcome: isExact ? .exact : .correct
             ))

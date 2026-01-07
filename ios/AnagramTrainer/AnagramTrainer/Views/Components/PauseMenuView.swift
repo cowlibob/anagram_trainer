@@ -56,32 +56,40 @@ struct PauseMenuView: View {
 
                                     List {
                                         ForEach(history.reversed()) { attempt in
-                                            HStack {
-                                                VStack(alignment: .leading, spacing: 2) {
-                                                    Text(attempt.word.uppercased())
-                                                        .font(.headline)
-                                                        .foregroundColor(.primary)
-
-                                                    Text(String(format: "%.1fs", attempt.duration))
-                                                        .font(.caption2)
-                                                        .foregroundColor(.secondary)
-                                                }
-
-                                                Spacer()
-
+                                            HStack(spacing: 15) {
                                                 // Outcome Icon
                                                 Group {
                                                     switch attempt.outcome {
                                                     case .exact:
-                                                        Image(systemName: "star.fill")
+                                                        Image(systemName: "star.circle.fill")
                                                             .foregroundColor(.yellow)
                                                     case .correct:
                                                         Image(systemName: "checkmark.circle.fill")
                                                             .foregroundColor(.green)
                                                     case .skipped:
-                                                        Image(systemName: "xmark.circle.fill")
-                                                            .foregroundColor(.red)
+                                                        Image(systemName: "arrow.right.circle.fill")
+                                                            .foregroundColor(.gray)
                                                     }
+                                                }
+                                                .font(.title2)
+                                                .frame(width: 30)
+
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text((attempt.guessedWord ?? attempt.word).uppercased())
+                                                        .font(.headline)
+                                                        .foregroundColor(.primary)
+
+                                                    Text(outcomeText(attempt.outcome))
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondary)
+                                                }
+
+                                                Spacer()
+
+                                                if attempt.outcome != .skipped {
+                                                    Text(String(format: "%.1fs", attempt.duration))
+                                                        .font(.system(.body, design: .monospaced))
+                                                        .foregroundColor(.secondary)
                                                 }
                                             }
                                             .listRowBackground(Color.primary.opacity(0.03))
@@ -158,6 +166,14 @@ struct PauseMenuView: View {
             }
             .transition(.opacity)
             .zIndex(100) // Ensure it sits on top
+        }
+    }
+
+    private func outcomeText(_ outcome: WordOutcome) -> String {
+        switch outcome {
+        case .correct: return "Solved"
+        case .exact: return "Exact Match"
+        case .skipped: return "Skipped"
         }
     }
 }

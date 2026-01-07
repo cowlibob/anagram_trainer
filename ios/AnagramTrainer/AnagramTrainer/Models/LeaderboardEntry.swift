@@ -10,13 +10,15 @@ enum WordOutcome: String, Codable {
 /// A single word attempt in a campaign session
 struct WordAttempt: Codable, Identifiable {
     let id: UUID
-    let word: String
+    let word: String  // Target word (for leaderboard)
+    let guessedWord: String?  // Actual guessed word (for pause menu)
     let duration: TimeInterval
     let outcome: WordOutcome
-    
-    init(word: String, duration: TimeInterval, outcome: WordOutcome) {
+
+    init(word: String, guessedWord: String? = nil, duration: TimeInterval, outcome: WordOutcome) {
         self.id = UUID()
         self.word = word
+        self.guessedWord = guessedWord
         self.duration = duration
         self.outcome = outcome
     }
