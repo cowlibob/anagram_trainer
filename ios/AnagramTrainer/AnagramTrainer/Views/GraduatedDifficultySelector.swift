@@ -83,23 +83,33 @@ struct GraduatedDifficultySelector: View {
                                     // Node with alternating left/right offset
                                     HStack {
                                         if index % 2 == 1 {
-                                            Spacer()
+                                            if index < levels.count - 1 {
+                                                wavyPath(
+                                                    isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
+                                                    height: 110,
+                                                    startOffset: index % 2 == 0 ? 1 : -1,
+                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1
+                                                )
+                                            } else if index == levels.count - 1 {
+                                                Spacer()
+                                            }
                                         }
                                         levelNodeButton(node: node, geometry: geometry, index: index)
                                         if index % 2 == 0 {
-                                            Spacer()
+                                            if index < levels.count - 1 {
+                                                wavyPath(
+                                                    isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
+                                                    height: 110,
+                                                    startOffset: index % 2 == 0 ? 1 : -1,
+                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1
+                                                )
+                                            } else if index == levels.count - 1 {
+                                                Spacer()
+                                            }
                                         }
                                     }
 
                                     // Connecting path (except after last node)
-                                    if index < levels.count - 1 {
-                                        wavyPath(
-                                            isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
-                                            height: 100,
-                                            startOffset: index % 2 == 0 ? 1 : -1,
-                                            endOffset: (index + 1) % 2 == 0 ? 1 : -1
-                                        )
-                                    }
                                 }
                             }
                         }
@@ -240,44 +250,37 @@ struct GraduatedDifficultySelector: View {
             Path { path in
                 let width = geometry.size.width
                 let centerX = width / 2
-                let amplitude: CGFloat = 80 // Increased from 30 for wider meandering
+                let amplitude: CGFloat = 80
+                let nodeRadius: CGFloat = 110  // Half of the 100pt circle
 
-                // Start and end positions based on node offsets
-                // startOffset and endOffset are -1 (left) or 1 (right)
-                let startX = centerX + (startOffset * amplitude)
-                let endX = centerX + (endOffset * amplitude)
+                // Node center positions
+                let startNodeCenterX = centerX + (startOffset * amplitude)
+                let endNodeCenterX = centerX - (endOffset * amplitude * 0.125)
 
-                let startY: CGFloat = 0
-                let endY = height
+                // Start from the outer edge of the starting node (bottom right for left node, bottom left for right node)
+                let startX = startNodeCenterX - (startOffset * nodeRadius)
+                let startY: CGFloat = 25
 
-                // Create a wider wavy S-curve connecting offset nodes
+                // End at the top of the ending node
+                let endX = endNodeCenterX
+                let endY = height * 1.25
+
+                // Create a graceful flowing curve
                 path.move(to: CGPoint(x: startX, y: startY))
 
-                // Control points for bezier curves with increased amplitude
-                // First curve: from start to opposite side
-                let controlPoint1X = startX + (startOffset * amplitude * 0.5)
-                let controlPoint1Y = height * 0.2
-                let controlPoint2X = centerX - (startOffset * amplitude * 1.2)
-                let controlPoint2Y = height * 0.45
-                let midX = centerX
-                let midY = height * 0.5
+                // Control points for a smooth flowing curve like in the screenshot
+                // First control point: extend horizontally from start to create horizontal departure
+                let controlPoint1X = startX + (startOffset * amplitude * 1.2)
+                let controlPoint1Y = startY + (height * 0.5)
 
-                path.addCurve(
-                    to: CGPoint(x: midX, y: midY),
-                    control1: CGPoint(x: controlPoint1X, y: controlPoint1Y),
-                    control2: CGPoint(x: controlPoint2X, y: controlPoint2Y)
-                )
-
-                // Second curve: from opposite side to end position
-                let controlPoint3X = centerX + (endOffset * amplitude * 1.2)
-                let controlPoint3Y = height * 0.55
-                let controlPoint4X = endX - (endOffset * amplitude * 0.5)
-                let controlPoint4Y = height * 0.8
+                // Second control point: position directly above end to create vertical arrival
+                let controlPoint2X = endX
+                let controlPoint2Y = endY - (height * 0.4)
 
                 path.addCurve(
                     to: CGPoint(x: endX, y: endY),
-                    control1: CGPoint(x: controlPoint3X, y: controlPoint3Y),
-                    control2: CGPoint(x: controlPoint4X, y: controlPoint4Y)
+                    control1: CGPoint(x: controlPoint1X, y: controlPoint1Y),
+                    control2: CGPoint(x: controlPoint2X, y: controlPoint2Y)
                 )
             }
             .stroke(
