@@ -80,20 +80,30 @@ struct GraduatedDifficultySelector: View {
                         VStack(spacing: 0) {
                             ForEach(Array(levels.enumerated()), id: \.element.level) { index, node in
                                 VStack(spacing: 0) {
-                                    // Node
-                                    levelNodeButton(node: node, geometry: geometry)
+                                    // Node with alternating left/right offset
+                                    HStack {
+                                        if index % 2 == 1 {
+                                            Spacer()
+                                        }
+                                        levelNodeButton(node: node, geometry: geometry, index: index)
+                                        if index % 2 == 0 {
+                                            Spacer()
+                                        }
+                                    }
 
                                     // Connecting path (except after last node)
                                     if index < levels.count - 1 {
                                         wavyPath(
                                             isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
-                                            height: 80
+                                            height: 100,
+                                            startOffset: index % 2 == 0 ? 1 : -1,
+                                            endOffset: (index + 1) % 2 == 0 ? 1 : -1
                                         )
                                     }
                                 }
                             }
                         }
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, 80)
                         .padding(.bottom, 60)
                     }
                 }
@@ -110,8 +120,15 @@ struct GraduatedDifficultySelector: View {
             // Check if we just unlocked a level
             if let unlockedLevel = viewModel.justUnlockedLevel {
                 showConfetti = true
-                animatingUnlock = unlockedLevel
-                // Clear the flag after a delay
+                // Delay the animation trigger slightly so the view can render first
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    animatingUnlock = unlockedLevel
+                }
+                // Pulse animation: scale up then back down
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    animatingUnlock = nil
+                }
+                // Clear the confetti and flags after the effect
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                     showConfetti = false
                     viewModel.showConfettiForUnlock = false
@@ -122,15 +139,31 @@ struct GraduatedDifficultySelector: View {
     }
 
     @ViewBuilder
-    private func levelNodeButton(node: LevelNode, geometry: GeometryProxy) -> some View {
+    private func levelNodeButton(node: LevelNode, geometry: GeometryProxy, index: Int) -> some View {
         let isUnlocked = persistence.isLevelUnlocked(node.level)
         let wordCount = persistence.getWordCount(for: node.level)
         let isAnimating = animatingUnlock == node.level
 
         NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
             VStack(spacing: 8) {
-                // Circular node
+                Spacer()
+                // Circular node with progress dots around it
                 ZStack {
+                    // Progress dots in a circle around the button (only for unlocked levels)
+                    if isUnlocked {
+                        ForEach(0..<20, id: \.self) { dotIndex in
+                            let angle = (2 * .pi / 20) * Double(dotIndex) - .pi / 2 // Start at top
+                            let radius: CGFloat = 65 // Distance from center
+                            let xOffset = radius * cos(angle)
+                            let yOffset = radius * sin(angle)
+
+                            Circle()
+                                .fill(dotIndex < wordCount ? node.color : .white.opacity(0.3))
+                                .frame(width: 8, height: 8)
+                                .offset(x: xOffset, y: yOffset)
+                        }
+                    }
+
                     // White background circle
                     Circle()
                         .fill(.white)
@@ -157,29 +190,12 @@ struct GraduatedDifficultySelector: View {
                                 .foregroundStyle(.gray.opacity(0.5))
                         }
                     }
-
-                    // Level number badge
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            Text("\(node.level)")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 30, height: 30)
-                                .background(
-                                    Circle()
-                                        .fill(isUnlocked ? node.color : .gray)
-                                )
-                                .offset(x: 10, y: 10)
-                        }
-                    }
-                    .frame(width: 100, height: 100)
                 }
                 .scaleEffect(isAnimating ? 1.2 : 1.0)
                 .animation(.spring(response: 0.5, dampingFraction: 0.6), value: isAnimating)
 
-                // Title and progress
+                Spacer()
+                // Title and progress text (centered)
                 VStack(spacing: 4) {
                     Text(node.title)
                         .font(.headline)
@@ -191,24 +207,15 @@ struct GraduatedDifficultySelector: View {
                         .foregroundColor(isUnlocked ? .white.opacity(0.9) : .white.opacity(0.4))
 
                     if isUnlocked {
-                        // Progress indicator
-                        HStack(spacing: 4) {
-                            ForEach(0..<20, id: \.self) { index in
-                                Circle()
-                                    .fill(index < wordCount ? .white.opacity(0.3) : node.color)
-                                    .frame(width: 9, height: 9)
-                            }
-                        }
-                        .padding(.top, 4)
-
                         Text("\(wordCount)/20 completed")
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.7))
+                            .padding(.top, 2)
                     } else {
                         Text("Locked")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.5))
-                            .padding(.top, 4)
+                            .padding(.top, 2)
                     }
                 }
             }
@@ -228,23 +235,31 @@ struct GraduatedDifficultySelector: View {
     }
 
     @ViewBuilder
-    private func wavyPath(isUnlocked: Bool, height: CGFloat) -> some View {
+    private func wavyPath(isUnlocked: Bool, height: CGFloat, startOffset: CGFloat, endOffset: CGFloat) -> some View {
         GeometryReader { geometry in
             Path { path in
                 let width = geometry.size.width
-                let startX = width / 2
+                let centerX = width / 2
+                let amplitude: CGFloat = 80 // Increased from 30 for wider meandering
+
+                // Start and end positions based on node offsets
+                // startOffset and endOffset are -1 (left) or 1 (right)
+                let startX = centerX + (startOffset * amplitude)
+                let endX = centerX + (endOffset * amplitude)
+
                 let startY: CGFloat = 0
                 let endY = height
 
-                // Create a wavy S-curve
+                // Create a wider wavy S-curve connecting offset nodes
                 path.move(to: CGPoint(x: startX, y: startY))
 
-                // Control points for bezier curve to create wave
-                let controlPoint1X = startX + 30
-                let controlPoint1Y = height * 0.25
-                let controlPoint2X = startX - 30
-                let controlPoint2Y = height * 0.5
-                let midX = startX
+                // Control points for bezier curves with increased amplitude
+                // First curve: from start to opposite side
+                let controlPoint1X = startX + (startOffset * amplitude * 0.5)
+                let controlPoint1Y = height * 0.2
+                let controlPoint2X = centerX - (startOffset * amplitude * 1.2)
+                let controlPoint2Y = height * 0.45
+                let midX = centerX
                 let midY = height * 0.5
 
                 path.addCurve(
@@ -253,13 +268,14 @@ struct GraduatedDifficultySelector: View {
                     control2: CGPoint(x: controlPoint2X, y: controlPoint2Y)
                 )
 
-                let controlPoint3X = startX + 30
-                let controlPoint3Y = height * 0.75
-                let controlPoint4X = startX - 30
-                let controlPoint4Y = height * 0.9
+                // Second curve: from opposite side to end position
+                let controlPoint3X = centerX + (endOffset * amplitude * 1.2)
+                let controlPoint3Y = height * 0.55
+                let controlPoint4X = endX - (endOffset * amplitude * 0.5)
+                let controlPoint4Y = height * 0.8
 
                 path.addCurve(
-                    to: CGPoint(x: startX, y: endY),
+                    to: CGPoint(x: endX, y: endY),
                     control1: CGPoint(x: controlPoint3X, y: controlPoint3Y),
                     control2: CGPoint(x: controlPoint4X, y: controlPoint4Y)
                 )
