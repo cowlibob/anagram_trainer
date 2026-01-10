@@ -88,7 +88,8 @@ struct GraduatedDifficultySelector: View {
                                                     isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
                                                     height: 110,
                                                     startOffset: index % 2 == 0 ? 1 : -1,
-                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1
+                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1,
+                                                    frequency: Double(levels[index + 1].level - 4) * 4.0
                                                 )
                                             } else if index == levels.count - 1 {
                                                 Spacer()
@@ -101,7 +102,8 @@ struct GraduatedDifficultySelector: View {
                                                     isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
                                                     height: 110,
                                                     startOffset: index % 2 == 0 ? 1 : -1,
-                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1
+                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1,
+                                                    frequency: Double(levels[index + 1].level - 4) * 4.0
                                                 )
                                             } else if index == levels.count - 1 {
                                                 Spacer()
@@ -245,19 +247,20 @@ struct GraduatedDifficultySelector: View {
     }
 
     @ViewBuilder
-    private func wavyPath(isUnlocked: Bool, height: CGFloat, startOffset: CGFloat, endOffset: CGFloat) -> some View {
+    private func wavyPath(isUnlocked: Bool, height: CGFloat, startOffset: CGFloat, endOffset: CGFloat, frequency: Double) -> some View {
         GeometryReader { geometry in
             Path { path in
                 let width = geometry.size.width
                 let centerX = width / 2
                 let amplitude: CGFloat = 80
-                let nodeRadius: CGFloat = 110  // Half of the 100pt circle
+                let nodeRadius: CGFloat = 110
+                let waveAmplitude: CGFloat = 8  // Amplitude of the sine wave oscillation
 
                 // Node center positions
                 let startNodeCenterX = centerX + (startOffset * amplitude)
                 let endNodeCenterX = centerX - (endOffset * amplitude * 0.125)
 
-                // Start from the outer edge of the starting node (bottom right for left node, bottom left for right node)
+                // Start from the outer edge of the starting node
                 let startX = startNodeCenterX - (startOffset * nodeRadius)
                 let startY: CGFloat = 25
 
@@ -265,30 +268,125 @@ struct GraduatedDifficultySelector: View {
                 let endX = endNodeCenterX
                 let endY = height * 1.25
 
-                // Create a graceful flowing curve
-                path.move(to: CGPoint(x: startX, y: startY))
-
-                // Control points for a smooth flowing curve like in the screenshot
-                // First control point: extend horizontally from start to create horizontal departure
+                // Control points for the base smooth curve
                 let controlPoint1X = startX + (startOffset * amplitude * 1.2)
                 let controlPoint1Y = startY + (height * 0.5)
-
-                // Second control point: position directly above end to create vertical arrival
                 let controlPoint2X = endX
                 let controlPoint2Y = endY - (height * 0.4)
 
-                path.addCurve(
-                    to: CGPoint(x: endX, y: endY),
-                    control1: CGPoint(x: controlPoint1X, y: controlPoint1Y),
-                    control2: CGPoint(x: controlPoint2X, y: controlPoint2Y)
-                )
+                // Sample points along the curve with sine wave perturbation
+                let steps = 150
+                var basePoints: [(point: CGPoint, tangent: CGPoint)] = []
+
+                // First pass: generate base curve points and calculate tangents
+                for i in 0...steps {
+                    let t = CGFloat(i) / CGFloat(steps)
+                    let oneMinusT = 1 - t
+
+                    // Cubic Bezier curve formula - broken into parts
+                    let t2 = t * t
+                    let t3 = t2 * t
+                    let oneMinusT2 = oneMinusT * oneMinusT
+                    let oneMinusT3 = oneMinusT2 * oneMinusT
+
+                    let term1X = oneMinusT3 * startX
+                    let term2X = 3 * oneMinusT2 * t * controlPoint1X
+                    let term3X = 3 * oneMinusT * t2 * controlPoint2X
+                    let term4X = t3 * endX
+                    let baseX = term1X + term2X + term3X + term4X
+
+                    let term1Y = oneMinusT3 * startY
+                    let term2Y = 3 * oneMinusT2 * t * controlPoint1Y
+                    let term3Y = 3 * oneMinusT * t2 * controlPoint2Y
+                    let term4Y = t3 * endY
+                    let baseY = term1Y + term2Y + term3Y + term4Y
+
+                    // Calculate tangent vector for perpendicular direction
+                    let diffX1 = controlPoint1X - startX
+                    let diffX2 = controlPoint2X - controlPoint1X
+                    let diffX3 = endX - controlPoint2X
+
+                    let tangentTerm1X = 3 * oneMinusT2 * diffX1
+                    let tangentTerm2X = 6 * oneMinusT * t * diffX2
+                    let tangentTerm3X = 3 * t2 * diffX3
+                    let tangentX = tangentTerm1X + tangentTerm2X + tangentTerm3X
+
+                    let diffY1 = controlPoint1Y - startY
+                    let diffY2 = controlPoint2Y - controlPoint1Y
+                    let diffY3 = endY - controlPoint2Y
+
+                    let tangentTerm1Y = 3 * oneMinusT2 * diffY1
+                    let tangentTerm2Y = 6 * oneMinusT * t * diffY2
+                    let tangentTerm3Y = 3 * t2 * diffY3
+                    let tangentY = tangentTerm1Y + tangentTerm2Y + tangentTerm3Y
+
+                    basePoints.append((
+                        point: CGPoint(x: baseX, y: baseY),
+                        tangent: CGPoint(x: tangentX, y: tangentY)
+                    ))
+                }
+
+                // Second pass: calculate cumulative arc length
+                var arcLengths: [CGFloat] = [0]
+                var totalLength: CGFloat = 0
+
+                for i in 1..<basePoints.count {
+                    let prev = basePoints[i-1].point
+                    let curr = basePoints[i].point
+                    let dx = curr.x - prev.x
+                    let dy = curr.y - prev.y
+                    let segmentLength = sqrt(dx * dx + dy * dy)
+                    totalLength += segmentLength
+                    arcLengths.append(totalLength)
+                }
+
+                // Third pass: apply sine wave using arc length
+                var points: [CGPoint] = []
+
+                for i in 0..<basePoints.count {
+                    let basePoint = basePoints[i].point
+                    let tangent = basePoints[i].tangent
+
+                    // Normalize tangent
+                    let tangentXSquared = tangent.x * tangent.x
+                    let tangentYSquared = tangent.y * tangent.y
+                    let tangentLength = sqrt(tangentXSquared + tangentYSquared)
+                    guard tangentLength > 0 else {
+                        points.append(basePoint)
+                        continue
+                    }
+
+                    let normalizedTangentX = tangent.x / tangentLength
+                    let normalizedTangentY = tangent.y / tangentLength
+
+                    // Perpendicular is (-tangentY, tangentX) rotated 90 degrees
+                    let perpX = -normalizedTangentY
+                    let perpY = normalizedTangentX
+
+                    // Use normalized arc length (0 to 1) for constant frequency
+                    let normalizedArcLength = totalLength > 0 ? arcLengths[i] / totalLength : 0
+                    let sineInput = 2 * CGFloat.pi * CGFloat(frequency) * normalizedArcLength
+                    let waveOffset = waveAmplitude * sin(sineInput)
+
+                    let finalX = basePoint.x + perpX * waveOffset
+                    let finalY = basePoint.y + perpY * waveOffset
+
+                    points.append(CGPoint(x: finalX, y: finalY))
+                }
+
+                // Draw the path through all points
+                if let firstPoint = points.first {
+                    path.move(to: firstPoint)
+                    for point in points.dropFirst() {
+                        path.addLine(to: point)
+                    }
+                }
             }
             .stroke(
                 isUnlocked ? Color.white.opacity(0.4) : Color.white.opacity(0.2),
                 style: StrokeStyle(
                     lineWidth: 3,
-                    lineCap: .round,
-                    dash: [8, 8]
+                    lineCap: .round
                 )
             )
         }
