@@ -15,6 +15,7 @@ struct GraduatedDifficultySelector: View {
 
     private let standardLight = TrainingMode.graduated.color
     private let standardDark = TrainingMode.graduated.darkColor
+    private let frequencyScalar: CGFloat = 3.0
 
     private var currentBase: Color {
         animatedBase ?? (colorScheme == .dark ? standardDark : standardLight)
@@ -89,7 +90,7 @@ struct GraduatedDifficultySelector: View {
                                                     height: 110,
                                                     startOffset: index % 2 == 0 ? 1 : -1,
                                                     endOffset: (index + 1) % 2 == 0 ? 1 : -1,
-                                                    frequency: Double(levels[index + 1].level - 4) * 4.0
+                                                    frequency: Double(levels[index + 1].level - 4) * frequencyScalar
                                                 )
                                             } else if index == levels.count - 1 {
                                                 Spacer()
@@ -103,7 +104,7 @@ struct GraduatedDifficultySelector: View {
                                                     height: 110,
                                                     startOffset: index % 2 == 0 ? 1 : -1,
                                                     endOffset: (index + 1) % 2 == 0 ? 1 : -1,
-                                                    frequency: Double(levels[index + 1].level - 4) * 4.0
+                                                    frequency: Double(levels[index + 1].level - 4) * frequencyScalar
                                                 )
                                             } else if index == levels.count - 1 {
                                                 Spacer()
@@ -365,8 +366,19 @@ struct GraduatedDifficultySelector: View {
 
                     // Use normalized arc length (0 to 1) for constant frequency
                     let normalizedArcLength = totalLength > 0 ? arcLengths[i] / totalLength : 0
+
+                    // Fade in/out the wave at start and end (10% each)
+                    var waveFade: CGFloat = 1.0
+                    if normalizedArcLength < 0.1 {
+                        // Fade in from 0 to 1 over first 10%
+                        waveFade = normalizedArcLength / 0.1
+                    } else if normalizedArcLength > 0.9 {
+                        // Fade out from 1 to 0 over last 10%
+                        waveFade = (1.0 - normalizedArcLength) / 0.1
+                    }
+
                     let sineInput = 2 * CGFloat.pi * CGFloat(frequency) * normalizedArcLength
-                    let waveOffset = waveAmplitude * sin(sineInput)
+                    let waveOffset = waveAmplitude * sin(sineInput) * waveFade
 
                     let finalX = basePoint.x + perpX * waveOffset
                     let finalY = basePoint.y + perpY * waveOffset
