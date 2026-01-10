@@ -11,6 +11,8 @@ class GameViewModel: ObservableObject {
     @Published var showingDefinition: Bool = false
     @Published var definition: String = ""
     @Published var sessionHistory: [WordAttempt] = []
+    @Published var justUnlockedLevel: Int? = nil
+    @Published var showConfettiForUnlock: Bool = false
     
     private let dictionary = Dictionary.shared
     private let persistence = PersistenceManager.shared
@@ -119,14 +121,15 @@ class GameViewModel: ObservableObject {
 
         // Handle graduated mode level progression
         if currentMode == .graduated {
-            streak += 1
-            if streak >= 3 && currentLevel < 9 {
-                currentLevel += 1
-                streak = 0
-                persistence.saveLevel(currentLevel)
+            // Increment word count for current level
+            persistence.incrementWordCount(for: currentLevel)
+            let wordCount = persistence.getWordCount(for: currentLevel)
+
+            // Check if we just unlocked the next level (20th completion)
+            if wordCount == 20 && currentLevel < 9 {
+                showConfettiForUnlock = true
+                justUnlockedLevel = currentLevel + 1
             }
-        } else {
-            streak = 0
         }
 
     }

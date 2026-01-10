@@ -13,6 +13,7 @@ class PersistenceManager {
         static let campaignScore = "anagram_trainer_campaign_score"
         static let campaignWordsRemaining = "anagram_trainer_campaign_words"
         static let leaderboard = "anagram_trainer_leaderboard"
+        static let graduatedWordCount = "anagram_trainer_graduated_word_count_"
     }
     
     private init() {}
@@ -76,5 +77,35 @@ class PersistenceManager {
         entries.sort { $0.score > $1.score }  // Sort descending
         entries = Array(entries.prefix(25))    // Keep top 25
         saveLeaderboard(entries)
+    }
+
+    // MARK: - Graduated Mode Word Count Tracking
+
+    func incrementWordCount(for level: Int) {
+        let key = Keys.graduatedWordCount + "\(level)"
+        let current = defaults.integer(forKey: key)
+        defaults.set(current + 1, forKey: key)
+    }
+
+    func getWordCount(for level: Int) -> Int {
+        let key = Keys.graduatedWordCount + "\(level)"
+        return defaults.integer(forKey: key)
+    }
+
+    func isLevelUnlocked(_ level: Int) -> Bool {
+        // Level 5 (first level) is always unlocked
+        if level == 5 {
+            return true
+        }
+        // Check if previous level has 20+ completions
+        let previousLevel = level - 1
+        return getWordCount(for: previousLevel) >= 20
+    }
+
+    func resetGraduatedProgress() {
+        for level in 5...9 {
+            let key = Keys.graduatedWordCount + "\(level)"
+            defaults.removeObject(forKey: key)
+        }
     }
 }

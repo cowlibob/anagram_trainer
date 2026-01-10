@@ -193,8 +193,13 @@ struct GamePlayView: View {
                         }
                         .padding(.horizontal, 20 * scalingFactor)
 
-                        Spacer()
-                            .frame(height: isShort ? 5 : 20)
+                        // Progress dots for graduated mode
+                        if mode == .graduated {
+                            progressDotsView
+                        }
+
+//                        Spacer()
+//                            .frame(height: isShort ? 5 : 10)
 
                         if let state = viewModel.gameState {
                             // Current guess with cursor and mic button - moved above letter buttons
@@ -408,8 +413,13 @@ struct GamePlayView: View {
                     time: state.elapsedTime,
                     definition: viewModel.definition,
                     onNext: {
-                        viewModel.resetForNextWord()
-                        viewModel.startNewRound(mode: mode)
+                        // If we just unlocked a level, navigate back to selector
+                        if mode == .graduated && viewModel.justUnlockedLevel != nil {
+                            dismiss()
+                        } else {
+                            viewModel.resetForNextWord()
+                            viewModel.startNewRound(mode: mode)
+                        }
                     }
                 )
             }
@@ -465,6 +475,27 @@ struct GamePlayView: View {
         .environment(\.themeDarkBaseColor, mode.darkColor)
     }
 
+    // MARK: - Helper Views
+
+    @ViewBuilder
+    private var progressDotsView: some View {
+        let wordCount = PersistenceManager.shared.getWordCount(for: viewModel.currentLevel)
+
+        VStack(spacing: 6) {
+            HStack(spacing: 4) {
+                ForEach(0..<20, id: \.self) { index in
+                    Circle()
+                        .fill(index < wordCount ? .white : .white.opacity(0.3))
+                        .frame(width: 7.5, height: 7.5)
+                }
+            }
+
+            Text("\(wordCount)/20 words completed")
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.9))
+        }
+        .padding(.top, 8)
+    }
 }
 
 #Preview {
