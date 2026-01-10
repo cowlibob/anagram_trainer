@@ -1,4 +1,5 @@
 import SwiftUI
+import AudioToolbox
 
 struct LetterButtonView: View {
     let letter: Character
@@ -6,11 +7,14 @@ struct LetterButtonView: View {
     let isHint: Bool
     let size: CGFloat
     let onTap: () -> Void
-    
+
     @State private var bounceAnimation = false
-    
+
     var body: some View {
-        Button(action: onTap) {
+        Button(action: {
+            AudioServicesPlaySystemSound(1104) // Keyboard tap sound
+            onTap()
+        }) {
             Text(String(letter).uppercased())
                 .font(.system(size: size * 0.7, weight: .bold, design: .rounded))
                 .frame(width: size, height: size)

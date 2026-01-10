@@ -12,7 +12,15 @@ struct GameResultView: View {
     var body: some View {
         GeometryReader { geometry in
             let isShort = geometry.size.height < 600
-            
+
+            ZStack {
+                // Confetti for successful solves
+                if solved {
+                    ConfettiView()
+                        .allowsHitTesting(false)
+                        .zIndex(100)
+                }
+
             VStack {
                 Spacer()
                 
@@ -91,6 +99,7 @@ struct GameResultView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
     }
 }

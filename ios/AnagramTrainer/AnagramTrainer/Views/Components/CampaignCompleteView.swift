@@ -4,8 +4,14 @@ struct CampaignCompleteView: View {
     let score: Int
     let onSubmit: (String) -> Void
     @State private var playerName = ""
-    
+
     var body: some View {
+        ZStack {
+            // Confetti overlay
+            ConfettiView()
+                .allowsHitTesting(false)
+                .zIndex(100)
+
         VStack(spacing: 30) {
             Image(systemName: "trophy.fill")
                 .font(.system(size: 80))
@@ -46,5 +52,6 @@ struct CampaignCompleteView: View {
             }
         }
         .padding()
+        }
     }
 }

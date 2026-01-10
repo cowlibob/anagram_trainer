@@ -17,6 +17,13 @@ struct CampaignResultView: View {
                     .background(.ultraThinMaterial.opacity(0.5))
                     .ignoresSafeArea()
 
+                // Confetti for successful solves
+                if solved {
+                    ConfettiView()
+                        .allowsHitTesting(false)
+                        .zIndex(100)
+                }
+
                 VStack {
                     Spacer()
                     

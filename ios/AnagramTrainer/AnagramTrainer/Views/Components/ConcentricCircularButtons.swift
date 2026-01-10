@@ -1,4 +1,5 @@
 import SwiftUI
+import AudioToolbox
 
 struct ConcentricCircularButtons: View {
     let onSubmit: () -> Void
@@ -19,20 +20,33 @@ struct ConcentricCircularButtons: View {
     @State private var skipProgress: Double = 0
     @State private var clearProgress: Double = 0
 
+    // Helper to calculate centered text angle for a given text
+    private func centeredTextAngle(text: String, radius: CGFloat, fontSize: CGFloat, targetAngle: Angle) -> Angle {
+        let anglePerChar = CGFloat(fontSize) * 0.7 / radius * 180 / .pi
+        let textSpan = anglePerChar * Double(text.count - 1)
+        return Angle(degrees: targetAngle.degrees - textSpan / 2)
+    }
+
     var body: some View {
         GeometryReader { geo in
-            let isRight = userSettings.handedness == .right
-            
+            let handedness = userSettings.handedness
+
             // Size the button cluster based on the smaller screen dimension
             let availableSize = min(geo.size.width, geo.size.height)
             // Ensure the radius fits within the screen with some margin
             let clusterScale = min(1.0, (availableSize * 0.8) / maxRSubmitOuter)
-            
+
             // Scaled radii
             let rSubmitOuter = maxRSubmitOuter * clusterScale
-            
-            // NW bearing for right-handed, NE bearing for left-handed
-            let textAngle: Angle = isRight ? .degrees(-135) : .degrees(-45)
+
+            // Base text angle based on handedness: NW for right, NE for left, N for center
+            let baseTextAngle: Angle = {
+                switch handedness {
+                case .left: return .degrees(-45)
+                case .center: return .degrees(-90)
+                case .right: return .degrees(-135)
+                }
+            }()
             
             // Dynamic Layout Calculation
             let startThickness: CGFloat = 80.0
@@ -75,7 +89,18 @@ struct ConcentricCircularButtons: View {
                     return currentThickness / startThickness // Scale down as skip grows
                 }
             }()
-            
+
+            // Calculate text angle for CLEAR button (centered in center mode)
+            let clearTextAngle: Angle = {
+                if handedness == .center {
+                    let clearRadius = (rClearInner + rClearOuter) / 2
+                    let clearFontSize = 18 * clusterScale * (currentThickness / startThickness)
+                    return centeredTextAngle(text: "CLEAR", radius: clearRadius, fontSize: clearFontSize, targetAngle: .degrees(-90))
+                } else {
+                    return baseTextAngle
+                }
+            }()
+
             // Corner offset based on fixed outer radius + margin
             let cornerOffset: CGFloat = (rSubmitOuter / 2) // Tuck it in nicely
             
@@ -91,7 +116,10 @@ struct ConcentricCircularButtons: View {
                 )
                 
                 // Submit Button (Outer Ring)
-                Button(action: onSubmit) {
+                Button(action: {
+                    AudioServicesPlaySystemSound(1111) // Mail sent sound
+                    onSubmit()
+                }) {
                     ZStack {
                         RingShape(innerRadius: rSubmitInner, outerRadius: rSubmitOuter)
                             .fill(Material.thickMaterial)
@@ -103,7 +131,9 @@ struct ConcentricCircularButtons: View {
                         CurvedText(
                             text: "SUBMIT",
                             radius: (rSubmitInner + rSubmitOuter) / 2,
-                            startAngle: textAngle,
+                            startAngle: handedness == .center
+                                ? centeredTextAngle(text: "SUBMIT", radius: (rSubmitInner + rSubmitOuter) / 2, fontSize: 20 * clusterScale * submitTextScale, targetAngle: .degrees(-90))
+                                : baseTextAngle,
                             fontSize: 20 * clusterScale * submitTextScale,
                             color: isSubmitDisabled ? .white.opacity(0.3) : .white
                         )
@@ -121,17 +151,23 @@ struct ConcentricCircularButtons: View {
                     maxRadius: rSubmitOuter,
                     progress: $clearProgress,
                     otherProgress: $skipProgress,
-                    textAngle: textAngle,
+                    textAngle: clearTextAngle,
                     clusterScale: clusterScale,
                     currentThickness: currentThickness,
                     startThickness: startThickness,
                     action: onClear
                 )
             }
-            // Position the ZStack so its center is near the corner
+            // Position the ZStack based on handedness
             .frame(width: rSubmitOuter * 2, height: rSubmitOuter * 2)
             .position(
-                x: isRight ? geo.size.width - cornerOffset : cornerOffset,
+                x: {
+                    switch handedness {
+                    case .left: return cornerOffset
+                    case .center: return geo.size.width / 2
+                    case .right: return geo.size.width - cornerOffset
+                    }
+                }(),
                 y: geo.size.height - cornerOffset
             )
         }
@@ -261,9 +297,10 @@ struct CircularHoldButton: View {
         timer = nil
         hasTriggered = true
         progress = 1.0
-        
+
+        AudioServicesPlaySystemSound(1053) // Swoosh sound for skip
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             action()
             reset()
@@ -402,6 +439,7 @@ struct RingHoldButton: View {
         hasTriggered = true
         progress = 1.0
 
+        AudioServicesPlaySystemSound(1155) // Keyboard delete sound for clear
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

@@ -107,7 +107,7 @@ struct PauseMenuView: View {
 
                         // Handedness Setting
                         VStack(spacing: 8) {
-                            Text("Handedness")
+                            Text("Align Controls")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
 
@@ -118,6 +118,7 @@ struct PauseMenuView: View {
                             }
                             .pickerStyle(.segmented)
                         }
+                        .frame(maxWidth: 500)
                         .padding(.horizontal)
 
                         // Action Buttons
@@ -129,7 +130,7 @@ struct PauseMenuView: View {
                                 }
                                 .font(.headline)
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 40)
+                                .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.green)
                                 .cornerRadius(12)
@@ -144,13 +145,15 @@ struct PauseMenuView: View {
                                 }
                                 .font(.subheadline)
                                 .foregroundColor(.primary)
-                                .padding(.horizontal, 40)
+                                .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(Color.primary.opacity(0.1))
                                 .cornerRadius(12)
                             }
                             .buttonStyle(.plain)
                         }
+                        .frame(maxWidth: 500)
+                        .padding(.horizontal)
                     }
                     .padding(isShort ? 20 : 40)
                     .background(

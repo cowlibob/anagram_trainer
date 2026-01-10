@@ -32,25 +32,11 @@ struct CampaignView: View {
                 mainContent(isShort: isShort)
             }
         }
-        .navigationTitle("Challenge")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .tint(.white)
-        .toolbar {
-            if !viewModel.isComplete {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        viewModel.pauseGame()
-                        showPauseMenu = true
-                    }) {
-                        Image(systemName: "pause.circle")
-                            .font(.title2)
-                    }
-                }
-            }
-        }
         .overlay {
             if showPauseMenu {
                 PauseMenuView(
@@ -100,6 +86,10 @@ struct CampaignView: View {
             // If returning to campaign after completion, start fresh
             if viewModel.isComplete {
                 viewModel.startNewCampaign()
+            } else if viewModel.gameState?.isComplete == true {
+                // If current game is complete but campaign isn't, start next word
+                viewModel.resetForNextWord()
+                viewModel.startNextWord()
             }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -171,32 +161,68 @@ struct CampaignView: View {
     @ViewBuilder
     private func campaignHeader(isLargeDevice: Bool) -> some View {
         VStack(spacing: 10) {
-            Text(viewModel.progressText)
-                .font(isLargeDevice ? .title2 : .headline)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            
-            // Score display
-            HStack(spacing: 30) {
-                scoreColumn(title: "Score", value: "\(viewModel.totalScore)", isShort: false)
-                scoreColumn(title: "Words Left", value: "\(viewModel.wordsRemaining)", isShort: false)
-                
-                if viewModel.lastRoundPoints > 0 {
-                    scoreColumn(title: "Last Round", value: "+\(viewModel.lastRoundPoints)", color: .green, isShort: false)
+            // Top row with progress text and pause button
+            HStack(alignment: .center) {
+                Text(viewModel.progressText)
+                    .font(isLargeDevice ? .title2 : .headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                // Pause Button
+                Button(action: {
+                    viewModel.pauseGame()
+                    showPauseMenu = true
+                }) {
+                    Image(systemName: "pause")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.white.opacity(0.4))
                 }
             }
-            .padding(15)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
+            .padding(.horizontal)
+
+            // Score display - shown on non-short screens
+            HStack(spacing: 20) {
+                HStack(spacing: 4) {
+                    Text("Score:")
+                        .foregroundColor(.white.opacity(0.7))
+                    Text("\(viewModel.totalScore)")
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
+                .font(.headline)
+
+                HStack(spacing: 4) {
+                    Text("Words Left:")
+                        .foregroundColor(.white.opacity(0.7))
+                    Text("\(viewModel.wordsRemaining)")
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
+                .font(.headline)
+
+                if viewModel.lastRoundPoints > 0 {
+                    HStack(spacing: 4) {
+                        Text("Last:")
+                            .foregroundColor(.white.opacity(0.7))
+                        Text("+\(viewModel.lastRoundPoints)")
+                            .fontWeight(.bold)
+                            .foregroundColor(.green)
+                    }
+                    .font(.headline)
+                }
+            }
+            .padding(.horizontal)
         }
-        .padding(.horizontal)
         .padding(.top, 20)
-        
-        // Stage info
+
+        // Stage info with larger font
         if !viewModel.currentStage.mode.hints.isEmpty {
             Text("Patterns: \(viewModel.currentStage.mode.hints)")
-                .font(.caption2)
+                .font(.headline)
                 .foregroundColor(.white.opacity(0.9))
+                .padding(.top, 5)
         }
     }
     
@@ -216,18 +242,6 @@ struct CampaignView: View {
                         viewModel.startNewCampaign()
                     }
                 }
-        }
-    }
-    @ViewBuilder
-    private func scoreColumn(title: String, value: String, color: Color = .white, isShort: Bool) -> some View {
-        VStack(spacing: isShort ? 0 : 4) {
-            Text(title)
-            .font(.caption2)
-            .foregroundColor(.white.opacity(0.7))
-        Text(value)
-            .font(isShort ? .headline : .title2)
-            .fontWeight(.bold)
-            .foregroundColor(color)
         }
     }
 }

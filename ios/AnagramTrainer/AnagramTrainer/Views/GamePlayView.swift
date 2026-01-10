@@ -132,7 +132,7 @@ struct GamePlayView: View {
                             if isShort {
                                 ZStack {
                                     // Left-aligned Timer (swapped position)
-                                    HStack {
+                                    HStack(alignment: .center) {
                                         if let state = viewModel.gameState {
                                             TimerView(
                                                 startTime: state.startTime,
@@ -142,19 +142,15 @@ struct GamePlayView: View {
                                             )
                                         }
                                         Spacer()
-                                        
+
                                         // Right-aligned Pause Button
                                         Button(action: {
                                             viewModel.pauseGame()
-                                            // showingModeInfo = true // Replaced by pause menu
                                             showPauseMenu = true
                                         }) {
-                                            Image(systemName: "pause.circle.fill")
-                                                .font(.system(size: 24))
-                                                .foregroundColor(.white)
-                                                .padding(8)
-                                                .background(Color.white.opacity(0.1))
-                                                .clipShape(Circle())
+                                            Image(systemName: "pause")
+                                                .font(.system(size: 32, weight: .bold))
+                                                .foregroundColor(.white.opacity(0.4))
                                         }
                                     }
                                     
@@ -170,35 +166,26 @@ struct GamePlayView: View {
                                 }
                                 .padding(.top, 10)
                             } else {
-                                ZStack(alignment: .topTrailing) {
-                                    VStack(spacing: 8) {
-                                        if let state = viewModel.gameState {
-                                            TimerView(
-                                                startTime: state.startTime,
-                                                endTime: state.endTime,
-                                                totalPausedDuration: state.totalPausedDuration,
-                                                isPaused: state.pausedTime != nil
-                                            )
-                                        }
+                                HStack(alignment: .center) {
+                                    if let state = viewModel.gameState {
+                                        TimerView(
+                                            startTime: state.startTime,
+                                            endTime: state.endTime,
+                                            totalPausedDuration: state.totalPausedDuration,
+                                            isPaused: state.pausedTime != nil
+                                        )
                                     }
-                                    .frame(maxWidth: .infinity) // Center the timer
-                                    
-                                    // Top right pause button
+
+                                    Spacer()
+
+                                    // Right-aligned Pause Button
                                     Button(action: {
                                         viewModel.pauseGame()
                                         showPauseMenu = true
                                     }) {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "pause.circle.fill")
-                                            Text("Pause")
-                                                .fontWeight(.bold)
-                                        }
-                                        .font(.subheadline)
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(Color.white.opacity(0.15))
-                                        .cornerRadius(20)
+                                        Image(systemName: "pause")
+                                            .font(.system(size: 32, weight: .bold))
+                                            .foregroundColor(.white.opacity(0.4))
                                     }
                                 }
                                 .padding(.top, 40 * scalingFactor)
@@ -370,20 +357,22 @@ struct GamePlayView: View {
                 return .ignored
             }
             .onAppear {
-                // Reset if mode changed, no game state, or level changed in graduated mode
+                // Reset if mode changed, no game state, level changed in graduated mode, or game is complete
                 let levelChanged = mode == .graduated &&
                 viewModel.gameState != nil &&
                 viewModel.gameState!.targetWord.count != viewModel.currentLevel
-                
-                if viewModel.currentMode != mode || viewModel.gameState == nil || levelChanged {
+
+                let gameIsComplete = viewModel.gameState?.isComplete == true
+
+                if viewModel.currentMode != mode || viewModel.gameState == nil || levelChanged || gameIsComplete {
                     viewModel.startNewRound(mode: mode)
-                    
+
                     // Show info popup for specific training modes on entry
                     if mode != .random && mode != .graduated {
                         showingModeInfo = true
                     }
                 }
-                
+
                 // Set focus for keyboard input
                 isFocused = true
             }

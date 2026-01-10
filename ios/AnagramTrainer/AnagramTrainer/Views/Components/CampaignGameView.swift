@@ -77,7 +77,7 @@ struct CampaignGameView: View {
 
         GeometryReader { geometry in
             let isShort = geometry.size.height < 600
-            
+
             VStack(spacing: isShort ? 10 : (isLargeDevice ? 30 : 20)) {
                 // Inline header for short mode
                 if isShort {
@@ -115,43 +115,56 @@ struct CampaignGameView: View {
                     .padding(.top, 10)
                 }
 
-                // Scrambled word
-                ScrambledWordView(
-                    scrambled: state.scrambledWord,
-                    currentGuess: state.currentGuess,
-                    usedPositions: state.usedPositions,
-                    mode: .random, // Campaign doesn't show hints
-                    targetWord: state.targetWord,
-                    showHint: false,
-                    onLetterAction: { originalIndex, letter in
-                        viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles both add/remove
-                    }
-                )
+                // Current guess with cursor - centered
+                HStack {
+                    Spacer()
+                    GuessView(
+                        guess: state.currentGuess,
+                        cursorPosition: state.cursorPosition,
+                        isSolved: state.isSolved,
+                        onTapPosition: { position in
+                            viewModel.setCursor(at: position)
+                        }
+                    )
+                    .frame(height: isShort ? 40 : 60)
+                    Spacer()
+                }
+
+                // Scrambled word - centered
+                HStack {
+                    Spacer()
+                    ScrambledWordView(
+                        scrambled: state.scrambledWord,
+                        currentGuess: state.currentGuess,
+                        usedPositions: state.usedPositions,
+                        mode: .random, // Campaign doesn't show hints
+                        targetWord: state.targetWord,
+                        showHint: false,
+                        onLetterAction: { originalIndex, letter in
+                            viewModel.addLetter(at: originalIndex, letter: letter) // togglePosition handles both add/remove
+                        }
+                    )
+                    Spacer()
+                }
                 .padding(.horizontal)
 
-                // Current guess with cursor
-                GuessView(
-                    guess: state.currentGuess,
-                    cursorPosition: state.cursorPosition,
-                    isSolved: state.isSolved,
-                    onTapPosition: { position in
-                        viewModel.setCursor(at: position)
-                    }
-                )
-                .frame(height: isShort ? 40 : 60)
-
                 if !isShort {
-                    // Timer
-                    TimerView(
-                        startTime: state.startTime,
-                        endTime: state.endTime,
-                        totalPausedDuration: state.totalPausedDuration,
-                        isPaused: state.pausedTime != nil
-                    )
+                    // Timer - centered
+                    HStack {
+                        Spacer()
+                        TimerView(
+                            startTime: state.startTime,
+                            endTime: state.endTime,
+                            totalPausedDuration: state.totalPausedDuration,
+                            isPaused: state.pausedTime != nil
+                        )
+                        Spacer()
+                    }
                 }
 
                 Spacer()
             }
+            .frame(maxWidth: .infinity)
         }
         
         // Concentric Experimental UI - Moved to outer ZStack for correct corner anchoring

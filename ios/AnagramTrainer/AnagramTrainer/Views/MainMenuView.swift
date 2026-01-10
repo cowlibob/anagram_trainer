@@ -45,6 +45,7 @@ struct MainMenuView: View {
     // Route Definition
     enum AppRoute: Hashable {
         case game
+        case play // Graduated mode
         case train
         case campaign
         case leaderboard
@@ -183,14 +184,14 @@ struct MainMenuView: View {
             switch route {
             case .game:
                 GamePlayView(viewModel: gameVM, mode: .random)
+            case .play:
+                GraduatedDifficultySelector(viewModel: gameVM)
             case .train:
                 TrainingMenuView(viewModel: gameVM)
             case .campaign:
                 CampaignView(viewModel: campaignVM, onNavigateToLeaderboard: {
-                    // Pop CampaignView
+                    // Pop CampaignView and return to main menu
                     path.removeLast()
-                    // Push LeaderboardView
-                    path.append(AppRoute.leaderboard)
                 })
             case .leaderboard:
                 LeaderboardView()
@@ -204,12 +205,21 @@ struct MainMenuView: View {
 
     @ViewBuilder
     private func menuButtons(isCompact: Bool) -> some View {
+//        themeAnimatedNavigationButton(
+//            route: .game,
+//            title: "Try",
+//            icon: "shuffle",
+//            color: .cyan,
+//            accentOverride: Color.cyan,
+//            isCompact: isCompact
+//        )
+
         themeAnimatedNavigationButton(
-            route: .game,
-            title: "Try",
-            icon: "shuffle",
-            color: .cyan,
-            accentOverride: Color.cyan,
+            route: .play,
+            title: "Play",
+            icon: "play.fill",
+            color: .green,
+            accentOverride: Color.green,
             isCompact: isCompact
         )
 

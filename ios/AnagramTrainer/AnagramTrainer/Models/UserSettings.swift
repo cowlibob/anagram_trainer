@@ -3,8 +3,9 @@ import Combine
 
 enum Handedness: String, CaseIterable, Identifiable {
     case left = "Left"
+    case center = "Center"
     case right = "Right"
-    
+
     var id: String { self.rawValue }
 }
 
