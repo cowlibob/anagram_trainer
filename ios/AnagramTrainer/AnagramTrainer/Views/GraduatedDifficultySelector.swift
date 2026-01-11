@@ -12,11 +12,12 @@ struct GraduatedDifficultySelector: View {
     @State private var animatedBase: Color? = nil
     @State private var showConfetti = false
     @State private var animatingUnlock: Int? = nil
-    @State private var wavePhase: CGFloat = 0
+    @State private var animationStartTime: Date = Date()
 
     private let standardLight = TrainingMode.graduated.color
     private let standardDark = TrainingMode.graduated.darkColor
     private let frequencyScalar: CGFloat = 3.0
+    private let animationSpeed: CGFloat = 1.0 // radians per second
 
     private var currentBase: Color {
         animatedBase ?? (colorScheme == .dark ? standardDark : standardLight)
@@ -79,43 +80,51 @@ struct GraduatedDifficultySelector: View {
 //                        .padding(.bottom, 30)
 
                         // Ascending path of nodes
-                        VStack(spacing: 0) {
-                            ForEach(Array(levels.enumerated()), id: \.element.level) { index, node in
-                                VStack(spacing: 0) {
-                                    // Node with alternating left/right offset
-                                    HStack {
-                                        if index % 2 == 1 {
-                                            if index < levels.count - 1 {
-                                                wavyPath(
-                                                    isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
-                                                    height: 110,
-                                                    startOffset: index % 2 == 0 ? 1 : -1,
-                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1,
-                                                    frequency: Double(levels[index + 1].level - 4) * frequencyScalar,
-                                                    phase: wavePhase
-                                                )
-                                            } else if index == levels.count - 1 {
-                                                Spacer()
-                                            }
-                                        }
-                                        levelNodeButton(node: node, geometry: geometry, index: index)
-                                        if index % 2 == 0 {
-                                            if index < levels.count - 1 {
-                                                wavyPath(
-                                                    isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
-                                                    height: 110,
-                                                    startOffset: index % 2 == 0 ? 1 : -1,
-                                                    endOffset: (index + 1) % 2 == 0 ? 1 : -1,
-                                                    frequency: Double(levels[index + 1].level - 4) * frequencyScalar,
-                                                    phase: wavePhase
-                                                )
-                                            } else if index == levels.count - 1 {
-                                                Spacer()
-                                            }
-                                        }
-                                    }
+                        TimelineView(.animation) { context in
+                            let elapsedTime = context.date.timeIntervalSince(animationStartTime)
+                            let rawPhase = -CGFloat(elapsedTime) * animationSpeed
+                            // Keep phase bounded using proper modulo for seamless looping
+                            let twoPi = 2 * CGFloat.pi
+                            let currentPhase = ((rawPhase.truncatingRemainder(dividingBy: twoPi)) + twoPi).truncatingRemainder(dividingBy: twoPi)
 
-                                    // Connecting path (except after last node)
+                            VStack(spacing: 0) {
+                                ForEach(Array(levels.enumerated()), id: \.element.level) { index, node in
+                                    VStack(spacing: 0) {
+                                        // Node with alternating left/right offset
+                                        HStack {
+                                            if index % 2 == 1 {
+                                                if index < levels.count - 1 {
+                                                    wavyPath(
+                                                        isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
+                                                        height: 110,
+                                                        startOffset: index % 2 == 0 ? 1 : -1,
+                                                        endOffset: (index + 1) % 2 == 0 ? 1 : -1,
+                                                        frequency: Double(levels[index + 1].level - 4) * frequencyScalar,
+                                                        phase: currentPhase
+                                                    )
+                                                } else if index == levels.count - 1 {
+                                                    Spacer()
+                                                }
+                                            }
+                                            levelNodeButton(node: node, geometry: geometry, index: index)
+                                            if index % 2 == 0 {
+                                                if index < levels.count - 1 {
+                                                    wavyPath(
+                                                        isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
+                                                        height: 110,
+                                                        startOffset: index % 2 == 0 ? 1 : -1,
+                                                        endOffset: (index + 1) % 2 == 0 ? 1 : -1,
+                                                        frequency: Double(levels[index + 1].level - 4) * frequencyScalar,
+                                                        phase: currentPhase
+                                                    )
+                                                } else if index == levels.count - 1 {
+                                                    Spacer()
+                                                }
+                                            }
+                                        }
+
+                                        // Connecting path (except after last node)
+                                    }
                                 }
                             }
                         }
@@ -133,10 +142,8 @@ struct GraduatedDifficultySelector: View {
         .environment(\.themeBaseColor, colorScheme == .dark ? standardDark : standardLight)
         .environment(\.themeDarkBaseColor, standardDark)
         .onAppear {
-            // Start wave animation
-            withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
-                wavePhase = 2 * .pi
-            }
+            // Reset animation start time
+            animationStartTime = Date()
 
             // Check if we just unlocked a level
             if let unlockedLevel = viewModel.justUnlockedLevel {
@@ -274,7 +281,7 @@ struct GraduatedDifficultySelector: View {
                 )
             )
         }
-        .frame(height: height)
+        .frame(height: height * 1.5)
         .drawingGroup()
     }
 }
@@ -311,7 +318,7 @@ struct WavyPathShape: Shape {
 
         // End at the top of the ending node
         let endX = endNodeCenterX
-        let endY = height * 1.25
+        let endY = height * 1.5
 
         // Control points for the base smooth curve
         let controlPoint1X = startX + (startOffset * amplitude * 1.2)
@@ -411,20 +418,23 @@ struct WavyPathShape: Shape {
             // Use normalized arc length (0 to 1) for constant frequency
             let normalizedArcLength = totalLength > 0 ? arcLengths[i] / totalLength : 0
 
-            // Fade in/out the wave at start and end (10% each)
-            var waveFade: CGFloat = 1.0
+            // Apply amplitude envelope at start and end (10% each) using smoothstep
+            // Like an audio envelope: the wave continues throughout, we just attenuate it
+            var envelope: CGFloat = 1.0
             if normalizedArcLength < 0.1 {
-                // Fade in from 0 to 1 over first 10%
-                waveFade = normalizedArcLength / 0.1
+                // Fade in from 0 to 1 over first 10% using cubic smoothstep
+                let t = normalizedArcLength / 0.1
+                envelope = t * t * (3.0 - 2.0 * t)
             } else if normalizedArcLength > 0.9 {
-                // Fade out from 1 to 0 over last 10%
-                waveFade = (1.0 - normalizedArcLength) / 0.1
+                // Fade out from 1 to 0 over last 10% using cubic smoothstep
+                let t = (1.0 - normalizedArcLength) / 0.1
+                envelope = t * t * (3.0 - 2.0 * t)
             }
 
-            // Also fade the phase so the first/last 10% remain static
-            let blendedPhase = phase * waveFade
-            let sineInput = 2 * CGFloat.pi * CGFloat(frequency) * normalizedArcLength + blendedPhase
-            let waveOffset = waveAmplitude * sin(sineInput) * waveFade
+            // Calculate wave with continuous phase throughout entire path
+            let sineInput = 2 * CGFloat.pi * CGFloat(frequency) * normalizedArcLength + phase
+            // Apply envelope to amplitude only
+            let waveOffset = waveAmplitude * sin(sineInput) * envelope
 
             let finalX = basePoint.x + perpX * waveOffset
             let finalY = basePoint.y + perpY * waveOffset
