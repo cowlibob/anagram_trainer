@@ -23,6 +23,26 @@ struct GraduatedDifficultySelector: View {
         animatedBase ?? (colorScheme == .dark ? standardDark : standardLight)
     }
 
+    @ViewBuilder
+    private func animatedLevelNodes(geometry: GeometryProxy) -> some View {
+        TimelineView(.animation) { context in
+            let elapsedTime = context.date.timeIntervalSince(animationStartTime)
+            let rawPhase = -CGFloat(elapsedTime) * animationSpeed
+            let twoPi = CGFloat.pi * 2.0
+            let remainder1 = rawPhase.truncatingRemainder(dividingBy: twoPi)
+            let summed = remainder1 + twoPi
+            let currentPhase = summed.truncatingRemainder(dividingBy: twoPi)
+
+            VStack(spacing: 40) {
+                ForEach(Array(levels.enumerated()), id: \.element.level) { index, node in
+                    levelNodeButton(node: node, geometry: geometry, index: index)
+                }
+            }
+        }
+        .padding(.horizontal, 80)
+        .padding(.bottom, 60)
+    }
+
     // Level definitions with icons
     struct LevelNode {
         let level: Int
@@ -58,78 +78,7 @@ struct GraduatedDifficultySelector: View {
             GeometryReader { geometry in
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Header
-//                        VStack(spacing: 10) {
-//                            Image(systemName: "chart.line.uptrend.xyaxis")
-//                                .font(.system(size: 50 * scalingFactor))
-//                                .foregroundStyle(.white)
-//                                .padding(.bottom, 5)
-//
-//                            Text("Graduated Difficulty")
-//                                .font(.largeTitle)
-//                                .fontWeight(.bold)
-//                                .foregroundColor(.white)
-//
-//                            Text("Complete 20 words to unlock the next level")
-//                                .font(.subheadline)
-//                                .foregroundColor(.white.opacity(0.9))
-//                                .multilineTextAlignment(.center)
-//                                .padding(.horizontal)
-//                        }
-//                        .padding(.top, 40)
-//                        .padding(.bottom, 30)
-
-                        // Ascending path of nodes
-                        TimelineView(.animation) { context in
-                            let elapsedTime = context.date.timeIntervalSince(animationStartTime)
-                            let rawPhase = -CGFloat(elapsedTime) * animationSpeed
-                            // Keep phase bounded using proper modulo for seamless looping
-                            let twoPi = 2 * CGFloat.pi
-                            let currentPhase = ((rawPhase.truncatingRemainder(dividingBy: twoPi)) + twoPi).truncatingRemainder(dividingBy: twoPi)
-
-                            VStack(spacing: 0) {
-                                ForEach(Array(levels.enumerated()), id: \.element.level) { index, node in
-                                    VStack(spacing: 0) {
-                                        // Node with alternating left/right offset
-                                        HStack {
-                                            if index % 2 == 1 {
-                                                if index < levels.count - 1 {
-                                                    wavyPath(
-                                                        isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
-                                                        height: 110,
-                                                        startOffset: index % 2 == 0 ? 1 : -1,
-                                                        endOffset: (index + 1) % 2 == 0 ? 1 : -1,
-                                                        frequency: Double(levels[index + 1].level - 4) * frequencyScalar,
-                                                        phase: currentPhase
-                                                    )
-                                                } else if index == levels.count - 1 {
-                                                    Spacer()
-                                                }
-                                            }
-                                            levelNodeButton(node: node, geometry: geometry, index: index)
-                                            if index % 2 == 0 {
-                                                if index < levels.count - 1 {
-                                                    wavyPath(
-                                                        isUnlocked: persistence.isLevelUnlocked(levels[index + 1].level),
-                                                        height: 110,
-                                                        startOffset: index % 2 == 0 ? 1 : -1,
-                                                        endOffset: (index + 1) % 2 == 0 ? 1 : -1,
-                                                        frequency: Double(levels[index + 1].level - 4) * frequencyScalar,
-                                                        phase: currentPhase
-                                                    )
-                                                } else if index == levels.count - 1 {
-                                                    Spacer()
-                                                }
-                                            }
-                                        }
-
-                                        // Connecting path (except after last node)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 80)
-                        .padding(.bottom, 60)
+                        animatedLevelNodes(geometry: geometry)
                     }
                 }
             }
@@ -173,80 +122,20 @@ struct GraduatedDifficultySelector: View {
         let isAnimating = animatingUnlock == node.level
 
         NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
-            VStack(spacing: 8) {
-                Spacer()
-                // Circular node with progress dots around it
-                ZStack {
-                    // Progress dots in a circle around the button (only for unlocked levels)
-                    if isUnlocked {
-                        ForEach(0..<20, id: \.self) { dotIndex in
-                            let angle = (2 * .pi / 20) * Double(dotIndex) - .pi / 2 // Start at top
-                            let radius: CGFloat = 65 // Distance from center
-                            let xOffset = radius * cos(angle)
-                            let yOffset = radius * sin(angle)
-
-                            Circle()
-                                .fill(dotIndex < wordCount ? node.color : .white.opacity(0.3))
-                                .frame(width: 8, height: 8)
-                                .offset(x: xOffset, y: yOffset)
-                        }
-                    }
-
-                    // White background circle
-                    Circle()
-                        .fill(.white)
-                        .frame(width: 100, height: 100)
-                        .shadow(color: isUnlocked ? node.color.opacity(0.5) : .black.opacity(0.2),
-                                radius: isUnlocked ? 15 : 8)
-
-                    // Icon overlay
-                    Image(systemName: node.icon)
-                        .font(.system(size: 45, weight: .bold))
-                        .foregroundStyle(
-                            isUnlocked ? node.color : .white.opacity(0.3)
-                        )
-
-                    // Lock overlay for locked nodes
-                    if !isUnlocked {
-                        ZStack {
-                            Circle()
-                                .fill(.white.opacity(0.7))
-                                .frame(width: 100, height: 100)
-
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 35, weight: .bold))
-                                .foregroundStyle(.gray.opacity(0.5))
-                        }
-                    }
-                }
-                .scaleEffect(isAnimating ? 1.2 : 1.0)
-                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: isAnimating)
-
-                Spacer()
-                // Title and progress text (centered)
-                VStack(spacing: 4) {
-                    Text(node.title)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(isUnlocked ? .white : .white.opacity(0.5))
-
-                    Text("\(node.level) Letters")
-                        .font(.subheadline)
-                        .foregroundColor(isUnlocked ? .white.opacity(0.9) : .white.opacity(0.4))
-
-                    if isUnlocked {
-                        Text("\(wordCount)/20 completed")
-                            .font(.caption2)
-                            .foregroundColor(.white.opacity(0.7))
-                            .padding(.top, 2)
-                    } else {
-                        Text("Locked")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.5))
-                            .padding(.top, 2)
-                    }
+            HStack(spacing: 20) {
+                if index % 2 == 0 {
+                    // Icon on left, text on right
+                    circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
+                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount)
+                    Spacer()
+                } else {
+                    // Text on left, icon on right
+                    Spacer()
+                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount)
+                    circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
                 }
             }
+            .padding(.horizontal, 40)
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(!isUnlocked)
@@ -263,25 +152,121 @@ struct GraduatedDifficultySelector: View {
     }
 
     @ViewBuilder
+    private func circleIcon(node: LevelNode, isUnlocked: Bool, wordCount: Int, isAnimating: Bool) -> some View {
+        ZStack {
+            // Progress dots in a circle around the button (always visible, white with varying opacity)
+            ForEach(0..<20, id: \.self) { dotIndex in
+                let angle = (2 * .pi / 20) * Double(dotIndex) - .pi / 2
+                let radius: CGFloat = 65
+                let xOffset = radius * cos(angle)
+                let yOffset = radius * sin(angle)
+
+                let dotOpacity: Double = if isUnlocked {
+                    dotIndex < wordCount ? 1.0 : 0.3
+                } else {
+                    0.2
+                }
+
+                Circle()
+                    .fill(Color.white.opacity(dotOpacity))
+                    .frame(width: 8, height: 8)
+                    .offset(x: xOffset, y: yOffset)
+            }
+
+            // White background circle
+            Circle()
+                .fill(.white)
+                .frame(width: 100, height: 100)
+                .shadow(color: isUnlocked ? node.color.opacity(0.5) : .black.opacity(0.2),
+                        radius: isUnlocked ? 15 : 8)
+
+            // Icon overlay
+            Image(systemName: node.icon)
+                .font(.system(size: 45, weight: .bold))
+                .foregroundStyle(
+                    isUnlocked ? node.color : .white.opacity(0.3)
+                )
+
+            // Lock overlay for locked nodes
+            if !isUnlocked {
+                ZStack {
+                    Circle()
+                        .fill(.white.opacity(0.7))
+                        .frame(width: 100, height: 100)
+
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 35, weight: .bold))
+                        .foregroundStyle(.gray.opacity(0.5))
+                }
+            }
+        }
+        .scaleEffect(isAnimating ? 1.2 : 1.0)
+        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: isAnimating)
+    }
+
+    @ViewBuilder
+    private func textContent(node: LevelNode, isUnlocked: Bool, wordCount: Int) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(node.title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(isUnlocked ? .white : .white.opacity(0.5))
+
+            Text("\(node.level) Letters")
+                .font(.headline)
+                .foregroundColor(isUnlocked ? .white.opacity(0.9) : .white.opacity(0.4))
+
+            if isUnlocked {
+                Text("\(wordCount)/20 completed")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
+                    .padding(.top, 2)
+            } else {
+                Text("Locked")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.5))
+                    .padding(.top, 2)
+            }
+        }
+    }
+
+    @ViewBuilder
     private func wavyPath(isUnlocked: Bool, height: CGFloat, startOffset: CGFloat, endOffset: CGFloat, frequency: Double, phase: CGFloat) -> some View {
         GeometryReader { geometry in
-            WavyPathShape(
-                width: geometry.size.width,
-                height: height,
-                startOffset: startOffset,
-                endOffset: endOffset,
-                frequency: frequency,
-                phase: phase
-            )
-            .stroke(
-                isUnlocked ? Color.white.opacity(0.4) : Color.white.opacity(0.2),
-                style: StrokeStyle(
-                    lineWidth: 3,
-                    lineCap: .round
+            ZStack {
+                // Debug: Crossing guidelines at center
+                Path { path in
+                    let centerX = geometry.size.width / 2
+                    let centerY = geometry.size.height / 2
+                    // Horizontal line
+                    path.move(to: CGPoint(x: 0, y: centerY))
+                    path.addLine(to: CGPoint(x: geometry.size.width, y: centerY))
+                    // Vertical line
+                    path.move(to: CGPoint(x: centerX, y: 0))
+                    path.addLine(to: CGPoint(x: centerX, y: geometry.size.height))
+                }
+                .stroke(Color.white.opacity(0.5), lineWidth: 1)
+
+                WavyPathShape(
+                    width: geometry.size.width,
+                    height: height * 0.8,
+                    startOffset: startOffset,
+                    endOffset: endOffset,
+                    frequency: frequency,
+                    phase: phase
                 )
-            )
+                .stroke(
+                    isUnlocked ? Color.white.opacity(0.4) : Color.white.opacity(0.2),
+                    style: StrokeStyle(
+                        lineWidth: 3,
+                        lineCap: .round
+                    )
+                )
+                .offset(x: 0.0, y: height * 0.4)
+            }
         }
         .frame(height: height * 1.5)
+        .border(Color.white, width: 2)
         .drawingGroup()
     }
 }
