@@ -202,10 +202,26 @@ struct GamePlayView: View {
 //                            .frame(height: isShort ? 5 : 10)
 
                         if let state = viewModel.gameState {
-                            // Current guess with cursor and mic button - moved above letter buttons
+                            // Current guess with cursor, shuffle button, and mic button - moved above letter buttons
                             HStack(spacing: 16) {
+                                // Shuffle button
+                                Button(action: {
+                                    viewModel.shuffleLetters()
+                                }) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.white.opacity(0.2))
+                                            .frame(width: 44, height: 44)
+
+                                        Image(systemName: "shuffle")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .padding(.leading, 20)
+
                                 Spacer()
-                                
+
                                 GuessView(
                                     guess: state.currentGuess,
                                     cursorPosition: state.cursorPosition,
@@ -215,15 +231,15 @@ struct GamePlayView: View {
                                     }
                                 )
                                 .frame(height: isShort ? 44 : 60)
-                                
+
                                 Spacer()
-                                
+
                                 // Microphone button
                                 Button(action: {
                                     if !speechManager.isAuthorized {
                                         speechManager.requestAuthorization()
                                     }
-                                    
+
                                     // Provide context to improve accuracy (target words + letters)
                                     let context = viewModel.getSpeechContext()
                                     speechManager.toggleListening(contextualStrings: context)
@@ -232,7 +248,7 @@ struct GamePlayView: View {
                                         Circle()
                                             .fill(speechManager.isListening ? Color.red : Color.white.opacity(0.2))
                                             .frame(width: 44, height: 44)
-                                        
+
                                         Image(systemName: speechManager.isListening ? "mic.fill" : "mic")
                                             .font(.system(size: 20, weight: .semibold))
                                             .foregroundColor(.white)

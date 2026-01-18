@@ -1,5 +1,4 @@
 import SwiftUI
-import AudioToolbox
 
 struct LetterButtonView: View {
     let letter: Character
@@ -12,7 +11,7 @@ struct LetterButtonView: View {
 
     var body: some View {
         Button(action: {
-            AudioServicesPlaySystemSound(1104) // Keyboard tap sound
+            AudioManager.shared.playLetterTap()
             onTap()
         }) {
             Text(String(letter).uppercased())

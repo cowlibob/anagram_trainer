@@ -6,13 +6,13 @@ struct GuessView: View {
     let cursorPosition: Int
     let isSolved: Bool
     let onTapPosition: (Int) -> Void
-    
+
     @State private var cursorVisible = true
     @Environment(\.scalingFactor) var scalingFactor
 
     var body: some View {
         if guess.isEmpty {
-            Text("Tap letters or type...")
+            Text("Tap letters to spell...")
                 .font(.system(size: 24 * scalingFactor, weight: .bold, design: .rounded))
                 .foregroundColor(.white.opacity(0.5))
                 .onTapGesture {

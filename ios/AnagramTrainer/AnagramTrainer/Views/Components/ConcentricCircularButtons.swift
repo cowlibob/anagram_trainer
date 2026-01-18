@@ -1,5 +1,4 @@
 import SwiftUI
-import AudioToolbox
 
 struct ConcentricCircularButtons: View {
     let onSubmit: () -> Void
@@ -117,7 +116,7 @@ struct ConcentricCircularButtons: View {
                 
                 // Submit Button (Outer Ring)
                 Button(action: {
-                    AudioServicesPlaySystemSound(1111) // Mail sent sound
+                    AudioManager.shared.playSubmit()
                     onSubmit()
                 }) {
                     ZStack {
@@ -298,7 +297,7 @@ struct CircularHoldButton: View {
         hasTriggered = true
         progress = 1.0
 
-        AudioServicesPlaySystemSound(1053) // Swoosh sound for skip
+        AudioManager.shared.playSkip()
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -439,7 +438,7 @@ struct RingHoldButton: View {
         hasTriggered = true
         progress = 1.0
 
-        AudioServicesPlaySystemSound(1155) // Keyboard delete sound for clear
+        AudioManager.shared.playClear()
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

@@ -147,7 +147,16 @@ class GameViewModel: ObservableObject {
     func resumeGame() {
         gameState?.resumeTimer()
     }
-    
+
+    func shuffleLetters() {
+        guard var state = gameState, !state.isComplete else { return }
+        // Shuffle the scrambled word
+        var letters = Array(state.scrambledWord)
+        letters.shuffle()
+        state.scrambledWord = String(letters)
+        gameState = state
+    }
+
     // MARK: - Input Handling
     
     func addLetter(at position: Int, letter: Character) {
