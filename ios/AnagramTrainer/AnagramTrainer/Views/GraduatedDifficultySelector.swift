@@ -33,7 +33,7 @@ struct GraduatedDifficultySelector: View {
             let summed = remainder1 + twoPi
             let currentPhase = summed.truncatingRemainder(dividingBy: twoPi)
 
-            VStack(spacing: 40) {
+            VStack(spacing: 80) {
                 ForEach(Array(levels.enumerated()), id: \.element.level) { index, node in
                     levelNodeButton(node: node, geometry: geometry, index: index)
                 }
@@ -122,7 +122,7 @@ struct GraduatedDifficultySelector: View {
         let isAnimating = animatingUnlock == node.level
 
         NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
-            HStack(spacing: 20) {
+            HStack(spacing: 40) {
                 if index % 2 == 0 {
                     // Icon on left, text on right
                     circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
