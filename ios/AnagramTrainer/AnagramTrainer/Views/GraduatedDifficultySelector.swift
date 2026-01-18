@@ -39,7 +39,7 @@ struct GraduatedDifficultySelector: View {
                 }
             }
         }
-        .padding(.horizontal, 80)
+        .padding(.horizontal, 20)
         .padding(.bottom, 60)
     }
 
@@ -126,16 +126,17 @@ struct GraduatedDifficultySelector: View {
                 if index % 2 == 0 {
                     // Icon on left, text on right
                     circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
-                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount)
-                    Spacer()
+                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     // Text on left, icon on right
-                    Spacer()
-                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount)
+                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount, alignment: .trailing)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
                 }
             }
-            .padding(.horizontal, 40)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 20)
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(!isUnlocked)
@@ -205,8 +206,8 @@ struct GraduatedDifficultySelector: View {
     }
 
     @ViewBuilder
-    private func textContent(node: LevelNode, isUnlocked: Bool, wordCount: Int) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+    private func textContent(node: LevelNode, isUnlocked: Bool, wordCount: Int, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 4) {
             Text(node.title)
                 .font(.title2)
                 .fontWeight(.bold)
@@ -228,6 +229,7 @@ struct GraduatedDifficultySelector: View {
                     .padding(.top, 2)
             }
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     @ViewBuilder

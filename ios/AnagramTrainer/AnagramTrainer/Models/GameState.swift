@@ -3,7 +3,7 @@ import Foundation
 /// Represents a single game state with word, guess, and timing information
 struct GameState {
     let targetWord: String
-    let scrambledWord: String
+    var scrambledWord: String
     var currentGuess: String = ""
     var positionOrder: [Int] = []  // Track order of positions for proper removal
     var cursorPosition: Int = 0  // Track cursor position for insertion (0 = start, length = end)

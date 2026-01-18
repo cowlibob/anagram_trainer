@@ -14,13 +14,15 @@ struct WordAttempt: Codable, Identifiable {
     let guessedWord: String?  // Actual guessed word (for pause menu)
     let duration: TimeInterval
     let outcome: WordOutcome
+    let points: Int  // Points earned for this word (letter count + bonus)
 
-    init(word: String, guessedWord: String? = nil, duration: TimeInterval, outcome: WordOutcome) {
+    init(word: String, guessedWord: String? = nil, duration: TimeInterval, outcome: WordOutcome, points: Int = 0) {
         self.id = UUID()
         self.word = word
         self.guessedWord = guessedWord
         self.duration = duration
         self.outcome = outcome
+        self.points = points
     }
 }
 

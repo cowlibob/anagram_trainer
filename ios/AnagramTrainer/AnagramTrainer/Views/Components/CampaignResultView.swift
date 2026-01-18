@@ -7,6 +7,15 @@ struct CampaignResultView: View {
     let onNext: () -> Void
     @Environment(\.scalingFactor) var scalingFactor
 
+    // Calculate score components for display
+    private var letterCount: Int { word.count }
+    private var basePoints: Int { letterCount }
+    private var bonusPoints: Int { max(0, letterCount - 5) }
+    private var hasTimeBonus: Bool {
+        // If points > base + difficulty bonus, then time bonus was awarded
+        points > (basePoints + bonusPoints)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let isShort = geometry.size.height < 600
@@ -48,10 +57,31 @@ struct CampaignResultView: View {
                         }
 
                         if solved {
-                            Text("+\(points) points")
-                                .font(isShort ? .headline : .title)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.green)
+                            VStack(spacing: 4) {
+                                Text("+\(points) points")
+                                    .font(isShort ? .headline : .title)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.green)
+
+                                // Show breakdown
+                                HStack(spacing: 8) {
+                                    Text("\(basePoints) letters")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+
+                                    if bonusPoints > 0 {
+                                        Text("• +\(bonusPoints) bonus")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    if hasTimeBonus {
+                                        Text("• +10 speed")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
                         }
 
                         Button(action: onNext) {

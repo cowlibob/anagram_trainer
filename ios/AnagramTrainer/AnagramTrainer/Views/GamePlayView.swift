@@ -191,74 +191,75 @@ struct GamePlayView: View {
                                 .padding(.top, 40 * scalingFactor)
                             }
                         }
-                        .padding(.horizontal, 20 * scalingFactor)
+                        .padding(.horizontal, 20)
 
-                        // Progress dots for graduated mode
-                        if mode == .graduated {
-                            progressDotsView
+                        // Progress dots for graduated mode with shuffle and mic buttons
+                        HStack(spacing: 0) {
+                            // Shuffle button
+                            Button(action: {
+                                viewModel.shuffleLetters()
+                            }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white.opacity(0.2))
+                                        .frame(width: 44, height: 44)
+
+                                    Image(systemName: "shuffle")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .frame(width: 60)
+
+                            Spacer()
+
+                            if mode == .graduated {
+                                progressDotsView
+                            }
+
+                            Spacer()
+
+                            // Microphone button
+                            Button(action: {
+                                if !speechManager.isAuthorized {
+                                    speechManager.requestAuthorization()
+                                }
+
+                                // Provide context to improve accuracy (target words + letters)
+                                let context = viewModel.getSpeechContext()
+                                speechManager.toggleListening(contextualStrings: context)
+                            }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(speechManager.isListening ? Color.red : Color.white.opacity(0.2))
+                                        .frame(width: 44, height: 44)
+
+                                    Image(systemName: speechManager.isListening ? "mic.fill" : "mic")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+                                .scaleEffect(speechManager.isListening ? 1.1 : 1.0)
+                                .animation(speechManager.isListening ? .easeInOut(duration: 0.5).repeatForever(autoreverses: true) : .easeInOut(duration: 0.2), value: speechManager.isListening)
+                            }
+                            .frame(width: 60)
                         }
-
-//                        Spacer()
-//                            .frame(height: isShort ? 5 : 10)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 20)
 
                         if let state = viewModel.gameState {
-                            // Current guess with cursor, shuffle button, and mic button - moved above letter buttons
-                            HStack(spacing: 16) {
-                                // Shuffle button
-                                Button(action: {
-                                    viewModel.shuffleLetters()
-                                }) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.white.opacity(0.2))
-                                            .frame(width: 44, height: 44)
-
-                                        Image(systemName: "shuffle")
-                                            .font(.system(size: 20, weight: .semibold))
-                                            .foregroundColor(.white)
-                                    }
+                            // Current guess - centered
+                            GuessView(
+                                guess: state.currentGuess,
+                                cursorPosition: state.cursorPosition,
+                                isSolved: state.isSolved,
+                                onTapPosition: { position in
+                                    viewModel.setCursor(at: position)
                                 }
-                                .padding(.leading, 20)
+                            )
+                            .frame(height: isShort ? 44 : 60)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 20)
 
-                                Spacer()
-
-                                GuessView(
-                                    guess: state.currentGuess,
-                                    cursorPosition: state.cursorPosition,
-                                    isSolved: state.isSolved,
-                                    onTapPosition: { position in
-                                        viewModel.setCursor(at: position)
-                                    }
-                                )
-                                .frame(height: isShort ? 44 : 60)
-
-                                Spacer()
-
-                                // Microphone button
-                                Button(action: {
-                                    if !speechManager.isAuthorized {
-                                        speechManager.requestAuthorization()
-                                    }
-
-                                    // Provide context to improve accuracy (target words + letters)
-                                    let context = viewModel.getSpeechContext()
-                                    speechManager.toggleListening(contextualStrings: context)
-                                }) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(speechManager.isListening ? Color.red : Color.white.opacity(0.2))
-                                            .frame(width: 44, height: 44)
-
-                                        Image(systemName: speechManager.isListening ? "mic.fill" : "mic")
-                                            .font(.system(size: 20, weight: .semibold))
-                                            .foregroundColor(.white)
-                                    }
-                                    .scaleEffect(speechManager.isListening ? 1.1 : 1.0)
-                                    .animation(speechManager.isListening ? .easeInOut(duration: 0.5).repeatForever(autoreverses: true) : .easeInOut(duration: 0.2), value: speechManager.isListening)
-                                }
-                                .padding(.trailing, 20)
-                            }
-                            
                             // Scrambled word display - moved below guessed word
                             ScrambledWordView(
                                 scrambled: state.scrambledWord,
@@ -278,7 +279,7 @@ struct GamePlayView: View {
                                     resetHintTimer()
                                 }
                             )
-                            .padding(.horizontal, 20 * scalingFactor)
+                            .padding(.horizontal, 20)
                             .onAppear {
                                 // Request authorization on first appear
                                 speechManager.requestAuthorization()
@@ -428,6 +429,7 @@ struct GamePlayView: View {
                     solved: state.isSolved,
                     time: state.elapsedTime,
                     definition: viewModel.definition,
+                    points: viewModel.sessionHistory.last?.points ?? 0,
                     onNext: {
                         // If we just unlocked a level, navigate back to selector
                         if mode == .graduated && viewModel.justUnlockedLevel != nil {

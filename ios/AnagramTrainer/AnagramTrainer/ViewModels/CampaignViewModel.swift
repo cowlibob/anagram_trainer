@@ -155,14 +155,15 @@ class CampaignViewModel: ObservableObject {
             currentHistory.append(WordAttempt(
                 word: target.uppercased(),
                 duration: gameState?.elapsedTime ?? 0,
-                outcome: .skipped
+                outcome: .skipped,
+                points: 0
             ))
         }
-        
+
         // Mark as complete
         gameState?.completeGame(solved: false)
         lastRoundPoints = 0
-        
+
         // Advance game state immediately (consistent with recordSuccess)
         wordsRemaining -= 1
         checkStageCompletion()
@@ -181,16 +182,18 @@ class CampaignViewModel: ObservableObject {
             state.completeGame(solved: true, winningWord: state.currentGuess)
             gameState = state
         }
-        
-        // Scoring: Base 100 + time bonus (max 150)
-        let baseScore = 100
-        let timeBonus = max(0, Int((15.0 - timeToken) * 10))
-        let points = baseScore + timeBonus
-        
+
+        // Scoring: letterCount + difficulty bonus + time bonus
+        let letterCount = gameState?.currentGuess.count ?? 0
+        let basePoints = letterCount
+        let difficultyBonus = max(0, letterCount - 5)
+        let timeBonus = timeToken <= 30.0 ? 10 : 0 // Extra 10 points if solved within 30 seconds
+        let points = basePoints + difficultyBonus + timeBonus
+
         totalScore += points
         lastRoundPoints = points
         wordsRemaining -= 1
-        
+
         // Record attempt info
         if let target = gameState?.targetWord, let guess = gameState?.currentGuess {
             let isExact = guess.uppercased() == target.uppercased()
@@ -198,10 +201,11 @@ class CampaignViewModel: ObservableObject {
                 word: target.uppercased(),
                 guessedWord: guess.uppercased(),
                 duration: timeToken,
-                outcome: isExact ? .exact : .correct
+                outcome: isExact ? .exact : .correct,
+                points: points
             ))
         }
-        
+
         checkStageCompletion()
         saveProgress()
     }

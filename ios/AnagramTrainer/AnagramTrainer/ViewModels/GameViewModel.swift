@@ -69,14 +69,20 @@ class GameViewModel: ObservableObject {
     
     func submitGuess() {
         guard var state = gameState else { return }
-        
-        // Validate if guess is a valid anagram
-        let (isValid, validationTime) = dictionary.isValidAnagram(
-            guess: state.currentGuess,
-            scrambledLetters: state.scrambledWord
-        )
-        
-        
+
+        // For graduated mode, allow any valid word formed from available letters
+        // For other modes, require exact anagram
+        let isValid: Bool
+        if currentMode == .graduated {
+            isValid = dictionary.canFormWord(guess: state.currentGuess, fromLetters: state.scrambledWord)
+        } else {
+            let (valid, _) = dictionary.isValidAnagram(
+                guess: state.currentGuess,
+                scrambledLetters: state.scrambledWord
+            )
+            isValid = valid
+        }
+
         if isValid {
             handleSuccess()
         } else {
@@ -90,11 +96,12 @@ class GameViewModel: ObservableObject {
             let attempt = WordAttempt(
                 word: state.targetWord,
                 duration: state.elapsedTime,
-                outcome: .skipped
+                outcome: .skipped,
+                points: 0
             )
             sessionHistory.append(attempt)
         }
-        
+
         gameState?.completeGame()
         Task {
             await fetchDefinition()
@@ -106,11 +113,16 @@ class GameViewModel: ObservableObject {
             state.completeGame(solved: true)
             gameState = state
 
+            // Calculate points: letter count + bonus for words > 5 letters
+            let letterCount = state.currentGuess.count
+            let points = letterCount + max(0, letterCount - 5)
+
             let attempt = WordAttempt(
                 word: state.targetWord,
                 guessedWord: state.currentGuess,
                 duration: state.elapsedTime,
-                outcome: state.targetWord == state.currentGuess ? .exact : .correct
+                outcome: state.targetWord == state.currentGuess ? .exact : .correct,
+                points: points
             )
             sessionHistory.append(attempt)
         }

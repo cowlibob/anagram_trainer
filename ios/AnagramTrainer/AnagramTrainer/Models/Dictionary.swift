@@ -153,6 +153,28 @@ class Dictionary {
         
         return (isValid, elapsed)
     }
+    /// Check if a guess can be formed from available letters (allows subset)
+    /// Returns true if guess is a valid dictionary word and uses only available letters
+    func canFormWord(guess: String, fromLetters letters: String) -> Bool {
+        // Check if it's a valid dictionary word first
+        guard wordExists(guess) else { return false }
+
+        // Count available letters
+        var availableLetters = letters.lowercased().reduce(into: [:]) { counts, char in
+            counts[char, default: 0] += 1
+        }
+
+        // Check if each letter in guess is available
+        for char in guess.lowercased() {
+            guard let count = availableLetters[char], count > 0 else {
+                return false
+            }
+            availableLetters[char] = count - 1
+        }
+
+        return true
+    }
+
     /// Find all valid anagrams for a given set of letters
     func validAnagrams(for letters: String) -> [String] {
         let signature = anagramSignature(letters)
