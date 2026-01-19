@@ -1,0 +1,22 @@
+Achievement ID,Name,Pre-earned Description,Earned Description,Points,Hidden,Icon File
+lettershift_level_5,Level 5 Unlocked,Unlock Level 5 by completing 20 words at Level 4,Unlocked Level 5 - 5 letter words!,10,No,graduated_level_5_1024x1024.png
+lettershift_level_6,Level 6 Unlocked,Unlock Level 6 by completing 20 words at Level 5,Unlocked Level 6 - 6 letter words!,15,No,graduated_level_6_1024x1024.png
+lettershift_level_7,Level 7 Unlocked,Unlock Level 7 by completing 20 words at Level 6,Unlocked Level 7 - 7 letter words!,20,No,graduated_level_7_1024x1024.png
+lettershift_level_8,Level 8 Unlocked,Unlock Level 8 by completing 20 words at Level 7,Unlocked Level 8 - 8 letter words!,25,No,graduated_level_8_1024x1024.png
+lettershift_level_9,Level 9 Unlocked,Unlock Level 9 by completing 20 words at Level 8,Unlocked Level 9 - 9 letter words!,30,No,graduated_level_9_1024x1024.png
+lettershift_campaign_stage_1,Warm Up Complete,Complete the Warm Up stage,Completed Warm Up - 5 words solved!,10,No,campaign_stage_1_1024x1024.png
+lettershift_campaign_stage_2,Word Endings Master,Complete the Word Endings stage,Mastered Word Endings!,10,No,campaign_stage_2_1024x1024.png
+lettershift_campaign_stage_3,Word Beginnings Master,Complete the Word Beginnings stage,Mastered Word Beginnings!,10,No,campaign_stage_3_1024x1024.png
+lettershift_campaign_stage_4,Digraph Expert,Complete the Digraphs stage,Became a Digraph Expert!,15,No,campaign_stage_4_1024x1024.png
+lettershift_campaign_stage_5,Vowel Cluster Champion,Complete the Vowel Clusters stage,Champion of Vowel Clusters!,15,No,campaign_stage_5_1024x1024.png
+lettershift_campaign_stage_6,Consonant Blend Master,Complete the Consonant Blends stage,Mastered Consonant Blends!,15,No,campaign_stage_6_1024x1024.png
+lettershift_campaign_stage_7,Trigraph Wizard,Complete the Trigraphs stage,Became a Trigraph Wizard!,20,No,campaign_stage_7_1024x1024.png
+lettershift_campaign_stage_8,Boss Level Conquered,Complete the Boss Level stage,Conquered the Boss Level!,25,No,campaign_stage_8_1024x1024.png
+lettershift_campaign_complete,Campaign Champion,Complete the entire campaign,Campaign Champion - All stages conquered!,50,No,campaign_complete_1024x1024.png
+lettershift_first_word_3,First 3-Letter Word,Solve your first 3-letter word,Solved your first 3-letter word!,5,No,first_word_3_1024x1024.png
+lettershift_first_word_4,First 4-Letter Word,Solve your first 4-letter word,Solved your first 4-letter word!,5,No,first_word_4_1024x1024.png
+lettershift_first_word_5,First 5-Letter Word,Solve your first 5-letter word,Solved your first 5-letter word!,5,No,first_word_5_1024x1024.png
+lettershift_first_word_6,First 6-Letter Word,Solve your first 6-letter word,Solved your first 6-letter word!,10,No,first_word_6_1024x1024.png
+lettershift_first_word_7,First 7-Letter Word,Solve your first 7-letter word,Solved your first 7-letter word!,10,No,first_word_7_1024x1024.png
+lettershift_first_word_8,First 8-Letter Word,Solve your first 8-letter word,Solved your first 8-letter word!,15,No,first_word_8_1024x1024.png
+lettershift_first_word_9,First 9-Letter Word,Solve your first 9-letter word,Solved your first 9-letter word!,20,No,first_word_9_1024x1024.png
