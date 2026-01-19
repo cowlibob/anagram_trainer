@@ -7,66 +7,78 @@ struct AchievementExportView: View {
     @State private var isExporting = false
 
     var body: some View {
-        VStack(spacing: 30) {
-            Text("Achievement Icon Export")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+        ZStack {
+            Color(.systemBackground)
+                .ignoresSafeArea()
 
-            Text(exportStatus)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding()
+            VStack(spacing: 30) {
+                Text("Achievement Icon Export")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
 
-            VStack(spacing: 15) {
-                Button("Export 1024x1024 Icons") {
-                    exportIcons(size: 1024)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(isExporting)
-
-                Button("Export 512x512 Icons") {
-                    exportIcons(size: 512)
-                }
-                .buttonStyle(.bordered)
-                .disabled(isExporting)
-            }
-
-            if isExporting {
-                ProgressView()
-                    .scaleEffect(1.5)
+                Text(exportStatus)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
                     .padding()
-            }
 
-            Divider()
+                VStack(spacing: 15) {
+                    Button("Export 1024x1024 Icons") {
+                        exportIcons(size: 1024)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isExporting)
+
+                    Button("Export 512x512 Icons") {
+                        exportIcons(size: 512)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isExporting)
+                }
+
+                if isExporting {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .padding()
+                }
+
+                Divider()
+                    .padding()
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Instructions:")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    Text("1. Tap 'Export 1024x1024 Icons' to generate high-res files")
+                        .foregroundColor(.secondary)
+                    Text("2. Files will be saved to Documents/AchievementIcons/")
+                        .foregroundColor(.secondary)
+                    Text("3. Access via Files app or Finder (if Mac)")
+                        .foregroundColor(.secondary)
+                    Text("4. Upload to App Store Connect for each achievement")
+                        .foregroundColor(.secondary)
+                    Text("5. Also export 512x512 for the smaller size requirement")
+                        .foregroundColor(.secondary)
+                }
+                .font(.caption)
                 .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(12)
 
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Instructions:")
-                    .font(.headline)
-
-                Text("1. Tap 'Export 1024x1024 Icons' to generate high-res files")
-                Text("2. Files will be saved to Documents/AchievementIcons/")
-                Text("3. Access via Files app or Finder (if Mac)")
-                Text("4. Upload to App Store Connect for each achievement")
-                Text("5. Also export 512x512 for the smaller size requirement")
+                Spacer()
             }
-            .font(.caption)
-            .foregroundColor(.secondary)
             .padding()
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(12)
-
-            Spacer()
         }
-        .padding()
     }
 
     func exportIcons(size: CGFloat) {
         isExporting = true
         exportStatus = "Exporting \(Int(size))x\(Int(size)) icons..."
 
-        DispatchQueue.global(qos: .userInitiated).async {
+        // Must run on main thread for UIHostingController rendering
+        DispatchQueue.main.async {
             do {
                 // Get Documents directory
                 let documentsPath = FileManager.default.urls(
@@ -78,15 +90,11 @@ struct AchievementExportView: View {
                 // Export all icons
                 try AchievementIconGenerator.exportAllIcons(to: exportDirectory, size: size)
 
-                DispatchQueue.main.async {
-                    exportStatus = "✅ Exported \(Int(size))x\(Int(size)) icons to:\n\(exportDirectory.path)"
-                    isExporting = false
-                }
+                exportStatus = "✅ Exported \(Int(size))x\(Int(size)) icons to:\n\(exportDirectory.path)"
+                isExporting = false
             } catch {
-                DispatchQueue.main.async {
-                    exportStatus = "❌ Error: \(error.localizedDescription)"
-                    isExporting = false
-                }
+                exportStatus = "❌ Error: \(error.localizedDescription)"
+                isExporting = false
             }
         }
     }

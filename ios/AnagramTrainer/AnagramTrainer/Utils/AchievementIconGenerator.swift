@@ -83,15 +83,44 @@ struct AchievementIconGenerator {
     static func generatePNG(config: IconConfig, size: CGFloat = 1024) -> Data? {
         let view = AchievementIconView(config: config, size: size)
         let controller = UIHostingController(rootView: view)
-        controller.view.frame = CGRect(x: 0, y: 0, width: size, height: size)
+
+        let targetSize = CGSize(width: size, height: size)
+
+        // Set up the hosting controller's view
+        controller.view.frame = CGRect(origin: .zero, size: targetSize)
+        controller.view.bounds = CGRect(origin: .zero, size: targetSize)
         controller.view.backgroundColor = .clear
 
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
-        let image = renderer.image { context in
-            controller.view.layer.render(in: context.cgContext)
+        // Size the controller
+        controller.sizingOptions = .intrinsicContentSize
+
+        // Add to window hierarchy temporarily for proper rendering
+        if let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first?.windows.first {
+            window.addSubview(controller.view)
+
+            // Force layout
+            controller.view.setNeedsLayout()
+            controller.view.layoutIfNeeded()
+
+            // Render with transparent background
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1.0 // Always use 1x scale for consistent output
+            format.opaque = false // Enable transparency
+
+            let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+            let image = renderer.image { context in
+                controller.view.drawHierarchy(in: CGRect(origin: .zero, size: targetSize), afterScreenUpdates: true)
+            }
+
+            // Clean up
+            controller.view.removeFromSuperview()
+
+            return image.pngData()
         }
 
-        return image.pngData()
+        return nil
     }
 
     /// Export all achievement icons to a directory
