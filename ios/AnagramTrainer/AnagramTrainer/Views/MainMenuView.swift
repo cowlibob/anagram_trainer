@@ -163,10 +163,11 @@ struct MainMenuView: View {
 
                     Spacer()
 
+#if DEBUG
                     NavigationLink("Export Icons") {
                         AchievementExportView()
                     }
-                    
+#endif
                     Text("Master the art of anagrams")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.6))

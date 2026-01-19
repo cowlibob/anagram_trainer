@@ -12,7 +12,10 @@ struct AnagramTrainerApp: App {
     init() {
         // Pre-load dictionary on app launch
         _ = Dictionary.shared
-        
+
+        // Configure audio session to respect mute switch and volume
+        _ = AudioManager.shared
+
         // Authenticate Game Center
         GameCenterManager.shared.authenticateLocalPlayer()
     }
