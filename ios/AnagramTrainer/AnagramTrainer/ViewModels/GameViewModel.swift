@@ -13,7 +13,8 @@ class GameViewModel: ObservableObject {
     @Published var sessionHistory: [WordAttempt] = []
     @Published var justUnlockedLevel: Int? = nil
     @Published var showConfettiForUnlock: Bool = false
-    
+    @Published var sessionScore: Int = 0  // Cumulative score for current session
+
     private let dictionary = Dictionary.shared
     private let persistence = PersistenceManager.shared
     
@@ -125,8 +126,17 @@ class GameViewModel: ObservableObject {
                 points: points
             )
             sessionHistory.append(attempt)
+
+            // Accumulate session score
+            sessionScore += points
+
+            // Report first word length achievement if not already completed
+            if !persistence.hasCompletedWordLength(letterCount) {
+                persistence.markWordLengthCompleted(letterCount)
+                GameCenterManager.shared.reportFirstWordLength(letterCount)
+            }
         }
-        
+
         Task {
             await fetchDefinition()
         }
@@ -141,6 +151,8 @@ class GameViewModel: ObservableObject {
             if wordCount == 20 && currentLevel < 9 {
                 showConfettiForUnlock = true
                 justUnlockedLevel = currentLevel + 1
+                // Report level completion achievement
+                GameCenterManager.shared.reportGraduatedLevelCompletion(level: currentLevel)
             }
         }
 
@@ -261,12 +273,24 @@ class GameViewModel: ObservableObject {
         guard let state = gameState else { return [] }
         // Get all valid words that can be made from these letters
         var context = dictionary.validAnagrams(for: state.scrambledWord)
-        
+
         // Add individual letters to help with spelling out the word
         // e.g. "A", "B", "C"
         let letters = state.scrambledWord.map { String($0).uppercased() }
         context.append(contentsOf: letters)
-        
+
         return context
+    }
+
+    // MARK: - Graduated Mode Leaderboard
+
+    func submitGraduatedScore() {
+        guard currentMode == .graduated, sessionScore > 0 else { return }
+        GameCenterManager.shared.submitScore(sessionScore, to: .graduated)
+    }
+
+    func resetSession() {
+        sessionScore = 0
+        sessionHistory.removeAll()
     }
 }

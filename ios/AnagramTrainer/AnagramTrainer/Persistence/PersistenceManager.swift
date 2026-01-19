@@ -14,6 +14,7 @@ class PersistenceManager {
         static let campaignWordsRemaining = "anagram_trainer_campaign_words"
         static let leaderboard = "anagram_trainer_leaderboard"
         static let graduatedWordCount = "anagram_trainer_graduated_word_count_"
+        static let firstWordLength = "anagram_trainer_first_word_length_"
     }
     
     private init() {}
@@ -107,5 +108,17 @@ class PersistenceManager {
             let key = Keys.graduatedWordCount + "\(level)"
             defaults.removeObject(forKey: key)
         }
+    }
+
+    // MARK: - First Word Length Tracking
+
+    func hasCompletedWordLength(_ length: Int) -> Bool {
+        let key = Keys.firstWordLength + "\(length)"
+        return defaults.bool(forKey: key)
+    }
+
+    func markWordLengthCompleted(_ length: Int) {
+        let key = Keys.firstWordLength + "\(length)"
+        defaults.set(true, forKey: key)
     }
 }

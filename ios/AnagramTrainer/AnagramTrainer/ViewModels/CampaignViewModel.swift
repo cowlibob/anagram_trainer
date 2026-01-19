@@ -204,6 +204,12 @@ class CampaignViewModel: ObservableObject {
                 outcome: isExact ? .exact : .correct,
                 points: points
             ))
+
+            // Report first word length achievement if not already completed
+            if !persistence.hasCompletedWordLength(letterCount) {
+                persistence.markWordLengthCompleted(letterCount)
+                GameCenterManager.shared.reportFirstWordLength(letterCount)
+            }
         }
 
         checkStageCompletion()
@@ -217,22 +223,29 @@ class CampaignViewModel: ObservableObject {
     }
     
     private func advanceStage() {
+        // Report achievement for completing the previous stage (before advancing)
+        if currentStageIndex >= 0 && currentStageIndex < CampaignStage.allStages.count {
+            GameCenterManager.shared.reportCampaignStageCompletion(stage: currentStageIndex)
+        }
+
         currentStageIndex += 1
-        
+
         if currentStageIndex >= CampaignStage.allStages.count {
             completeCampaign()
         } else {
             resetStageProgress()
         }
     }
-    
+
     private func resetStageProgress() {
         wordsRemaining = currentStage.count
     }
-    
+
     private func completeCampaign() {
         isComplete = true
         persistence.clearCampaignProgress()
+        // Report campaign complete achievement
+        GameCenterManager.shared.reportCampaignComplete()
     }
     
     func resetForNextWord() {
@@ -316,17 +329,17 @@ class CampaignViewModel: ObservableObject {
     }
     
     // MARK: - Leaderboard
-    
+
     func submitToLeaderboard(playerName: String) {
         // Submit to local for backup if desired
         let entry = LeaderboardEntry(
-            playerName: playerName, 
-            score: totalScore, 
+            playerName: playerName,
+            score: totalScore,
             history: currentHistory
         )
         persistence.addLeaderboardEntry(entry)
-        
-        // Submit to Game Center
-        GameCenterManager.shared.submitScore(totalScore)
+
+        // Submit to Game Center campaign leaderboard
+        GameCenterManager.shared.submitScore(totalScore, to: .campaign)
     }
 }
