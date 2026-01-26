@@ -121,4 +121,31 @@ class PersistenceManager {
         let key = Keys.firstWordLength + "\(length)"
         defaults.set(true, forKey: key)
     }
+
+    // MARK: - Debug Reset
+
+    #if DEBUG
+    /// Reset all app progress (DEBUG only)
+    func resetAllProgress() {
+        // Clear campaign progress
+        clearCampaignProgress()
+
+        // Clear graduated progress
+        resetGraduatedProgress()
+
+        // Clear leaderboard
+        saveLeaderboard([])
+
+        // Clear first word length tracking
+        for length in 3...9 {
+            let key = Keys.firstWordLength + "\(length)"
+            defaults.removeObject(forKey: key)
+        }
+
+        // Reset current level to default
+        defaults.removeObject(forKey: Keys.currentLevel)
+
+        print("✅ All progress reset")
+    }
+    #endif
 }

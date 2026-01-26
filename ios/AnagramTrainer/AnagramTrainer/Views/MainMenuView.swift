@@ -164,8 +164,30 @@ struct MainMenuView: View {
                     Spacer()
 
 #if DEBUG
-                    NavigationLink("Export Icons") {
-                        AchievementExportView()
+                    HStack(spacing: 15) {
+                        NavigationLink {
+                            AchievementExportView()
+                        } label: {
+                            Text("Export")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.5))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+
+                        Button {
+                            PersistenceManager.shared.resetAllProgress()
+                        } label: {
+                            Text("Reset")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.5))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(8)
+                        }
                     }
 #endif
                     Text("Master the art of anagrams")

@@ -1,10 +1,21 @@
 # Achievement Icon Export Guide
 
-This guide explains how to generate transparent PNG icons for Game Center achievements.
+This guide explains how to generate square PNG icons for Game Center achievements.
 
 ## Overview
 
-I've created an `AchievementIconGenerator` utility that programmatically generates all 21 achievement icons with transparent backgrounds at the required sizes (1024x1024 and 512x512).
+I've created an `AchievementIconGenerator` utility that programmatically generates all 21 achievement icons as square images with gradient backgrounds at the required sizes (1024x1024 and 512x512).
+
+**Important**: Per Apple's Human Interface Guidelines, achievement icons should be uploaded as square images. Game Center automatically applies a circular mask when displaying them. The icon and important visual elements are centered to ensure they remain visible after the circular clipping.
+
+## Technical Specifications
+
+All exported icons meet Game Center requirements:
+- **Dimensions**: 512x512 or 1024x1024 pixels (square)
+- **DPI**: 72 DPI (explicitly set in PNG metadata)
+- **Color Space**: sRGB
+- **Format**: PNG with solid gradient backgrounds
+- **Content**: Centered to accommodate circular masking
 
 ## Files Created
 
@@ -27,20 +38,19 @@ I've created an `AchievementIconGenerator` utility that programmatically generat
 
 2. **Run the app** on simulator or device
 
-3. **Tap the export buttons**:
-   - Tap "Export 1024x1024 Icons" first
-   - Then tap "Export 512x512 Icons"
+3. **Export and save the icons**:
+   - Tap "Export 1024x1024 Icons"
+   - Tap "Share Folder" when export completes
+   - Choose "Save to Files"
+   - Navigate to iCloud Drive or "On My iPhone/iPad"
+   - Create/select a folder named "LetterShift"
+   - Tap "Save"
+   - Repeat for "Export 512x512 Icons"
 
-4. **Find the exported files**:
-   - **On Simulator**:
-     - Open Finder
-     - Go to `~/Library/Developer/CoreSimulator/Devices/`
-     - Find your device folder
-     - Navigate to `data/Containers/Data/Application/[YOUR_APP]/Documents/AchievementIcons/`
-   - **On Device**:
-     - Open Files app
-     - Browse to "On My iPhone" → AnagramTrainer → AchievementIcons
-     - Or connect to Mac and use Finder to access files
+4. **Access the exported files**:
+   - Open Files app
+   - Navigate to where you saved the folders (iCloud Drive/LetterShift or On My iPhone/LetterShift)
+   - You should see two folders: LetterShift_1024 and LetterShift_512
 
 5. **Upload to App Store Connect**:
    - Go to App Store Connect → Your App → Features → Game Center
@@ -58,20 +68,21 @@ Add this code temporarily to your app's initialization or a debug button:
 
 ```swift
 Button("Export Icons") {
-    let documentsPath = FileManager.default.urls(
-        for: .documentDirectory,
-        in: .userDomainMask
-    )[0]
-    let exportDirectory = documentsPath.appendingPathComponent("AchievementIcons")
+    let tempDir = FileManager.default.temporaryDirectory
+        .appendingPathComponent("LetterShift_Icons")
 
     do {
+        // Remove if exists
+        try? FileManager.default.removeItem(at: tempDir)
+
         // Export 1024x1024
-        try AchievementIconGenerator.exportAllIcons(to: exportDirectory, size: 1024)
+        try AchievementIconGenerator.exportAllIcons(to: tempDir.appendingPathComponent("1024"), size: 1024)
 
         // Export 512x512
-        try AchievementIconGenerator.exportAllIcons(to: exportDirectory, size: 512)
+        try AchievementIconGenerator.exportAllIcons(to: tempDir.appendingPathComponent("512"), size: 512)
 
-        print("Icons exported to: \(exportDirectory.path)")
+        print("Icons exported to temp directory")
+        // Then use share sheet to save to Files
     } catch {
         print("Export failed: \(error)")
     }
@@ -130,24 +141,29 @@ After exporting, configure in App Store Connect:
 
 ## Troubleshooting
 
-**Icons have white backgrounds instead of transparent:**
-- Use Option 1 (Export View) - it uses UIGraphicsImageRenderer which supports transparency
-- Don't use screenshots from Xcode previews (they don't preserve transparency)
+**Icons appear off-center in Game Center:**
+- Ensure you're uploading the square images, not cropped circular versions
+- Game Center applies its own circular mask and centering
+
+**Share button doesn't appear:**
+- Wait for the export to complete (check the status message)
+- The "Share Folder" button appears after successful export
 
 **Can't find exported files:**
-- Check the console output for the exact path
-- On simulator, use Finder to navigate to CoreSimulator folder
-- On device, use Files app or connect to Mac
+- Check where you saved the folder in the share sheet
+- Look in Files app → iCloud Drive or "On My iPhone/iPad" → LetterShift
+- Search for "LetterShift_1024" or "LetterShift_512" in Files app
 
 **Export button doesn't work:**
 - Make sure to run on a device/simulator, not just preview
 - Check console for error messages
-- Verify file permissions
+- Verify you have storage space available
 
 ## Notes
 
 - All icons use SF Symbols for consistency
-- Transparent backgrounds are supported
+- Square images with gradient backgrounds (Game Center applies circular mask automatically)
 - Icons include subtle gradients and shadows for depth
 - Colors match the game's existing color scheme
 - Each icon is unique and visually distinct
+- Icons are centered to remain visible when Game Center applies its circular clipping

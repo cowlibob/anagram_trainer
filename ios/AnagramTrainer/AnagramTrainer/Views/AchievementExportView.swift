@@ -1,10 +1,13 @@
 import SwiftUI
+import UIKit
 
 /// Temporary view to export achievement icons
 /// Add this to your app temporarily to generate the PNG files
 struct AchievementExportView: View {
     @State private var exportStatus = "Ready to export"
     @State private var isExporting = false
+    @State private var showShareSheet = false
+    @State private var exportedURL: URL?
 
     var body: some View {
         ZStack {
@@ -35,6 +38,14 @@ struct AchievementExportView: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(isExporting)
+
+                    if let url = exportedURL {
+                        Button("Share Folder") {
+                            showShareSheet = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                    }
                 }
 
                 if isExporting {
@@ -53,13 +64,13 @@ struct AchievementExportView: View {
 
                     Text("1. Tap 'Export 1024x1024 Icons' to generate high-res files")
                         .foregroundColor(.secondary)
-                    Text("2. Files will be saved to Documents/AchievementIcons/")
+                    Text("2. Tap 'Share Folder' and save to Files/iCloud Drive")
                         .foregroundColor(.secondary)
-                    Text("3. Access via Files app or Finder (if Mac)")
+                    Text("3. Save to a folder named 'LetterShift' for easy access")
                         .foregroundColor(.secondary)
-                    Text("4. Upload to App Store Connect for each achievement")
+                    Text("4. Also export 512x512 for the smaller size requirement")
                         .foregroundColor(.secondary)
-                    Text("5. Also export 512x512 for the smaller size requirement")
+                    Text("5. Upload both sizes to App Store Connect for each achievement")
                         .foregroundColor(.secondary)
                 }
                 .font(.caption)
@@ -71,6 +82,11 @@ struct AchievementExportView: View {
             }
             .padding()
         }
+        .sheet(isPresented: $showShareSheet) {
+            if let url = exportedURL {
+                ShareSheet(items: [url])
+            }
+        }
     }
 
     func exportIcons(size: CGFloat) {
@@ -80,17 +96,19 @@ struct AchievementExportView: View {
         // Must run on main thread for UIHostingController rendering
         DispatchQueue.main.async {
             do {
-                // Get Documents directory
-                let documentsPath = FileManager.default.urls(
-                    for: .documentDirectory,
-                    in: .userDomainMask
-                )[0]
-                let exportDirectory = documentsPath.appendingPathComponent("AchievementIcons")
+                // Create temporary directory for export
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("LetterShift_\(Int(size))")
 
-                // Export all icons
-                try AchievementIconGenerator.exportAllIcons(to: exportDirectory, size: size)
+                // Remove if exists
+                try? FileManager.default.removeItem(at: tempDir)
 
-                exportStatus = "✅ Exported \(Int(size))x\(Int(size)) icons to:\n\(exportDirectory.path)"
+                // Export all icons to temp directory
+                try AchievementIconGenerator.exportAllIcons(to: tempDir, size: size)
+
+                exportedURL = tempDir
+                exportStatus = "✅ Exported \(Int(size))x\(Int(size)) icons!\nTap 'Share Folder' to save to Files/iCloud."
+                showShareSheet = true
                 isExporting = false
             } catch {
                 exportStatus = "❌ Error: \(error.localizedDescription)"
@@ -98,6 +116,19 @@ struct AchievementExportView: View {
             }
         }
     }
+}
+
+// MARK: - Share Sheet
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {

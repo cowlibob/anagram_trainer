@@ -80,7 +80,7 @@ Apple has been promising better Game Center tooling for years. Current status:
 
 ## Icon Files Reference
 
-All icons are exported to `Documents/AchievementIcons/` with naming:
+All icons are exported with naming:
 ```
 {achievement_id}_{size}x{size}.png
 ```
@@ -90,6 +90,13 @@ Example:
 lettershift_level_5_1024x1024.png
 lettershift_level_5_512x512.png
 ```
+
+**Technical Specifications:**
+- Format: PNG
+- Dimensions: 512x512 or 1024x1024 pixels (square)
+- DPI: 72 (Game Center requirement)
+- Color Space: sRGB
+- Background: Solid gradient (Game Center applies circular mask)
 
 ## Testing
 
