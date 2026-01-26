@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Common Commands
 
 ### Building
+
 ```bash
 # Build the app
 xcodebuild -scheme AnagramTrainer -configuration Debug -sdk iphoneos build
@@ -24,6 +25,21 @@ xcodebuild -scheme AnagramTrainer -configuration Debug -sdk iphonesimulator buil
 # Clean build folder
 xcodebuild clean -scheme AnagramTrainer
 ```
+
+### Build and Run on Device
+
+**After completing changes**, test on the Piglet device using the automated build script:
+
+```bash
+./build-and-run-piglet.sh
+```
+
+This script will:
+- Build the app for Piglet device
+- Install the app automatically
+- Launch the app on the device
+
+The script is pre-configured for device ID `00008101-000849E61A78001E` (Piglet running iOS 26.2).
 
 ### Running Tests
 ```bash

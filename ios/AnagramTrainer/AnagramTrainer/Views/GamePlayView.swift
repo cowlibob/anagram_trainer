@@ -433,6 +433,8 @@ struct GamePlayView: View {
                     onNext: {
                         // If we just unlocked a level, navigate back to selector
                         if mode == .graduated && viewModel.justUnlockedLevel != nil {
+                            // Submit graduated mode score to weekly leaderboard
+                            viewModel.submitGraduatedScore()
                             dismiss()
                         } else {
                             viewModel.resetForNextWord()
@@ -453,6 +455,8 @@ struct GamePlayView: View {
                     },
                     onQuit: {
                         showPauseMenu = false
+                        // Submit graduated mode score to weekly leaderboard
+                        viewModel.submitGraduatedScore()
                         dismiss()
                     }
                 )

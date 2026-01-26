@@ -286,7 +286,21 @@ class GameViewModel: ObservableObject {
 
     func submitGraduatedScore() {
         guard currentMode == .graduated, sessionScore > 0 else { return }
+
+        print("▶️ Play/Graduated: Submitting score \(sessionScore)")
+
+        // Submit to Game Center
         GameCenterManager.shared.submitScore(sessionScore, to: .graduated)
+
+        // Save to local leaderboard
+        let playerName = GameCenterManager.shared.getPlayerDisplayName()
+        let entry = LeaderboardEntry(
+            playerName: playerName,
+            score: sessionScore,
+            date: Date(),
+            history: sessionHistory
+        )
+        persistence.addPlayLeaderboardEntry(entry)
     }
 
     func resetSession() {

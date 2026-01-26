@@ -331,6 +331,8 @@ class CampaignViewModel: ObservableObject {
     // MARK: - Leaderboard
 
     func submitToLeaderboard(playerName: String) {
+        print("🏆 Campaign: Submitting score \(totalScore) for player \(playerName)")
+
         // Submit to local for backup if desired
         let entry = LeaderboardEntry(
             playerName: playerName,

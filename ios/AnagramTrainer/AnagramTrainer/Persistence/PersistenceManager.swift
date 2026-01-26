@@ -13,6 +13,7 @@ class PersistenceManager {
         static let campaignScore = "anagram_trainer_campaign_score"
         static let campaignWordsRemaining = "anagram_trainer_campaign_words"
         static let leaderboard = "anagram_trainer_leaderboard"
+        static let playLeaderboard = "anagram_trainer_play_leaderboard"
         static let graduatedWordCount = "anagram_trainer_graduated_word_count_"
         static let firstWordLength = "anagram_trainer_first_word_length_"
     }
@@ -80,6 +81,30 @@ class PersistenceManager {
         saveLeaderboard(entries)
     }
 
+    // MARK: - Play Mode Leaderboard Persistence
+
+    func savePlayLeaderboard(_ entries: [LeaderboardEntry]) {
+        if let encoded = try? JSONEncoder().encode(entries) {
+            defaults.set(encoded, forKey: Keys.playLeaderboard)
+        }
+    }
+
+    func loadPlayLeaderboard() -> [LeaderboardEntry] {
+        guard let data = defaults.data(forKey: Keys.playLeaderboard),
+              let entries = try? JSONDecoder().decode([LeaderboardEntry].self, from: data) else {
+            return []
+        }
+        return entries
+    }
+
+    func addPlayLeaderboardEntry(_ entry: LeaderboardEntry) {
+        var entries = loadPlayLeaderboard()
+        entries.append(entry)
+        entries.sort { $0.score > $1.score }  // Sort descending
+        entries = Array(entries.prefix(25))    // Keep top 25
+        savePlayLeaderboard(entries)
+    }
+
     // MARK: - Graduated Mode Word Count Tracking
 
     func incrementWordCount(for level: Int) {
@@ -133,8 +158,9 @@ class PersistenceManager {
         // Clear graduated progress
         resetGraduatedProgress()
 
-        // Clear leaderboard
+        // Clear leaderboards
         saveLeaderboard([])
+        savePlayLeaderboard([])
 
         // Clear first word length tracking
         for length in 3...9 {

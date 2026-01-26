@@ -70,7 +70,17 @@ class GameCenterManager: NSObject, ObservableObject {
             }
         }
     }
-    
+
+    /// Get the current player's display name, or "Player" if not authenticated
+    func getPlayerDisplayName() -> String {
+        let localPlayer = GKLocalPlayer.local
+        if localPlayer.isAuthenticated {
+            return localPlayer.displayName.isEmpty ? localPlayer.alias : localPlayer.displayName
+        } else {
+            return "Player"
+        }
+    }
+
     enum LeaderboardType {
         case campaign
         case graduated
@@ -87,11 +97,13 @@ class GameCenterManager: NSObject, ObservableObject {
         case .graduated: graduatedLeaderboardID
         }
 
+        print("📊 Submitting score \(score) to \(leaderboardType) (ID: \(leaderboardID))")
+
         GKLeaderboard.submitScore(score, context: 0, player: GKLocalPlayer.local, leaderboardIDs: [leaderboardID]) { error in
             if let error = error {
-                print("Error submitting score to \(leaderboardType): \(error.localizedDescription)")
+                print("❌ Error submitting score to \(leaderboardType) (ID: \(leaderboardID)): \(error.localizedDescription)")
             } else {
-                print("Successfully submitted score \(score) to \(leaderboardType)")
+                print("✅ Successfully submitted score \(score) to \(leaderboardType) (ID: \(leaderboardID))")
             }
         }
     }
