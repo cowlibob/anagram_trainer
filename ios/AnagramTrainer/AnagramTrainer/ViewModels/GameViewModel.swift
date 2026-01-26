@@ -101,6 +101,11 @@ class GameViewModel: ObservableObject {
                 points: 0
             )
             sessionHistory.append(attempt)
+
+            // Save skipped word to level history in graduated mode
+            if currentMode == .graduated {
+                persistence.addWordToLevelHistory(attempt, for: currentLevel)
+            }
         }
 
         gameState?.completeGame()
@@ -145,6 +150,12 @@ class GameViewModel: ObservableObject {
         if currentMode == .graduated {
             // Increment word count for current level
             persistence.incrementWordCount(for: currentLevel)
+
+            // Save word to level history
+            if let lastAttempt = sessionHistory.last {
+                persistence.addWordToLevelHistory(lastAttempt, for: currentLevel)
+            }
+
             let wordCount = persistence.getWordCount(for: currentLevel)
 
             // Check if we just unlocked the next level (20th completion)

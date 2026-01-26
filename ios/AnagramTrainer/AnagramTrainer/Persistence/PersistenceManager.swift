@@ -16,6 +16,7 @@ class PersistenceManager {
         static let playLeaderboard = "anagram_trainer_play_leaderboard"
         static let graduatedWordCount = "anagram_trainer_graduated_word_count_"
         static let firstWordLength = "anagram_trainer_first_word_length_"
+        static let graduatedLevelHistory = "anagram_trainer_graduated_level_history_"
     }
     
     private init() {}
@@ -132,7 +133,34 @@ class PersistenceManager {
         for level in 5...9 {
             let key = Keys.graduatedWordCount + "\(level)"
             defaults.removeObject(forKey: key)
+
+            let historyKey = Keys.graduatedLevelHistory + "\(level)"
+            defaults.removeObject(forKey: historyKey)
         }
+    }
+
+    // MARK: - Graduated Level Word History
+
+    func saveLevelHistory(_ history: [WordAttempt], for level: Int) {
+        let key = Keys.graduatedLevelHistory + "\(level)"
+        if let encoded = try? JSONEncoder().encode(history) {
+            defaults.set(encoded, forKey: key)
+        }
+    }
+
+    func loadLevelHistory(for level: Int) -> [WordAttempt] {
+        let key = Keys.graduatedLevelHistory + "\(level)"
+        guard let data = defaults.data(forKey: key),
+              let history = try? JSONDecoder().decode([WordAttempt].self, from: data) else {
+            return []
+        }
+        return history
+    }
+
+    func addWordToLevelHistory(_ attempt: WordAttempt, for level: Int) {
+        var history = loadLevelHistory(for: level)
+        history.append(attempt)
+        saveLevelHistory(history, for: level)
     }
 
     // MARK: - First Word Length Tracking

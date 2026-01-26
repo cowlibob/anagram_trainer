@@ -6,7 +6,7 @@ struct TrainingMenuView: View {
     @Environment(\.colorScheme) var colorScheme
 
     private let trainingModes: [TrainingMode] = [
-        .graduated, .suffix, .prefix,
+        .suffix, .prefix,
         .vowelCluster, .consonantBlend, .digraph, .trigraph
     ]
 
@@ -69,23 +69,13 @@ struct TrainingMenuView: View {
     @ViewBuilder
     private var trainingButtons: some View {
         ForEach(trainingModes) { mode in
-            if mode == .graduated {
-                themeAnimatedNavigationLink(
-                    destination: GraduatedDifficultySelector(viewModel: viewModel),
-                    title: mode.rawValue,
-                    icon: mode.icon,
-                    accentColor: mode.color
-                )
-            } else {
-                themeAnimatedNavigationLink(
-                    destination: GamePlayView(viewModel: viewModel, mode: mode),
-                    title: mode.rawValue,
-                    icon: mode.icon,
-                    accentColor: mode.color
-                )
-            }
+            themeAnimatedNavigationLink(
+                destination: GamePlayView(viewModel: viewModel, mode: mode),
+                title: mode.rawValue,
+                icon: mode.icon,
+                accentColor: mode.color
+            )
         }
-
     }
 
     @ViewBuilder

@@ -388,11 +388,11 @@ struct GamePlayView: View {
 
                 if viewModel.currentMode != mode || viewModel.gameState == nil || levelChanged || gameIsComplete {
                     viewModel.startNewRound(mode: mode)
+                }
 
-                    // Show info popup for specific training modes on entry
-                    if mode != .random && mode != .graduated {
-                        showingModeInfo = true
-                    }
+                // Show info popup for specific training modes on every entry
+                if mode != .random && mode != .graduated {
+                    showingModeInfo = true
                 }
 
                 // Set focus for keyboard input

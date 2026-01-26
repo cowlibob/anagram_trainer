@@ -13,6 +13,11 @@ struct GraduatedDifficultySelector: View {
     @State private var showConfetti = false
     @State private var animatingUnlock: Int? = nil
     @State private var animationStartTime: Date = Date()
+    @State private var expandedLevel: Int? = nil
+    @State private var swipedLevel: Int? = nil
+    @State private var hasShownHint = false
+    @State private var isDragging: Bool = false
+    @State private var hintOffsets: [Int: CGFloat] = [:]
 
     private let standardLight = TrainingMode.graduated.color
     private let standardDark = TrainingMode.graduated.darkColor
@@ -34,13 +39,28 @@ struct GraduatedDifficultySelector: View {
             let currentPhase = summed.truncatingRemainder(dividingBy: twoPi)
 
             VStack(spacing: 80) {
+//                Spacer()
+//                    .frame(height: 10)
+
                 ForEach(Array(levels.enumerated()), id: \.element.level) { index, node in
-                    levelNodeButton(node: node, geometry: geometry, index: index)
+                    VStack(spacing: 16) {
+                        levelNodeButton(node: node, geometry: geometry, index: index)
+
+                        // Expandable word history section (only show when both swiped and expanded)
+                        if expandedLevel == node.level && swipedLevel == node.level {
+                            wordHistorySection(for: node.level)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .top).combined(with: .opacity)
+                                ))
+                        }
+                    }
                 }
             }
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 60)
+        .padding(.top, 30)
     }
 
     // Level definitions with icons
@@ -112,6 +132,34 @@ struct GraduatedDifficultySelector: View {
                     viewModel.justUnlockedLevel = nil
                 }
             }
+
+            // Show swipe hint animation for completed levels with staggered delays
+            if !hasShownHint {
+                var delayIndex = 0
+                for (index, level) in levels.enumerated() {
+                    let wordCount = persistence.getWordCount(for: level.level)
+                    if wordCount > 0 {
+                        let baseDelay = 0.5 + (Double(delayIndex) * 0.15)
+                        let levelId = level.level
+                        let swipeLeft = index % 2 == 0
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                hintOffsets[levelId] = swipeLeft ? -30 : 30
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    hintOffsets[levelId] = 0
+                                }
+                            }
+                        }
+                        delayIndex += 1
+                    }
+                }
+                if delayIndex > 0 {
+                    hasShownHint = true
+                }
+            }
         }
     }
 
@@ -120,36 +168,152 @@ struct GraduatedDifficultySelector: View {
         let isUnlocked = persistence.isLevelUnlocked(node.level)
         let wordCount = persistence.getWordCount(for: node.level)
         let isAnimating = animatingUnlock == node.level
+        let hasHistory = wordCount > 0
+        let isSwiped = swipedLevel == node.level
+        let swipeLeft = index % 2 == 0  // Even rows slide left, odd rows slide right
 
-        NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
-            HStack(spacing: 40) {
-                if index % 2 == 0 {
-                    // Icon on left, text on right
-                    circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
-                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount, alignment: .leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } else {
-                    // Text on left, icon on right
-                    textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount, alignment: .trailing)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                    circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
+        ZStack(alignment: swipeLeft ? .trailing : .leading) {
+            // History button revealed by swipe (only for levels with history)
+            if hasHistory {
+                HStack {
+                    if !swipeLeft {
+                        Button(action: {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                if expandedLevel == node.level {
+                                    // Closing the list - hide button and slide back
+                                    expandedLevel = nil
+                                    swipedLevel = nil
+                                } else {
+                                    // Opening the list - keep button visible
+                                    expandedLevel = node.level
+                                }
+                            }
+                        }) {
+                            Text("History")
+                                .font(.custom("DIN Condensed", size: 18 * scalingFactor))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(Color.white.opacity(0.3))
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        Spacer()
+                    } else {
+                        Spacer()
+                        Button(action: {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                if expandedLevel == node.level {
+                                    // Closing the list - hide button and slide back
+                                    expandedLevel = nil
+                                    swipedLevel = nil
+                                } else {
+                                    // Opening the list - keep button visible
+                                    expandedLevel = node.level
+                                }
+                            }
+                        }) {
+                            Text("History")
+                                .font(.custom("DIN Condensed", size: 18 * scalingFactor))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(Color.white.opacity(0.3))
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
+                .padding(.horizontal, 20)
+                .opacity(isSwiped ? 1.0 : 0.0)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 20)
+
+            // Main row content
+            NavigationLink(destination: GamePlayView(viewModel: viewModel, mode: .graduated)) {
+                HStack(spacing: 40) {
+                    if index % 2 == 0 {
+                        // Icon on left, text on right
+                        circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
+                        textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        // Text on left, icon on right
+                        textContent(node: node, isUnlocked: isUnlocked, wordCount: wordCount, alignment: .trailing)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                        circleIcon(node: node, isUnlocked: isUnlocked, wordCount: wordCount, isAnimating: isAnimating)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 20)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(!isUnlocked || isSwiped)
+            .opacity(isUnlocked ? 1.0 : 0.6)
+            .offset(x: isSwiped ? (swipeLeft ? -120 : 120) : (hasHistory ? (hintOffsets[node.level] ?? 0) : 0))
+            .simultaneousGesture(TapGesture().onEnded {
+                if isUnlocked && !isSwiped {
+                    viewModel.currentLevel = node.level
+                    viewModel.streak = 0
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        animatedBase = node.color
+                    }
+                }
+            })
+            .highPriorityGesture(
+                hasHistory ?
+                DragGesture(minimumDistance: 10)
+                    .onChanged { value in
+                        isDragging = true
+
+                        // Swipe direction depends on row layout
+                        if swipeLeft {
+                            // Even rows: swipe left to open, right to close
+                            if value.translation.width < -20 {
+                                withAnimation(.interactiveSpring()) {
+                                    swipedLevel = node.level
+                                }
+                            } else if value.translation.width > 20 && isSwiped {
+                                withAnimation(.interactiveSpring()) {
+                                    swipedLevel = nil
+                                    if expandedLevel == node.level {
+                                        expandedLevel = nil
+                                    }
+                                }
+                            }
+                        } else {
+                            // Odd rows: swipe right to open, left to close
+                            if value.translation.width > 20 {
+                                withAnimation(.interactiveSpring()) {
+                                    swipedLevel = node.level
+                                }
+                            } else if value.translation.width < -20 && isSwiped {
+                                withAnimation(.interactiveSpring()) {
+                                    swipedLevel = nil
+                                    if expandedLevel == node.level {
+                                        expandedLevel = nil
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .onEnded { _ in
+                        // Small delay before allowing taps again
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            isDragging = false
+                        }
+                    }
+                : nil
+            )
         }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(!isUnlocked)
-        .opacity(isUnlocked ? 1.0 : 0.6)
-        .simultaneousGesture(TapGesture().onEnded {
-            if isUnlocked {
-                viewModel.currentLevel = node.level
-                viewModel.streak = 0
-                withAnimation(.easeInOut(duration: 0.4)) {
-                    animatedBase = node.color
+        .contentShape(Rectangle())
+        .onTapGesture {
+            // Dismiss swipe on tap outside
+            if isSwiped {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    swipedLevel = nil
                 }
             }
-        })
+        }
     }
 
     @ViewBuilder
@@ -203,6 +367,98 @@ struct GraduatedDifficultySelector: View {
         }
         .scaleEffect(isAnimating ? 1.2 : 1.0)
         .animation(.spring(response: 0.5, dampingFraction: 0.6), value: isAnimating)
+    }
+
+    @ViewBuilder
+    private func wordHistorySection(for level: Int) -> some View {
+        let history = persistence.loadLevelHistory(for: level)
+
+        VStack(spacing: 12) {
+            if !history.isEmpty {
+                ForEach(history) { attempt in
+                    historyRow(attempt)
+                }
+            } else {
+                Text("No words guessed yet")
+                    .font(.headline)
+                    .foregroundColor(.white.opacity(0.6))
+                    .padding(.vertical, 20)
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    @ViewBuilder
+    private func historyRow(_ attempt: WordAttempt) -> some View {
+        HStack(spacing: 15) {
+            // Outcome Icon
+            outcomeIcon(attempt.outcome)
+                .font(.title2)
+                .frame(width: 30)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text(attempt.word)
+                        .font(.custom("DIN Condensed", size: 22 * scalingFactor))
+                        .foregroundColor(.white)
+
+                    if let guessed = attempt.guessedWord, guessed != attempt.word {
+                        Text("(\(guessed))")
+                            .font(.custom("DIN Condensed", size: 18 * scalingFactor))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                }
+
+                Text(outcomeText(attempt.outcome))
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                if attempt.outcome != .skipped {
+                    Text("\(attempt.points) pts")
+                        .font(.system(.body, design: .rounded))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green.opacity(0.9))
+
+                    Text(String(format: "%.1fs", attempt.duration))
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.7))
+                } else {
+                    Text("0 pts")
+                        .font(.system(.body, design: .rounded))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+        }
+        .padding()
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(12)
+    }
+
+    @ViewBuilder
+    private func outcomeIcon(_ outcome: WordOutcome) -> some View {
+        switch outcome {
+        case .correct:
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
+        case .exact:
+            Image(systemName: "star.circle.fill")
+                .foregroundColor(.yellow)
+        case .skipped:
+            Image(systemName: "arrow.right.circle.fill")
+                .foregroundColor(.gray)
+        }
+    }
+
+    private func outcomeText(_ outcome: WordOutcome) -> String {
+        switch outcome {
+        case .correct: return "Solved"
+        case .exact: return "Exact Match"
+        case .skipped: return "Skipped"
+        }
     }
 
     @ViewBuilder

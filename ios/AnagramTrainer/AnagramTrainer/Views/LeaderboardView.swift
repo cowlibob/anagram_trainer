@@ -13,8 +13,8 @@ struct LeaderboardView: View {
 
         var title: String {
             switch self {
-            case .play: return "Weekly Play Scores"
-            case .campaign: return "Campaign High Scores"
+            case .play: return "Play"
+            case .campaign: return "Campaign"
             }
         }
 
@@ -29,7 +29,7 @@ struct LeaderboardView: View {
     @State private var campaignEntries: [LeaderboardEntry] = []
     @State private var playEntries: [LeaderboardEntry] = []
     @State private var selectedScope: LeaderboardScope = .local
-    @State private var selectedMode: LeaderboardMode = .campaign
+    @State private var selectedMode: LeaderboardMode = .play
     @State private var isLoading = false
     @State private var errorMessage: String? = nil
 
@@ -151,15 +151,11 @@ struct LeaderboardView: View {
 
         VStack(spacing: 0) {
             // Page title
-            HStack(spacing: 8) {
-                Image(systemName: mode.icon)
-                    .font(.system(size: 18))
-                Text(mode.title)
-                    .font(.custom("DIN Condensed", size: 26 * scalingFactor))
-                    .kerning(1)
-            }
-            .foregroundColor(.white)
-            .padding(.vertical, 12)
+            Text(mode.title)
+                .font(.custom("DIN Condensed", size: 26 * scalingFactor))
+                .kerning(1)
+                .foregroundColor(.white)
+                .padding(.vertical, 12)
 
             if isLoading {
                 VStack {
