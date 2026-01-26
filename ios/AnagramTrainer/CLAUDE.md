@@ -28,7 +28,7 @@ xcodebuild clean -scheme AnagramTrainer
 
 ### Build and Run on Device
 
-**After completing changes**, test on the Piglet device using the automated build script:
+**IMPORTANT: After EVERY completed change**, test on the Piglet device using the automated build script:
 
 ```bash
 ./build-and-run-piglet.sh
@@ -36,10 +36,13 @@ xcodebuild clean -scheme AnagramTrainer
 
 This script will:
 - Build the app for Piglet device
-- Install the app automatically
+- Kill any running instance (ensures fresh start)
+- Install the new build automatically
 - Launch the app on the device
 
 The script is pre-configured for device ID `00008101-000849E61A78001E` (Piglet running iOS 26.2).
+
+**Use this script instead of manual Xcode builds** - it replicates Xcode's "Build and Run" behavior from the command line and ensures the latest changes are running.
 
 ### Running Tests
 ```bash
