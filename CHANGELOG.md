@@ -1,6 +1,168 @@
 # Changelog
 
-## [Unreleased] - iOS Native App - 2025-12-29
+## [Unreleased] - iOS Native App - 2026-01-26
+
+### Added - iOS SwiftUI App
+- **Swipe-to-Reveal Word History** in Graduated Difficulty Selector:
+  - Per-level word history tracking with persistence
+  - iOS-native swipe gestures with alternating directions (even rows swipe left, odd rows swipe right)
+  - History button revealed on swipe without triggering navigation
+  - Detailed word list with outcome icons (checkmark/star/arrow), points, and times
+  - Staggered hint animation on first view showing swipeable rows
+  - Expandable history list stays visible when tapped, closes on swipe back
+- **Dual Leaderboards** with swipeable TabView:
+  - Separate Play (weekly) and Campaign (all-time) leaderboards
+  - Swipeable pages with indicator dots at bottom
+  - Local/Global scope toggle for each leaderboard
+  - Simplified titles ("Play" and "Campaign")
+  - NavigationLink for local entries to view detailed session history
+- **Automated Build Script** (`build-and-run-piglet.sh`):
+  - One-command build and deploy to physical device
+  - Automatically kills running app before installing
+  - Replicates Xcode's "Build and Run" behavior from command line
+  - Added to CLAUDE.md with strong recommendation to use after every change
+
+### Changed - iOS SwiftUI App
+- **Removed Graduated mode from Train menu** (still accessible via main menu Play button for better UX)
+- **Training mode info overlay** now shows on every entry, not just when changing modes
+- **Leaderboard titles** simplified and icons removed for cleaner appearance
+
+### Fixed - iOS SwiftUI App
+- **High-priority gesture handling** prevents navigation when swiping to reveal history
+- **Achievement icon export** now includes proper 72 DPI metadata and uses share sheet for easy transfer
+- **Swipe gesture state management** properly tracks and dismisses revealed buttons
+
+## [Unreleased] - iOS Native App - 2026-01-19
+
+### Added - iOS SwiftUI App
+- **Dual Game Center Leaderboards**:
+  - Separate leaderboards for Campaign (all-time high scores) and Play/Graduated (weekly scores)
+  - Leaderboard IDs: `lettershift_campaign_scores` and `lettershift_graduated_scores`
+  - Automatic score submission with detailed console logging
+  - Trophy button in leaderboard view to access Game Center achievements
+- **Comprehensive Achievement System** (20+ achievements):
+  - Word length achievements (3-9 letters)
+  - Letter-specific challenges (Q, X, Z words)
+  - Speed achievements (10s, 30s, 60s)
+  - Streak achievements (3, 5, 10 correct in a row)
+  - Campaign completion achievements (stages 1-8, full campaign)
+  - Graduated level achievements (Beginner through Master)
+  - Rare achievements (100+ words, 500+ words, 1000+ words)
+- **Achievement Icon Generator**:
+  - SwiftUI-based generator for creating Game Center achievement icons
+  - Renders Graduated Difficulty Selector views at different completion states
+  - Export functionality with proper DPI metadata (72 DPI)
+  - Share sheet integration for easy file transfer
+  - Debug-only navigation from Main Menu
+- **Game Center Setup Documentation**:
+  - Added `game_center_setup.md` with detailed configuration instructions
+  - Included `achievements.json` with complete achievement definitions
+  - Leaderboard configuration reference
+
+### Changed - iOS SwiftUI App
+- **Play mode score tracking** now persists locally and submits to Game Center weekly leaderboard
+- **AudioManager** initialized at app launch to ensure mute switch is respected from first sound
+
+### Fixed - iOS SwiftUI App
+- **Audio respects device mute switch** - sounds no longer play when mute switch is enabled
+- **Audio volume** now properly follows device volume level
+
+## [Unreleased] - iOS Native App - 2026-01-18
+
+### Added - iOS SwiftUI App
+- **Letter-Based Scoring System**:
+  - Base points calculated by letter length (3-letter words: 30pts, 9-letter words: 90pts)
+  - Time bonus: up to 50% extra points for fast completion (< 5 seconds)
+  - Graduated mode session scoring tracks cumulative points
+  - Play sessions submit weekly high scores to leaderboard
+- **Shuffle Button**:
+  - Tap to randomly rearrange scrambled letters
+  - Helps discover new letter patterns
+  - Visual button with shuffle icon in gameplay
+
+### Changed - iOS SwiftUI App
+- **Graduated Difficulty Selector** completely redesigned:
+  - Side-by-side alternating layout (icon-left/text-right, text-left/icon-right)
+  - Circular level icons with dotted progress rings
+  - Unlock status and word count displayed per level
+  - Confetti animation on level unlock
+  - Five difficulty levels: Beginner (5), Warming Up (6), Getting Hot (7), Challenging (8), Master (9)
+- **Placeholder text** changed from "Type here..." to "Tap letters to spell word"
+- **UI spacing improvements** for better visual hierarchy
+
+## [Unreleased] - iOS Native App - 2026-01-10/11
+
+### Added - iOS SwiftUI App
+- **Word Count Progression System** for Graduated mode:
+  - Tracks completion count per word length (5-9 letters)
+  - 20 words required to unlock next difficulty level
+  - Persistent progress tracking across sessions
+  - Visual progress indicators in difficulty selector
+- **Animated Sine Wave Paths** in Graduated Difficulty Selector:
+  - Meandering path connecting difficulty levels
+  - Animated wave with proper amplitude envelope
+  - Arc-length parameterization for smooth animation
+  - Static end sections with smooth wave transition
+  - Phase wrapping for continuous infinite scroll effect
+
+### Changed - iOS SwiftUI App
+- **Graduated Difficulty Selector** evolved through multiple design iterations:
+  - Initial meandering path with circular progress indicators
+  - Experimented with sine wave mathematics and animations
+  - Final side-by-side layout (see 2026-01-18 changes)
+
+## [Unreleased] - iOS Native App - 2026-01-06/07/10
+
+### Added - iOS SwiftUI App
+- **SpriteKit Background Implementation**:
+  - Replaced SwiftUI MenuBackgroundView with SpriteMenuBackgroundView using SpriteKit
+  - Calculated diagonal coverage to ensure letters extend beyond screen edges during rotation
+  - Grid square sized at 2× diagonal distance for complete screen coverage
+  - Eliminated edge gaps visible during rotation
+  - Smoother performance with hardware-accelerated rendering
+- **Sound Feedback**:
+  - Success sound on correct answer
+  - Failure sound on wrong answer or skip
+  - AudioManager handles sound playback
+  - Respects device mute switch and volume
+- **Confetti Effects**:
+  - Celebrates correct answers with confetti animation
+  - Confetti on level unlock in Graduated mode
+  - ConfettiView component with particle system
+- **Handedness Option**:
+  - Center/Left/Right positioning options for concentric circular buttons
+  - Setting accessible from pause menu
+  - Preference persisted via UserSettings
+
+### Changed - iOS SwiftUI App
+- **Comprehensive Dark Mode Support**:
+  - Adaptive color schemes across all screens
+  - Dark mode backgrounds and text colors
+  - Theme-aware gradients and materials
+  - Improved visibility in all lighting conditions
+
+### Fixed - iOS SwiftUI App
+- **Pause Menu** now correctly displays guessed words without letter duplication
+- **Main Menu Color Flash** eliminated during navigation back from gameplay
+- **Automatic Pause on Backgrounding** - game pauses when app goes to background
+- **Dark Mode Popups** properly styled with correct backgrounds and text colors
+- **Continuous Haptic Feedback** bug fixed - haptics no longer continue when app backgrounds during button hold
+- **Popover Styling** unified with opaque white backgrounds and proper z-index layering
+
+## [Unreleased] - iOS Native App - 2026-01-04/05
+
+### Added - iOS SwiftUI App
+- **Skip Button** in leaderboard entry sheet for faster score submission
+- **Campaign Cancellation** without score submission - players can quit without adding incomplete runs to leaderboard
+
+### Changed - iOS SwiftUI App
+- **Guessed Word Positioning** moved above letter buttons to prevent finger obstruction during typing
+- **Popover backgrounds** unified to opaque white for better readability
+
+### Fixed - iOS SwiftUI App
+- **Z-index layering** corrected to prevent UI elements from appearing beneath popups
+
+## [Unreleased] - iOS Native App - 2025-12-29/30
 
 ### Added - iOS SwiftUI App
 - **Concentric Circular Buttons**: Completely redesigned the game controls (Submit, Clear, Skip) into a compact, ergonomic corner cluster.
